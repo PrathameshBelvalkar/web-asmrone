@@ -1,0 +1,1 @@
+rebelonion/echo-asmr-one @ e0f56a9c1dc22ce668cf5a6a6aacc2bcbe611202 (vendored, patched by echo-web; see README)
