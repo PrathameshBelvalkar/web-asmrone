@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+.gradle/
+.kotlin/
+*.log
+
+# Installed design skill (kept for reference only; its hook is disabled)
+.agents/
+.claude/
