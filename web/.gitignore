@@ -4,6 +4,7 @@ build/
 .gradle/
 .kotlin/
 *.log
+.vite/
 
 # Installed design skill (kept for reference only; its hook is disabled)
 .agents/
