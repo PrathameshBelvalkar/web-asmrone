@@ -47,11 +47,21 @@ export interface EchoDate {
 }
 
 /**
- * Kotlin `Date(year, month?, day?)`. Uses local time and midnight (the Kotlin code keeps the
- * current time of day; the frontend does not display it, so midnight is used instead).
+ * Kotlin `Date(year, month?, day?)`: `Calendar.getInstance()` then `set(year, month, day)`. The date
+ * fields are replaced and the time of day (hour, minute, second, millisecond) stays the current
+ * time, in local time. So the value changes with each request, as it does on the Kotlin server.
  */
-export function dateFromYmd(year: number, month?: number, day?: number): EchoDate {
-  return { epochTimeMs: new Date(year, (month ?? 1) - 1, day ?? 1).getTime() };
+export function dateFromYmd(year: number, month?: number, day?: number, now: Date = new Date()): EchoDate {
+  const date = new Date(
+    year,
+    (month ?? 1) - 1,
+    day ?? 1,
+    now.getHours(),
+    now.getMinutes(),
+    now.getSeconds(),
+    now.getMilliseconds(),
+  );
+  return { epochTimeMs: date.getTime() };
 }
 
 export interface Tab {

@@ -287,7 +287,21 @@ describe('error envelopes', () => {
 
   it('unknown /api routes return JSON 404 for any method', async () => {
     await request(app()).get('/api/nothing').expect(404, { type: 'not_found', message: null });
-    await request(app()).delete('/api/home').expect(404, { type: 'not_found', message: null });
+    await request(app()).post('/api/nothing').expect(404, { type: 'not_found', message: null });
+  });
+
+  it('a known path with the wrong method returns 405 with an Allow header', async () => {
+    const del = await request(app()).delete('/api/home').expect(405);
+    expect(del.headers.allow).toBe('GET');
+    expect(del.body).toEqual({ type: 'method_not_allowed', message: null });
+    const put = await request(app()).put('/api/auth/me').expect(405);
+    expect(put.headers.allow).toBe('GET');
+    const get = await request(app()).get('/api/settings/onlyShowSfw').expect(405);
+    expect(get.headers.allow).toBe('PUT');
+  });
+
+  it('HEAD is answered by the GET routes', async () => {
+    await request(app()).head('/api/auth/forms').expect(200);
   });
 
   it('a body that is not a JSON object is a 400', async () => {
