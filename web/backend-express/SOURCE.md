@@ -37,6 +37,10 @@ These are changes in behaviour, all made on purpose.
 - **Playlist metadata edits work.** The Kotlin client could not send the nested `data` object,
   so edits and privacy changes never reached asmr.one. The body is now sent correctly.
 - **Subtitle cue settings are accepted.** `00:01.000 --> 00:02.000 align:start` used to fail.
+- **Unknown routes and wrong methods.** An unknown path returns a JSON 404. A known path with an
+  unsupported method returns 405 with an `Allow` header, and the body is the JSON envelope. Kotlin
+  returns an empty body for both, and for a `DELETE` on `/api/settings/{key}` it returns 404 where
+  Node returns 405.
 - **Dates with a `T` separator are accepted.**
 - **Home "more" pages start at page 2.** The Kotlin version repeated page 1.
 - **Caches are keyed by mirror and language.** The Kotlin caches were keyed by work id only, so
@@ -48,12 +52,17 @@ These are changes in behaviour, all made on purpose.
 - **Invalid `PORT` stops startup.** The Kotlin server silently used 8080.
 - **Upstream requests stop when the client disconnects.** This applies to the audio proxy.
 - **`user.json` and `settings.json` are written with mode 0600.**
-- **Release dates are local midnight.** The Kotlin code kept the current time of day. The
-  frontend does not show it.
 - **Recursive audio listing is the same algorithm.** An earlier review suggested Kotlin's
   `getAllAudioFiles(recursively = true)` duplicates deep files. Tracing it by hand found no
-  duplicates, so the port keeps the Kotlin algorithm unchanged. (Not verified by running the
-  Kotlin code, since no JDK is installed here.)
+  duplicates, so the port keeps the Kotlin algorithm unchanged. (Not run against the Kotlin
+  server.)
 
 Known and kept as in Kotlin: the asmr.one bearer token is sent with subtitle downloads, even when
 the download host is not asmr.one. Review this before relying on the port with other hosts.
+
+## Matches Kotlin, with a caveat
+
+- **Release dates keep the current time of day, as Kotlin does.** `Date(year, month, day)` in Kotlin
+  replaces the date fields and keeps the time of day of the request. The port does the same, so the
+  value changes with each request on both servers. Compare release dates by local day, not by
+  milliseconds.

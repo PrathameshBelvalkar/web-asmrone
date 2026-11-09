@@ -5,6 +5,7 @@ import { serverStreamable } from '../../src/models/echo/streamable.js';
 import { parseMediaAs, parseMediaItem } from '../../src/schemas/media-item.schema.js';
 import { HttpError } from '../../src/models/errors.js';
 import { mediaView } from '../../src/views/media.view.js';
+import { streamView } from '../../src/views/stream.view.js';
 import { shelfView } from '../../src/views/shelf.view.js';
 import { feedView } from '../../src/views/feed.view.js';
 import { pageView } from '../../src/views/page.view.js';
@@ -17,6 +18,8 @@ import type { Shelf } from '../../src/models/echo/shelf.js';
 import type { Json } from '../../src/models/json.js';
 
 const MODEL = 'dev.brahmkshatriya.echo.common.models.';
+/** Fixed "now" so release dates are reproducible: only the time of day comes from it. */
+const NOW = new Date(2026, 0, 2, 10, 11, 12, 13);
 
 function recorder(): ViewContext & { urls: string[]; feeds: number } {
   const urls: string[] = [];
@@ -87,7 +90,7 @@ describe('media views (wire shape)', () => {
       id: '1',
       title: 'Album',
       cover: imageFromUrl('https://img/cover.jpg'),
-      releaseDate: dateFromYmd(2020, 1, 1),
+      releaseDate: dateFromYmd(2020, 1, 1, NOW),
     });
     const json = mediaView(album, ctx.issueUrl) as Record<string, Json>;
     expect(json.mediaItemType).toBe(`${MODEL}Album`);
@@ -123,13 +126,54 @@ describe('media views (wire shape)', () => {
     expect(json.isPlayable).toEqual({ type: `${MODEL}Track.Playable.No`, reason: 'Album Required' });
   });
 
-  it('radio omits background and isRadioSupported, as Kotlin does', () => {
+  it('radio carries artists, a null background and isRadioSupported false, as Kotlin does', () => {
     const json = mediaView(
-      { kind: 'Radio', id: 'r', title: 'R', cover: null, authors: [], trackCount: null, description: null, subtitle: null, extras: {}, isFollowable: false, isSaveable: false, isLikeable: false, isHideable: false, isShareable: true } satisfies EchoMediaItem,
+      { kind: 'Radio', id: 'r', title: 'R', cover: null, authors: [makeArtist({ id: 'a', name: 'A' })], trackCount: null, description: null, subtitle: null, extras: {}, isFollowable: false, isSaveable: false, isLikeable: false, isHideable: false, isShareable: true } satisfies EchoMediaItem,
       () => undefined,
     ) as Record<string, Json>;
-    expect('background' in json).toBe(false);
-    expect('isRadioSupported' in json).toBe(false);
+    expect(json.background).toBeNull();
+    expect(json.isRadioSupported).toBe(false);
+    expect((json.artists as Record<string, Json>[])[0]?.title).toBe('A');
+  });
+
+  it('computed fields match the Kotlin body properties', () => {
+    const artist = mediaView(makeArtist({ id: 'a', name: 'Voice', bio: 'bio', subtitle: 'sub' }), () => undefined) as Record<string, Json>;
+    expect(artist).toMatchObject({ title: 'Voice', description: 'bio', subtitleWithOutE: 'sub' });
+
+    const album = mediaView(makeAlbum({ id: '1', title: 'A', releaseDate: dateFromYmd(2020, 1, 1, NOW), artists: [makeArtist({ id: 'x', name: 'X' }), makeArtist({ id: 'y', name: 'Y' })] }), () => undefined) as Record<string, Json>;
+    expect(album.subtitleWithOutE).toBe('X, Y');
+    expect(album.date).toEqual({ epochTimeMs: dateFromYmd(2020, 1, 1, NOW).epochTimeMs });
+
+    const playlist = mediaView(makePlaylist({ id: 'p', title: 'P', isEditable: true, authors: [makeArtist({ id: 'a', name: 'Au' })], creationDate: dateFromYmd(2021, 2, 3, NOW) }), () => undefined) as Record<string, Json>;
+    expect((playlist.artists as Record<string, Json>[])[0]?.name).toBe('Au');
+    expect(playlist.date).toEqual({ epochTimeMs: dateFromYmd(2021, 2, 3, NOW).epochTimeMs });
+
+    // Kotlin Date(y, m, d) keeps the current time of day, so the release date carries the request's time.
+    const withTime = new Date(2021, 1, 3, 10, 11, 12, 13).getTime();
+    expect(dateFromYmd(2021, 2, 3, NOW).epochTimeMs).toBe(withTime);
+  });
+
+  it('track subtitles follow the Kotlin formulas', () => {
+    const artists = [makeArtist({ id: 'a', name: 'A' }), makeArtist({ id: 'b', name: 'B' })];
+    const timed = mediaView(makeTrack({ id: 't', title: 'T', duration: 3_723_000, artists }), () => undefined) as Record<string, Json>;
+    expect(timed.subtitleWithOutE).toBe('01:02:03 • A, B');
+    expect(timed.subtitleWithE).toBe('01:02:03 • A, B');
+
+    const explicit = mediaView(makeTrack({ id: 't', title: 'T', duration: 125_000, isExplicit: true, subtitle: 'Sub' }), () => undefined) as Record<string, Json>;
+    expect(explicit.subtitleWithOutE).toBe('Sub');
+    expect(explicit.subtitleWithE).toBe('\uD83C\uDD74 Sub');
+
+    const bare = mediaView(makeTrack({ id: 't', title: 'T' }), () => undefined) as Record<string, Json>;
+    expect(bare.subtitleWithOutE).toBeNull();
+    expect(bare.subtitleWithE).toBeNull();
+  });
+
+  it('a stream source carries its URL as id', () => {
+    const json = streamView(
+      { mediaKind: 'Server', sources: [{ sourceKind: 'Http', request: { url: 'https://cdn/x.mp3', headers: {}, method: 'GET', bodyBase64: null }, type: 'Progressive', decryption: null, quality: 0, title: null, isVideo: false, isLive: false }], merged: false },
+      () => undefined,
+    ) as Record<string, Json>;
+    expect(((json.sources as Record<string, Json>[])[0] ?? {}).id).toBe('https://cdn/x.mp3');
   });
 
   it('a playlist keeps isPrivate and isEditable', () => {
