@@ -1,0 +1,43 @@
+{
+  "name": "echo-web-backend-express",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Echo Web backend (Node/Express port of web/backend). API only.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:live": "LIVE=1 vitest run tests/live"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "pino": "^10.4.0",
+    "pino-http": "^11.0.0",
+    "undici": "^8.12.4",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.0",
+    "@types/supertest": "^6.0.3",
+    "eslint": "^9.39.0",
+    "eslint-config-prettier": "^10.1.8",
+    "msw": "^2.11.6",
+    "prettier": "^3.6.2",
+    "supertest": "^7.3.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.4",
+    "vitest": "^3.2.4"
+  }
+}
