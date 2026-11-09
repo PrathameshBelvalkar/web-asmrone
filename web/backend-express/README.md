@@ -57,7 +57,7 @@ models/        domain types (Echo common slice), PagedData, Feed, errors, the ex
 extension/     the asmr.one implementation of the port (API client, features, mappers)
 repositories/  settings.json and user.json (atomic writes)
 stores/        expiring feed and page registries; the issued-URL allow-list
-middlewares/   body parsing, error envelope, JSON 404
+middlewares/   body parsing, error envelope, 405 with Allow, JSON 404
 lib/           HTTP dispatcher, LRU cache, mutex, atomic file writes, logger
 container.ts   composition root: builds every object once
 app.ts         Express app (no listen); server.ts starts it
@@ -94,7 +94,7 @@ All paths are under `/api`. Errors use `{ "type": string, "message": string | nu
 | PUT | `/settings/:key` | Body `{value}`; `null` removes the value |
 | GET | `/proxy?url=` | Streams an issued URL; forwards `Range`; 403 if not issued |
 
-Any other `/api` route returns `404 {"type":"not_found","message":null}`.
+An unknown `/api` path returns `404 {"type":"not_found","message":null}`. A known path with a method it doesn't support returns `405 {"type":"method_not_allowed","message":null}` with an `Allow` header.
 
 ## Tests
 

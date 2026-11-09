@@ -282,3 +282,44 @@ export function makeTrack(i: TrackInput): Track {
 export function serversOf(track: Track): readonly Streamable[] {
   return track.streamables.filter((s) => s.type === 'Server');
 }
+
+// ---------- computed properties (Kotlin body properties, which kotlinx still serialises) ----------
+
+/** Kotlin Long.toDurationString(): "mm:ss", or "hh:mm:ss" from one hour. Input is milliseconds. */
+export function durationString(ms: number): string {
+  const seconds = Math.trunc(ms / 1000);
+  const minutes = Math.trunc(seconds / 60);
+  const hours = Math.trunc(minutes / 60);
+  const pad = (n: number): string => String(n).padStart(2, '0');
+  const head = hours > 0 ? `${pad(hours)}:` : '';
+  return `${head}${pad(minutes % 60)}:${pad(seconds % 60)}`.trim();
+}
+
+/** Kotlin `subtitle ?: buildString { artist names }.trim().ifBlank { null }`. */
+export function albumSubtitleWithOutE(album: Album): string | null {
+  if (album.subtitle !== null) return album.subtitle;
+  return blankToNull(album.artists.map((a) => a.name).join(', '));
+}
+
+/** Kotlin Track.subtitleWithOutE: the subtitle, else "duration • artists". */
+export function trackSubtitleWithOutE(track: Track): string | null {
+  if (track.subtitle !== null) return track.subtitle;
+  const parts: string[] = [];
+  if (track.duration !== null) parts.push(durationString(track.duration));
+  const artists = track.artists.map((a) => a.name).join(', ');
+  if (artists.trim().length > 0) {
+    if (track.duration !== null) parts.push(' • ');
+    parts.push(artists);
+  }
+  return blankToNull(parts.join('').trim());
+}
+
+/** Kotlin Track.subtitleWithE: a 🅴 prefix when explicit, then subtitleWithOutE. */
+export function trackSubtitleWithE(track: Track): string | null {
+  const explicit = track.isExplicit ? '🅴 ' : '';
+  return blankToNull(`${explicit}${trackSubtitleWithOutE(track) ?? ''}`.trim());
+}
+
+function blankToNull(value: string): string | null {
+  return value.trim().length === 0 ? null : value.trim();
+}

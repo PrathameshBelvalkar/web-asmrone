@@ -12,6 +12,7 @@ export function streamView(media: StreamMedia, issue: Registrar): Json {
           issue(source.request.url);
           return {
             sourceType: `${MODEL}Streamable.Source.Http`,
+            id: source.request.url,
             request: requestView(source.request),
             type: source.type,
             decryption: null,

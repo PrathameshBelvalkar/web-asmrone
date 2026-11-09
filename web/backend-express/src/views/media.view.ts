@@ -1,4 +1,15 @@
-import type { Album, Artist, EchoMediaItem, Playable, Playlist, Radio, Track } from '../models/echo/media.js';
+import {
+  albumSubtitleWithOutE,
+  trackSubtitleWithE,
+  trackSubtitleWithOutE,
+  type Album,
+  type Artist,
+  type EchoMediaItem,
+  type Playable,
+  type Playlist,
+  type Radio,
+  type Track,
+} from '../models/echo/media.js';
 import type { Streamable } from '../models/echo/streamable.js';
 import type { Json } from '../models/json.js';
 import { MODEL, NO_REGISTRATION, dateView, extrasView, imageView, type Registrar } from './common.js';
@@ -6,7 +17,8 @@ import { MODEL, NO_REGISTRATION, dateView, extrasView, imageView, type Registrar
 /**
  * Media items as the frontend reads them. `issue` registers the item's own images for the proxy.
  * Nested objects (artists inside an album, the album inside a track) never register anything,
- * matching the Kotlin server.
+ * matching the Kotlin server. The computed fields (title, date, subtitle...) are emitted because
+ * kotlinx serialises the Kotlin body properties too.
  */
 export function mediaView(item: EchoMediaItem, issue: Registrar): Json {
   switch (item.kind) {
@@ -24,13 +36,12 @@ export function mediaView(item: EchoMediaItem, issue: Registrar): Json {
 }
 
 function trackView(t: Track, issue: Registrar): Json {
-  const cover = imageView(t.cover, issue);
   return {
     mediaItemType: `${MODEL}Track`,
     id: t.id,
     title: t.title,
     type: t.type,
-    cover,
+    cover: imageView(t.cover, issue),
     artists: t.artists.map(artistNested),
     album: t.album ? albumView(t.album, NO_REGISTRATION, false) : null,
     duration: t.duration,
@@ -55,6 +66,8 @@ function trackView(t: Track, issue: Registrar): Json {
     isLikeable: t.isLikeable,
     isHideable: t.isHideable,
     isShareable: t.isShareable,
+    subtitleWithOutE: trackSubtitleWithOutE(t),
+    subtitleWithE: trackSubtitleWithE(t),
   };
 }
 
@@ -81,6 +94,8 @@ function albumView(a: Album, issue: Registrar, top: boolean): Json {
     isLikeable: a.isLikeable,
     isHideable: a.isHideable,
     isShareable: a.isShareable,
+    date: dateView(a.releaseDate),
+    subtitleWithOutE: albumSubtitleWithOutE(a),
   };
 }
 
@@ -101,6 +116,9 @@ function artistView(a: Artist, issue: Registrar, top: boolean): Json {
     isLikeable: a.isLikeable,
     isHideable: a.isHideable,
     isShareable: a.isShareable,
+    title: a.name,
+    description: a.bio,
+    subtitleWithOutE: a.subtitle,
   };
 }
 
@@ -131,10 +149,12 @@ function playlistView(p: Playlist, issue: Registrar): Json {
     isLikeable: p.isLikeable,
     isHideable: p.isHideable,
     isShareable: p.isShareable,
+    artists: p.authors.map(artistNested),
+    date: dateView(p.creationDate),
   };
 }
 
-/** Radio does not serialise `background` or `isRadioSupported` (they are body properties in Kotlin). */
+/** Radio: `background` and `isRadioSupported` are body properties in Kotlin, so they are fixed values here. */
 function radioView(r: Radio, issue: Registrar): Json {
   return {
     mediaItemType: `${MODEL}Radio`,
@@ -151,6 +171,9 @@ function radioView(r: Radio, issue: Registrar): Json {
     isLikeable: r.isLikeable,
     isHideable: r.isHideable,
     isShareable: r.isShareable,
+    artists: r.authors.map(artistNested),
+    background: null,
+    isRadioSupported: false,
   };
 }
 
@@ -165,11 +188,11 @@ function playableView(p: Playable): Json {
   }
 }
 
+export function streamableView(s: Streamable): Json {
+  return { id: s.id, quality: s.quality, type: s.type, title: s.title, extras: extrasView(s.extras) };
+}
+
 /** Kotlin Artist.title is its name; every other item has a title field. */
 export function titleOf(item: EchoMediaItem): string {
   return item.kind === 'Artist' ? item.name : item.title;
-}
-
-export function streamableView(s: Streamable): Json {
-  return { id: s.id, quality: s.quality, type: s.type, title: s.title, extras: extrasView(s.extras) };
 }
