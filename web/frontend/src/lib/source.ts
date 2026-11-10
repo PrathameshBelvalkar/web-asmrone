@@ -1,19 +1,23 @@
 import { create } from 'zustand';
 import type { SourceId } from '../api/types';
 
-/** The music sources in the sidebar. `asmrone` is asmr.one; `jasmr` is japaneseasmr.com. */
+/** The music sources in the sidebar, default first. `jasmr` is japaneseasmr.com; `asmrone` is asmr.one. */
 export const SOURCES: readonly { readonly id: SourceId; readonly label: string; readonly site: string }[] = [
-  { id: 'asmrone', label: 'asmr.one', site: 'asmr.one' },
   { id: 'jasmr', label: 'Japanese ASMR', site: 'japaneseasmr.com' },
+  { id: 'asmrone', label: 'asmr.one', site: 'asmr.one' },
 ];
+
+/** Used until the user picks a source. */
+const DEFAULT_SOURCE: SourceId = 'jasmr';
 
 const KEY = 'echo:source';
 
 function stored(): SourceId {
   try {
-    return localStorage.getItem(KEY) === 'jasmr' ? 'jasmr' : 'asmrone';
+    const saved = localStorage.getItem(KEY);
+    return saved === 'jasmr' || saved === 'asmrone' ? saved : DEFAULT_SOURCE;
   } catch {
-    return 'asmrone';
+    return DEFAULT_SOURCE;
   }
 }
 

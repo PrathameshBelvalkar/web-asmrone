@@ -41,14 +41,18 @@ export class JasmrClient {
     this.sleep = options.sleep ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
   }
 
-  /** HTML of a site path such as `/` or `/page/2/`. */
-  page(path: string): Promise<string> {
+  /**
+   * HTML of a site path such as `/` or `/page/2/`. `cacheTtlMs` keeps this page longer than usual
+   * (for big index pages that change slowly).
+   */
+  page(path: string, options: { readonly cacheTtlMs?: number } = {}): Promise<string> {
     const url = new URL(path, JASMR_SITE).href;
-    const fresh = this.freshCopy(url);
+    const ttl = options.cacheTtlMs ?? this.options.cacheTtlMs;
+    const fresh = this.freshCopy(url, ttl);
     if (fresh !== undefined) return Promise.resolve(fresh);
     return this.gate.run(async () => {
       // Another request may have filled the cache while this one waited.
-      const again = this.freshCopy(url);
+      const again = this.freshCopy(url, ttl);
       if (again !== undefined) return again;
       await this.waitForTurn();
       this.lastRequestAt = this.now();
@@ -59,7 +63,11 @@ export class JasmrClient {
       });
       const html = await res.body.text();
       if ((res.statusCode === 403 || res.statusCode === 503) && CHALLENGE_MARKER.test(html)) {
-        throw new HttpError(503, 'upstream', 'japaneseasmr.com is showing a bot check. Try again later.');
+        throw new HttpError(
+          503,
+          'upstream',
+          'japaneseasmr.com is showing a bot check. Try again later.',
+        );
       }
       if (res.statusCode !== 200) {
         throw HttpError.upstream(res.statusCode, `japaneseasmr.com returned ${res.statusCode}`);
@@ -69,9 +77,9 @@ export class JasmrClient {
     });
   }
 
-  private freshCopy(url: string): string | undefined {
+  private freshCopy(url: string, ttlMs: number): string | undefined {
     const hit = this.cache.get(url);
-    if (hit === undefined || this.now() - hit.at >= this.options.cacheTtlMs) return undefined;
+    if (hit === undefined || this.now() - hit.at >= ttlMs) return undefined;
     return hit.html;
   }
 

@@ -1,10 +1,16 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { parseLabel, parseListing, workIdFromUrl } from '../../src/extension/jasmr/parsers/listing.js';
+import {
+  parseLabel,
+  parseListing,
+  workIdFromUrl,
+} from '../../src/extension/jasmr/parsers/listing.js';
 import { parsePost } from '../../src/extension/jasmr/parsers/post.js';
+import { parseFeatured, parseTermIndex } from '../../src/extension/jasmr/parsers/index-pages.js';
 
-const fixture = (name: string) => readFileSync(join(__dirname, '..', 'fixtures', 'jasmr', name), 'utf8');
+const fixture = (name: string) =>
+  readFileSync(join(__dirname, '..', 'fixtures', 'jasmr', name), 'utf8');
 
 describe('japaneseasmr listing parser', () => {
   const listing = parseListing(fixture('listing-page-2.html'), 2);
@@ -77,5 +83,48 @@ describe('small parsing helpers', () => {
       circle: 'ゆりしすたーず',
       rjCode: 'RJ01755181',
     });
+  });
+});
+
+/** Markup as on the site's /cv/, /circles/ and /tags/ pages. */
+const indexEntry = (href: string, count: number, name: string) =>
+  `<span class="tag-groups-tag" style="font-size:12px"><a href="${href}" title="(${count})" class="x"><span class="tag-groups-label" style="font-size:12px">${name}</span></a></span>`;
+
+describe('japaneseasmr index pages', () => {
+  it('lists entries most works first, keeping each path once with its highest count', () => {
+    const html = `<div>
+      ${indexEntry('https://japaneseasmr.com/tag/wife/', 23, 'wife')}
+      ${indexEntry('https://japaneseasmr.com/tag/yuka-hinata/', 1233, 'Yuka Hinata 【陽向葵ゅか】')}
+      ${indexEntry('https://japaneseasmr.com/category/%e3%83%86%e3%82%b0/', 496, 'テグ')}
+      ${indexEntry('https://japaneseasmr.com/tag/wife/', 20, 'wife')}
+      ${indexEntry('https://otomekoe.moe/category/BL/', 999, 'elsewhere')}
+      <span class="tag-groups-tag"><a href="https://japaneseasmr.com/tag/no-count/">no count</a></span>
+    </div>`;
+    expect(parseTermIndex(html)).toEqual([
+      { path: '/tag/yuka-hinata/', name: 'Yuka Hinata 【陽向葵ゅか】', count: 1233 },
+      { path: '/category/%e3%83%86%e3%82%b0/', name: 'テグ', count: 496 },
+      { path: '/tag/wife/', name: 'wife', count: 23 },
+    ]);
+  });
+
+  it('reads the Featured Posts box: work ids and lazily loaded covers', () => {
+    const html = `<div class="widget widget_text clearfix"><p class="widget-title">Featured Posts</p><div class="textwidget">
+      <p><a href="https://japaneseasmr.com/138259/"><img class="lazy" src="data:image/svg+xml,x" data-src="https://pic.weeabo0.xyz/RJ01473335_img_main.jpg" /></a></p>
+      <p><a href="https://japaneseasmr.com/150849/"><img src="https://pic.weeabo0.xyz/other.jpg" /></a></p>
+      <p><a href="https://japaneseasmr.com/138259/"><img data-src="https://pic.weeabo0.xyz/RJ01473335_img_main.jpg" /></a></p>
+    </div></div>
+    <div class="widget"><p class="widget-title">Something else</p><a href="https://japaneseasmr.com/1/">x</a></div>`;
+    expect(parseFeatured(html)).toEqual([
+      {
+        workId: '138259',
+        cover: 'https://pic.weeabo0.xyz/RJ01473335_img_main.jpg',
+        rjCode: 'RJ01473335',
+      },
+      { workId: '150849', cover: 'https://pic.weeabo0.xyz/other.jpg', rjCode: null },
+    ]);
+  });
+
+  it('finds no featured works on a page without the box', () => {
+    expect(parseFeatured(fixture('listing-page-2.html'))).toEqual([]);
   });
 });

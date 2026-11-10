@@ -1,9 +1,18 @@
 import { imageFromUrl, type ImageHolder } from '../../models/echo/common.js';
-import { makeAlbum, makeArtist, makeTrack, type Album, type Artist, type EchoMediaItem, type Track } from '../../models/echo/media.js';
+import {
+  makeAlbum,
+  makeArtist,
+  makeTrack,
+  type Album,
+  type Artist,
+  type EchoMediaItem,
+  type Track,
+} from '../../models/echo/media.js';
 import { serverStreamable, type Streamable } from '../../models/echo/streamable.js';
 import type { Shelf, ShelfCategory } from '../../models/echo/shelf.js';
 import type { Feed } from '../../models/feed.js';
 import { JASMR_REFERER, artistId, chapterTrackId, streamId, workAlbumId } from './constants.js';
+import type { FeaturedWork } from './parsers/index-pages.js';
 import type { Category, ListingCard } from './parsers/listing.js';
 import type { Post } from './parsers/post.js';
 
@@ -35,6 +44,26 @@ export function cardToAlbum(card: ListingCard): Album {
   });
 }
 
+/**
+ * A featured work. The site shows only its cover, so the title is the one already known from a
+ * listing when there is one, otherwise the RJ code. Opening it loads the full work.
+ */
+export function featuredToAlbum(work: FeaturedWork, known: Album | undefined): Album {
+  return makeAlbum({
+    id: workAlbumId(work.workId),
+    title: known?.title ?? work.rjCode ?? `Work ${work.workId}`,
+    cover: coverImage(work.cover) ?? known?.cover ?? null,
+    artists: known?.artists ?? [],
+    subtitle: known?.subtitle ?? null,
+    releaseDate: null,
+    extras: work.rjCode === null ? {} : { rjCode: work.rjCode },
+    isLikeable: false,
+    isRadioSupported: false,
+    isFollowable: false,
+    isShareable: true,
+  });
+}
+
 export function postToAlbum(post: Post): Album {
   return makeAlbum({
     id: workAlbumId(post.workId),
@@ -58,9 +87,12 @@ export function postToAlbum(post: Post): Album {
  * a chapter list becomes one track for the whole stream.
  */
 export function postToTracks(post: Post, album: Album): Track[] {
-  const streamables: Streamable[] = post.streamUrl === null ? [] : [serverStreamable(streamId(post.streamUrl), 0)];
+  const streamables: Streamable[] =
+    post.streamUrl === null ? [] : [serverStreamable(streamId(post.streamUrl), 0)];
   const isPlayable =
-    post.streamUrl === null ? { kind: 'No' as const, reason: 'No stream was found for this work' } : { kind: 'Yes' as const };
+    post.streamUrl === null
+      ? { kind: 'No' as const, reason: 'No stream was found for this work' }
+      : { kind: 'Yes' as const };
 
   if (post.chapters.length === 0) {
     return [
@@ -82,7 +114,10 @@ export function postToTracks(post: Post, album: Album): Track[] {
 
   return post.chapters.map((chapter, i) => {
     const next = post.chapters[i + 1];
-    const extras: Record<string, string> = { start: String(chapter.start), chapter: String(chapter.index) };
+    const extras: Record<string, string> = {
+      start: String(chapter.start),
+      chapter: String(chapter.index),
+    };
     if (next !== undefined) extras.end = String(next.start);
     return makeTrack({
       id: chapterTrackId(post.workId, chapter.index),
@@ -102,18 +137,51 @@ export function postToTracks(post: Post, album: Album): Track[] {
 }
 
 /** A browse category (listing feed) as a shelf category. */
-export function browseCategory(id: string, title: string, feed: Feed<Shelf>): ShelfCategory {
-  return { id, title, feed, subtitle: null, image: null, backgroundColor: null, extras: {} };
+export function browseCategory(
+  id: string,
+  title: string,
+  feed: Feed<Shelf>,
+  subtitle: string | null = null,
+): ShelfCategory {
+  return { id, title, feed, subtitle, image: null, backgroundColor: null, extras: {} };
 }
 
 export function itemShelf(media: EchoMediaItem): Shelf {
   return { shelfKind: 'Item', media };
 }
 
-export function itemsShelf(id: string, title: string, list: readonly EchoMediaItem[], more: Feed<Shelf> | null = null): Shelf {
-  return { shelfKind: 'Items', id, title, list, subtitle: null, layout: 'Linear', more, extras: {} };
+export function itemsShelf(
+  id: string,
+  title: string,
+  list: readonly EchoMediaItem[],
+  more: Feed<Shelf> | null = null,
+): Shelf {
+  return {
+    shelfKind: 'Items',
+    id,
+    title,
+    list,
+    subtitle: null,
+    layout: 'Linear',
+    more,
+    extras: {},
+  };
 }
 
-export function categoriesShelf(id: string, title: string, list: readonly ShelfCategory[]): Shelf {
-  return { shelfKind: 'Categories', id, title, list, subtitle: null, layout: 'Linear', more: null, extras: {} };
+export function categoriesShelf(
+  id: string,
+  title: string,
+  list: readonly ShelfCategory[],
+  subtitle: string | null = null,
+): Shelf {
+  return {
+    shelfKind: 'Categories',
+    id,
+    title,
+    list,
+    subtitle,
+    layout: 'Linear',
+    more: null,
+    extras: {},
+  };
 }

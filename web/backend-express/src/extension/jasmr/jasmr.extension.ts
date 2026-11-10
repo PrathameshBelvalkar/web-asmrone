@@ -1,6 +1,13 @@
 import type { Dispatcher } from 'undici';
 import { NotSupportedException } from '../../models/errors.js';
-import type { Album, Artist, EchoMediaItem, Playlist, Radio, Track } from '../../models/echo/media.js';
+import type {
+  Album,
+  Artist,
+  EchoMediaItem,
+  Playlist,
+  Radio,
+  Track,
+} from '../../models/echo/media.js';
 import type { Lyrics } from '../../models/echo/lyrics.js';
 import type { QuickSearchItem } from '../../models/echo/quick-search.js';
 import type { Settings, Setting } from '../../models/echo/settings.js';
@@ -16,21 +23,63 @@ import {
   JASMR_SITE,
   decodeStreamId,
   parseArtistId,
+  workAlbumId,
   workIdOf,
 } from './constants.js';
-import { browseCategory, cardToAlbum, categoriesShelf, itemShelf, itemsShelf, postToAlbum, postToTracks } from './mappers.js';
+import {
+  browseCategory,
+  cardToAlbum,
+  categoriesShelf,
+  featuredToAlbum,
+  itemShelf,
+  itemsShelf,
+  postToAlbum,
+  postToTracks,
+} from './mappers.js';
+import { appLogger } from '../../lib/app-logger.js';
+import { parseFeatured, parseTermIndex, type TermEntry } from './parsers/index-pages.js';
 import { parseListing, type Listing, type ListingCard } from './parsers/listing.js';
 import { parsePost, type Post } from './parsers/post.js';
 
-/** Browse entries on the home screen: each is a listing of a category or tag page. */
-const BROWSE: readonly { readonly id: string; readonly title: string; readonly path: string }[] = [
+interface BrowseEntry {
+  readonly id: string;
+  readonly title: string;
+  readonly path: string;
+}
+
+/** Ratings and genres from the site's menu; each opens that category or tag listing. */
+const RATINGS: readonly BrowseEntry[] = [
   { id: 'rating-sfw', title: 'SFW / 全年齢', path: '/category/rating/sfw/' },
   { id: 'rating-r15', title: 'R-15', path: '/category/rating/r-15/' },
   { id: 'rating-nsfw', title: 'NSFW / R18', path: '/category/rating/maniax/' },
-  { id: 'yuri', title: 'Yuri / 百合', path: '/tag/yuri-girls-love/' },
-  { id: 'futanari', title: 'Futanari / フタナリ', path: '/category/futanari/' },
-  { id: 'otokonoko', title: 'Otoko no ko / 男の娘', path: '/category/otokonoko/' },
+  { id: 'rating-r18g', title: 'R-18G / グロ', path: '/category/rating/extreme/' },
 ];
+const GENRES: readonly BrowseEntry[] = [
+  { id: 'yuri', title: 'Yuri / 百合', path: '/tag/yuri-girls-love/' },
+  { id: 'otokonoko', title: 'Otoko no ko / 男の娘', path: '/category/otokonoko/' },
+  { id: 'futanari', title: 'Futanari / フタナリ', path: '/category/futanari/' },
+];
+
+/**
+ * Rows made from the site's index pages, ranked by how many works each entry has. They are loaded
+ * one per page of the home feed (as the user scrolls), since each is one more page request.
+ * The site's own "Popular" and "Comments" sorts are not used: robots.txt disallows them.
+ */
+const INDEX_ROWS: readonly {
+  readonly id: string;
+  readonly title: string;
+  readonly path: string;
+}[] = [
+  { id: 'cv', title: 'Top voice actors', path: '/cv/' },
+  { id: 'circles', title: 'Top circles', path: '/circles/' },
+  { id: 'tags', title: 'Top tags', path: '/tags/' },
+];
+/** Entries shown per index row (each becomes a feed the server keeps, so this stays small). */
+const INDEX_ROW_SIZE = 40;
+/** Index pages are large and change slowly. */
+const INDEX_CACHE_MS = 12 * 60 * 60_000;
+/** Tags on nearly every work, which say nothing when browsing. */
+const GENERIC_TAG = /^(18禁|ASMR|\d{4})$/i;
 
 const SEEN_LIMIT = 3000;
 const QUICK_SEARCH_LIMIT = 8;
@@ -54,7 +103,10 @@ export class JasmrExtension implements MusicExtension {
   private readonly seen = new Map<string, Album>();
 
   constructor(dispatcher: Dispatcher, options: JasmrExtensionOptions) {
-    this.client = new JasmrClient(dispatcher, { crawlDelayMs: options.crawlDelayMs, cacheTtlMs: options.cacheTtlMs });
+    this.client = new JasmrClient(dispatcher, {
+      crawlDelayMs: options.crawlDelayMs,
+      cacheTtlMs: options.cacheTtlMs,
+    });
   }
 
   // lifecycle and settings: none for this source
@@ -75,15 +127,22 @@ export class JasmrExtension implements MusicExtension {
   }
 
   // feeds
+  /**
+   * Like the site's front page: featured works, the latest works, ratings and genres from its menu.
+   * Further pages add the top voice actors, circles and tags from the site's index pages.
+   */
   loadHomeFeed(): Promise<Feed<Shelf>> {
     return Promise.resolve(
       feedOfPaged(
-        PagedData.single<Shelf>(async () => {
-          const first = await this.listing('/', 1);
-          const albums = first.cards.map((card) => this.remember(card));
-          const more = first.nextPage === null ? null : this.listingFeed('/', 2);
-          const browse = BROWSE.map((entry) => browseCategory(entry.id, entry.title, this.listingFeed(entry.path)));
-          return [itemsShelf('latest', 'Latest', albums, more), categoriesShelf('browse', 'Browse', browse)];
+        PagedData.continuous<Shelf>(async (continuation) => {
+          if (continuation === null) {
+            return { data: await this.frontPageShelves(), continuation: INDEX_ROWS[0]?.id ?? null };
+          }
+          const at = INDEX_ROWS.findIndex((row) => row.id === continuation);
+          const row = INDEX_ROWS[at];
+          if (row === undefined) return { data: [], continuation: null };
+          const shelf = await this.indexShelf(row);
+          return { data: shelf ? [shelf] : [], continuation: INDEX_ROWS[at + 1]?.id ?? null };
         }),
       ),
     );
@@ -106,7 +165,11 @@ export class JasmrExtension implements MusicExtension {
   }
 
   quickSearch(query: string): Promise<QuickSearchItem[]> {
-    return Promise.resolve(this.matching(query).slice(0, QUICK_SEARCH_LIMIT).map((media) => ({ kind: 'Media', media, searched: false })));
+    return Promise.resolve(
+      this.matching(query)
+        .slice(0, QUICK_SEARCH_LIMIT)
+        .map((media) => ({ kind: 'Media', media, searched: false })),
+    );
   }
 
   // albums, artists, playlists
@@ -227,7 +290,11 @@ export class JasmrExtension implements MusicExtension {
     return Promise.reject(new NotSupportedException('playlists'));
   }
 
-  editPlaylistMetadata(_playlist: Playlist, _title: string, _description: string | null): Promise<void> {
+  editPlaylistMetadata(
+    _playlist: Playlist,
+    _title: string,
+    _description: string | null,
+  ): Promise<void> {
     return Promise.reject(new NotSupportedException('playlists'));
   }
 
@@ -235,11 +302,20 @@ export class JasmrExtension implements MusicExtension {
     return Promise.reject(new NotSupportedException('playlists'));
   }
 
-  addTracksToPlaylist(_playlist: Playlist, _tracks: readonly Track[], _index: number, _added: readonly Track[]): Promise<void> {
+  addTracksToPlaylist(
+    _playlist: Playlist,
+    _tracks: readonly Track[],
+    _index: number,
+    _added: readonly Track[],
+  ): Promise<void> {
     return Promise.reject(new NotSupportedException('playlists'));
   }
 
-  removeTracksFromPlaylist(_playlist: Playlist, _tracks: readonly Track[], _indexes: readonly number[]): Promise<void> {
+  removeTracksFromPlaylist(
+    _playlist: Playlist,
+    _tracks: readonly Track[],
+    _indexes: readonly number[],
+  ): Promise<void> {
     return Promise.reject(new NotSupportedException('playlists'));
   }
 
@@ -272,6 +348,44 @@ export class JasmrExtension implements MusicExtension {
     );
   }
 
+  private async frontPageShelves(): Promise<Shelf[]> {
+    const html = await this.client.page('/');
+    const first = parseListing(html, 1);
+    const latest = first.cards.map((card) => this.remember(card));
+    const featured = parseFeatured(html).map((work) =>
+      featuredToAlbum(work, this.seen.get(workAlbumId(work.workId))),
+    );
+    const more = first.nextPage === null ? null : this.listingFeed('/', 2);
+    const browse = (entries: readonly BrowseEntry[]) =>
+      entries.map((entry) => browseCategory(entry.id, entry.title, this.listingFeed(entry.path)));
+    return [
+      ...(featured.length > 0 ? [itemsShelf('featured', 'Featured', featured)] : []),
+      itemsShelf('latest', 'Latest', latest, more),
+      categoriesShelf('ratings', 'Ratings', browse(RATINGS)),
+      categoriesShelf('genres', 'Genres', browse(GENRES)),
+    ];
+  }
+
+  /** A row of the most-used entries on one index page; null when the page can't be loaded. */
+  private async indexShelf(row: (typeof INDEX_ROWS)[number]): Promise<Shelf | null> {
+    let entries: TermEntry[];
+    try {
+      entries = parseTermIndex(await this.client.page(row.path, { cacheTtlMs: INDEX_CACHE_MS }));
+    } catch (err) {
+      // A missing row should not break the home screen.
+      appLogger().warn({ err, path: row.path }, 'japaneseasmr index page failed');
+      return null;
+    }
+    const top = entries
+      .filter((e) => row.id !== 'tags' || !GENERIC_TAG.test(e.name))
+      .slice(0, INDEX_ROW_SIZE);
+    if (top.length === 0) return null;
+    const list = top.map((e) =>
+      browseCategory(`${row.id}:${e.path}`, e.name, this.listingFeed(e.path), `${e.count}`),
+    );
+    return categoriesShelf(row.id, row.title, list, 'By number of works');
+  }
+
   private async listing(base: string, page: number): Promise<Listing> {
     const path = page === 1 ? base : `${base}page/${page}/`;
     return parseListing(await this.client.page(path), page);
@@ -302,11 +416,11 @@ export class JasmrExtension implements MusicExtension {
     const matches: Album[] = [];
     // Most recently seen first.
     for (const album of [...this.seen.values()].reverse()) {
-      const haystack = [album.title, album.subtitle ?? '', album.extras.rjCode ?? ''].join(' ').toLowerCase();
+      const haystack = [album.title, album.subtitle ?? '', album.extras.rjCode ?? '']
+        .join(' ')
+        .toLowerCase();
       if (haystack.includes(q)) matches.push(album);
     }
     return matches;
   }
-
-
 }
