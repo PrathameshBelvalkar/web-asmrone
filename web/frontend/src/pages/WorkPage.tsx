@@ -12,7 +12,7 @@ import { ErrorState } from '../components/States';
 import { Button, Chip, IconButton, Skeleton } from '../components/ui';
 import { useCrumbs } from '../lib/crumbs';
 import { artistLinkFor, playFeed, shareItem, startRadio } from '../lib/actions';
-import { isJasmr } from '../lib/media';
+import { isExternal } from '../lib/media';
 import { albumStub, formatDuration } from '../lib/media';
 import { messageFor } from '../lib/errors';
 import { toast } from '../lib/toast';
@@ -50,7 +50,7 @@ export function WorkPage() {
   const currentQuery = folderId ? folderFeed : episodes;
 
   // japaneseasmr.com works have no likes or radio.
-  const jasmr = isJasmr(source.id);
+  const jasmr = isExternal(source.id);
   const like = useQuery({ ...likeOptions(source), enabled: !!album && !jasmr });
   const likeMutation = useLike(source);
 

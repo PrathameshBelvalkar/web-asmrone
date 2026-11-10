@@ -8,7 +8,7 @@ import { useLike } from '../api/mutations';
 import { likeOptions } from '../api/queries';
 import { messageFor } from '../lib/errors';
 import { openMedia, playTrackNext, shareItem, startRadio } from '../lib/actions';
-import { isJasmr } from '../lib/media';
+import { isExternal } from '../lib/media';
 import { toast } from '../lib/toast';
 import { PlaylistDialog } from './PlaylistDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
@@ -20,7 +20,7 @@ export function TrackMenu({ track, label, className }: { track: Track; label: st
   const [open, setOpen] = useState(false);
   const [playlistOpen, setPlaylistOpen] = useState(false);
   // japaneseasmr.com tracks have no likes, radio or playlists.
-  const jasmr = isJasmr(track.id);
+  const jasmr = isExternal(track.id);
   // The like state is only fetched when the menu opens.
   const like = useQuery({ ...likeOptions(track), enabled: open, staleTime: 0 });
   const likeMutation = useLike(track);

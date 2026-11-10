@@ -27,7 +27,7 @@ export function SettingsPage() {
   const forms = useQuery({ ...formsOptions(), enabled: me.isSuccess && !me.data });
   const source = useSource((s) => s.source);
   const settings = useQuery(settingsOptions());
-  const shown = settings.data?.filter((s) => (source === 'jasmr' ? JASMR_SETTINGS.has(s.key) : s.key !== 'jasmrTranslateTitles'));
+  const shown = settings.data?.filter((s) => (source !== 'asmrone' ? JASMR_SETTINGS.has(s.key) : s.key !== 'jasmrTranslateTitles'));
   const logoutMutation = useLogout();
 
   return (

@@ -1,9 +1,12 @@
 import type { Album, Artist, ImageHolder, MediaItem, Playlist, Track, Kind } from '../api/types';
 import { MODEL_PREFIX } from '../api/types';
 
-/** Works and chapters from japaneseasmr.com carry this id prefix. Playlists, likes and radio are asmr.one only. */
-export function isJasmr(id: string): boolean {
-  return id.startsWith('jasmr:');
+/**
+ * Works and chapters from the other sources (japaneseasmr.com, jasmr.net, hentaiasmr.moe) carry
+ * their own id prefix. Playlists, likes, radio and library are asmr.one only.
+ */
+export function isExternal(id: string): boolean {
+  return /^(jasmr|jnet|hasmr):/.test(id);
 }
 
 export function kindOf(item: { mediaItemType: string }): Kind {

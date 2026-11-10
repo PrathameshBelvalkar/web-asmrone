@@ -3,7 +3,7 @@
 export const MODEL_PREFIX = 'dev.brahmkshatriya.echo.common.models.';
 
 /** Music sources: asmr.one (default) and japaneseasmr.com. */
-export type SourceId = 'asmrone' | 'jasmr';
+export type SourceId = 'asmrone' | 'jasmr' | 'jnet' | 'hasmr';
 
 export type Kind = 'Track' | 'Album' | 'Artist' | 'Playlist' | 'Radio';
 

@@ -30,7 +30,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { pathname } = useLocation();
   const source = useSource((s) => s.source);
   // The library is asmr.one only (it needs an account there).
-  const browse = source === 'jasmr' ? BROWSE.filter((item) => item.url !== '/library') : BROWSE;
+  const browse = source !== 'asmrone' ? BROWSE.filter((item) => item.url !== '/library') : BROWSE;
   const isActive = (url: string, end?: boolean) => (end ? pathname === url : pathname.startsWith(url));
   return (
     <Sidebar collapsible="icon" {...props}>
