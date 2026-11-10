@@ -22,6 +22,11 @@ audio.preload = 'auto';
 interface Stream {
   readonly url: string;
   readonly hls: boolean;
+  /**
+   * The site needs a Referer the browser can't send for it, so the file is fetched through the
+   * server, which holds that Referer. Asking the site directly from the page is refused.
+   */
+  readonly viaProxy: boolean;
 }
 
 let token = 0;
@@ -42,7 +47,9 @@ async function resolveStream(track: Track): Promise<Stream> {
   const media = await queryClient.fetchQuery(mediaOptions(track));
   const source = media.sources.find((s) => s.request?.url);
   if (!source?.request) throw new Error('This track has no playable stream.');
-  const stream: Stream = { url: source.request.url, hls: source.type === 'HLS' };
+  const hls = source.type === 'HLS';
+  const needsReferer = Object.keys(source.request.headers ?? {}).some((name) => name.toLowerCase() === 'referer');
+  const stream: Stream = { url: source.request.url, hls, viaProxy: !hls && needsReferer };
   streams.set(track.id, stream);
   return stream;
 }
@@ -75,11 +82,11 @@ function destroyHls() {
 /** Points the audio element at a stream. HLS goes through hls.js unless the browser plays it natively. */
 function attach(stream: Stream) {
   destroyHls();
-  proxied = false;
+  proxied = stream.viaProxy;
   streaming = stream.hls;
   loadedUrl = stream.url;
   if (!stream.hls) {
-    audio.src = stream.url;
+    audio.src = stream.viaProxy ? proxyUrl(stream.url) : stream.url;
     return;
   }
   const playlist = proxyUrl(stream.url);
