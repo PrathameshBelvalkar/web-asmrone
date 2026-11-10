@@ -1,5 +1,5 @@
 /** Music sources the app can browse. `asmrone` is the default. */
-export const SOURCE_IDS = ['asmrone', 'jasmr'] as const;
+export const SOURCE_IDS = ['asmrone', 'jasmr', 'jnet', 'hasmr'] as const;
 export type SourceId = (typeof SOURCE_IDS)[number];
 
 export function isSourceId(value: string): value is SourceId {

@@ -15,6 +15,8 @@ import type { PagedData } from './models/paged-data.js';
 import type { MusicExtension } from './models/extension.js';
 import { AsmrOneExtension } from './extension/asmrone/asmr-one.extension.js';
 import { JasmrExtension } from './extension/jasmr/jasmr.extension.js';
+import { JnetExtension } from './extension/jnet/jnet.extension.js';
+import { HasmrExtension } from './extension/hasmr/hasmr.extension.js';
 import { SourceRouter } from './extension/source-router.js';
 import { SettingsRepository } from './repositories/settings.repository.js';
 import { UserRepository } from './repositories/user.repository.js';
@@ -55,38 +57,90 @@ export interface ContainerOptions {
   readonly asmrDispatcher?: Dispatcher;
   readonly proxyDispatcher?: Dispatcher;
   readonly jasmrDispatcher?: Dispatcher;
+  readonly jnetDispatcher?: Dispatcher;
+  readonly hasmrDispatcher?: Dispatcher;
   /** AI subtitles for tracks without lyrics; null turns them off. Defaults to local Whisper. */
   readonly aiSubtitles?: AiSubtitleService | null;
 }
 
-export function createContainer(config: AppConfig, logger: Logger, options: ContainerOptions = {}): Container {
+export function createContainer(
+  config: AppConfig,
+  logger: Logger,
+  options: ContainerOptions = {},
+): Container {
   useAppLogger(logger);
   const settingsRepo = new SettingsRepository(join(config.dataDir, 'settings.json'));
   const userRepo = new UserRepository(join(config.dataDir, 'user.json'));
 
-  const feeds = new ExpiringRegistry<Feed<unknown>>(LIMITS.registryMaxSize, LIMITS.registryTtlMs, systemClock);
-  const pages = new ExpiringRegistry<PagedData<unknown>>(LIMITS.registryMaxSize, LIMITS.registryTtlMs, systemClock);
+  const feeds = new ExpiringRegistry<Feed<unknown>>(
+    LIMITS.registryMaxSize,
+    LIMITS.registryTtlMs,
+    systemClock,
+  );
+  const pages = new ExpiringRegistry<PagedData<unknown>>(
+    LIMITS.registryMaxSize,
+    LIMITS.registryTtlMs,
+    systemClock,
+  );
   const issued = new IssuedUrls(LIMITS.issuedUrlsMax);
 
   const ownAsmr = options.asmrDispatcher === undefined;
   const asmrDispatcher: Dispatcher =
-    options.asmrDispatcher ?? createDispatcher({ connectMs: LIMITS.asmrConnectTimeoutMs, responseMs: LIMITS.asmrResponseTimeoutMs });
+    options.asmrDispatcher ??
+    createDispatcher({
+      connectMs: LIMITS.asmrConnectTimeoutMs,
+      responseMs: LIMITS.asmrResponseTimeoutMs,
+    });
   const ownProxy = options.proxyDispatcher === undefined;
   const proxyDispatcher: Dispatcher =
     options.proxyDispatcher ??
-    createDispatcher({ connectMs: LIMITS.proxyConnectTimeoutMs, responseMs: LIMITS.proxyReadTimeoutMs });
+    createDispatcher({
+      connectMs: LIMITS.proxyConnectTimeoutMs,
+      responseMs: LIMITS.proxyReadTimeoutMs,
+    });
 
   const ownJasmr = options.jasmrDispatcher === undefined;
   const jasmrDispatcher: Dispatcher =
     options.jasmrDispatcher ??
-    createDispatcher({ connectMs: LIMITS.jasmrConnectTimeoutMs, responseMs: LIMITS.jasmrResponseTimeoutMs });
+    createDispatcher({
+      connectMs: LIMITS.jasmrConnectTimeoutMs,
+      responseMs: LIMITS.jasmrResponseTimeoutMs,
+    });
+
+  const ownJnet = options.jnetDispatcher === undefined;
+  const jnetDispatcher: Dispatcher =
+    options.jnetDispatcher ??
+    createDispatcher({
+      connectMs: LIMITS.jnetConnectTimeoutMs,
+      responseMs: LIMITS.jnetResponseTimeoutMs,
+    });
+
+  const ownHasmr = options.hasmrDispatcher === undefined;
+  const hasmrDispatcher: Dispatcher =
+    options.hasmrDispatcher ??
+    createDispatcher({
+      connectMs: LIMITS.hasmrConnectTimeoutMs,
+      responseMs: LIMITS.hasmrResponseTimeoutMs,
+    });
 
   const asmrExtension: MusicExtension = options.extension ?? new AsmrOneExtension(asmrDispatcher);
   const jasmrExtension: MusicExtension = new JasmrExtension(jasmrDispatcher, {
     crawlDelayMs: config.jasmrCrawlDelayMs,
     cacheTtlMs: LIMITS.jasmrCacheTtlMs,
   });
-  const extension = new SourceRouter(asmrExtension, jasmrExtension);
+  const jnetExtension: MusicExtension = new JnetExtension(jnetDispatcher, {
+    gapMs: LIMITS.jnetRequestGapMs,
+    cacheTtlMs: LIMITS.jnetCacheTtlMs,
+  });
+  const hasmrExtension: MusicExtension = new HasmrExtension(hasmrDispatcher, {
+    gapMs: LIMITS.hasmrRequestGapMs,
+    cacheTtlMs: LIMITS.hasmrCacheTtlMs,
+  });
+  const extension = new SourceRouter(asmrExtension, {
+    jasmr: jasmrExtension,
+    jnet: jnetExtension,
+    hasmr: hasmrExtension,
+  });
 
   const presentation = new PresentationService(feeds, issued);
   const feedService = new FeedService(extension, feeds, pages);
@@ -100,7 +154,10 @@ export function createContainer(config: AppConfig, logger: Logger, options: Cont
           translator: {
             languageCode: () => languageForCode(settingsRepo.getString('translationLanguage')).code,
             translate: async (texts) => {
-              const map = await translateList(texts, languageForCode(settingsRepo.getString('translationLanguage')));
+              const map = await translateList(
+                texts,
+                languageForCode(settingsRepo.getString('translationLanguage')),
+              );
               return map ? texts.map((t) => moveFirstGroupToEnd(map.get(t) ?? t)) : null;
             },
           },
@@ -138,6 +195,8 @@ export function createContainer(config: AppConfig, logger: Logger, options: Cont
         ownAsmr ? asmrDispatcher.close() : undefined,
         ownProxy ? proxyDispatcher.close() : undefined,
         ownJasmr ? jasmrDispatcher.close() : undefined,
+        ownJnet ? jnetDispatcher.close() : undefined,
+        ownHasmr ? hasmrDispatcher.close() : undefined,
         aiSubtitles?.close(),
       ]);
     },

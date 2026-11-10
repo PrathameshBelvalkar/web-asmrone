@@ -16,4 +16,14 @@ export const LIMITS = {
   jasmrConnectTimeoutMs: 10_000,
   jasmrResponseTimeoutMs: 30_000,
   jasmrCacheTtlMs: 30 * 60_000,
+  /** jasmr.net (JSON API): timeouts, the gap between requests, and how long responses are kept. */
+  jnetConnectTimeoutMs: 10_000,
+  jnetResponseTimeoutMs: 30_000,
+  jnetRequestGapMs: 1_000,
+  jnetCacheTtlMs: 30 * 60_000,
+  /** hentaiasmr.moe (HTML pages): timeouts, the gap between requests, and how long pages are kept. */
+  hasmrConnectTimeoutMs: 10_000,
+  hasmrResponseTimeoutMs: 30_000,
+  hasmrRequestGapMs: 3_000,
+  hasmrCacheTtlMs: 30 * 60_000,
 } as const;

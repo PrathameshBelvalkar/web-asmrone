@@ -174,7 +174,7 @@ describe('japaneseasmr through the API', () => {
 
   it('refuses an unknown source', async () => {
     const res = await request(t.app).get('/api/home?source=nope').expect(400);
-    expect(res.body).toEqual({ type: 'bad_request', message: 'source must be asmrone or jasmr' });
+    expect(res.body).toEqual({ type: 'bad_request', message: 'source must be one of: asmrone, jasmr, jnet, hasmr' });
   });
 
   it('loads a work with its chapters, each starting at its offset in the stream', async () => {

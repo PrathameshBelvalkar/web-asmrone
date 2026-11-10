@@ -137,12 +137,21 @@ An unknown `/api` path returns `404 {"type":"not_found","message":null}`. A know
 
 ## Sources
 
-Two sources run side by side. Ids from japaneseasmr.com start with `jasmr:`: a work is `jasmr:<id>` (an album), each chapter is `jasmr:<id>#<n>` (a track, playing from `extras.start` to `extras.end` seconds in the work's one HLS file), and a circle is an artist `jasmr:cat:<slug>`. Every other id is asmr.one.
+Four sources run side by side. Each source's ids carry its prefix, and asmr.one owns every id without one:
 
-- The site has no public API, so its pages are read as HTML. Requests are spaced by `JASMR_CRAWL_DELAY_MS`, and fetched pages are kept for 30 minutes.
-- Its stream and cover hosts only answer with the site's `Referer`, so the server sends it. Playlists are rewritten so each segment also goes through `/api/proxy`.
-- Site search is not used: it sits behind a bot check, which the server reports as a 503 and never gets around. Search and quick search match the works from listing pages already loaded.
-- Login, library, playlists, likes, radio and lyrics are not supported for this source (`not_supported`, 501).
+| Source | Prefix | Work (album) | Track | Artist |
+|---|---|---|---|---|
+| asmr.one | (none) | `<id>` | `<hash>` | `<id>` |
+| japaneseasmr.com | `jasmr:` | `jasmr:<id>` | `jasmr:<id>#<n>` (offset in the work's HLS file) | `jasmr:cat:<slug>` |
+| jasmr.net | `jnet:` | `jnet:<RJ code>` | `jnet:<RJ code>#<n>` (offset in the work's one audio file) | `jnet:circle:<name>` |
+| hentaiasmr.moe | `hasmr:` | `hasmr:<rj code, lowercase>` | `hasmr:<rj code>#<n>` (one MP3 each) | `hasmr:cat:<slug>`, `hasmr:actor:<slug>` |
+
+- **japaneseasmr.com** has no public API, so its pages are read as HTML. A Cloudflare bot check makes it answer 503 and it is never bypassed. Requests are spaced by `JASMR_CRAWL_DELAY_MS`.
+- **jasmr.net** uses its JSON API (`/api/v1/…`). Requests are spaced by `LIMITS.jnetRequestGapMs` (1 s), responses are kept for 30 minutes, and a block or bot-check answer pauses requests for 15 minutes, doubling on repeats. Its audio is one file per work; a work's tracks take their offsets from the track lengths, and if those don't add up to the file's length the work plays as one track.
+- **hentaiasmr.moe** is WordPress HTML. Only catalogue addresses are requested (listings, works, tags, actors, search): anything else is refused before any request is made, including the site's hidden trap pages. Requests are spaced by `LIMITS.hasmrRequestGapMs` (3 s). Audio comes from the site's own audio host only, with the `Referer` the player sends.
+- Every request identifies itself as `EchoASMR/1.0`. There is no browser impersonation and no bypass of any block page: a block only pauses requests.
+- Login, library, playlists, likes, radio and the sites' own lyrics are asmr.one or unsupported (`not_supported`, 501) for these sources. AI subtitles are made locally for all of them.
+- The translation switch and language (`jasmrTranslateTitles`, `translationLanguage`) apply to every non-asmr.one source.
 
 ## Serving the UI
 

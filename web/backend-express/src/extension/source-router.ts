@@ -9,25 +9,43 @@ import type { Feed } from '../models/feed.js';
 import type { LoginForm, MusicExtension } from '../models/extension.js';
 import type { SourceId } from '../models/source.js';
 import { JASMR_PREFIX } from './jasmr/constants.js';
+import { JNET_PREFIX } from './jnet/constants.js';
+import { HASMR_PREFIX } from './hasmr/constants.js';
+
+type OtherSource = Exclude<SourceId, 'asmrone'>;
+
+/** Id prefix of each non-asmr.one source. asmr.one owns every id without one of these prefixes. */
+const PREFIXES: Record<OtherSource, string> = {
+  jasmr: JASMR_PREFIX,
+  jnet: JNET_PREFIX,
+  hasmr: HASMR_PREFIX,
+};
 
 /**
- * Sends each call to the source that owns it. Ids from japaneseasmr.com start with `jasmr:`; every
- * other id belongs to asmr.one. Feeds that have no id (home, search, quick search) use the source the
- * caller picks with `forSource`. Playlists, login and settings belong to asmr.one only.
+ * Sends each call to the source that owns it, by the id's prefix (asmr.one when none matches).
+ * Feeds that have no id (home, search, quick search) use the source the caller picks with
+ * `forSource`. Playlists, login and library belong to asmr.one only.
  */
 export class SourceRouter implements MusicExtension {
   constructor(
     private readonly asmr: MusicExtension,
-    private readonly jasmr: MusicExtension,
+    private readonly others: Record<OtherSource, MusicExtension>,
   ) {}
 
   /** The extension for a chosen source, for feeds that are opened by source. */
   forSource(source: SourceId): MusicExtension {
-    return source === 'jasmr' ? this.jasmr : this.asmr;
+    return source === 'asmrone' ? this.asmr : this.others[source];
   }
 
   private byId(id: string): MusicExtension {
-    return id.startsWith(JASMR_PREFIX) ? this.jasmr : this.asmr;
+    for (const source of Object.keys(PREFIXES) as OtherSource[]) {
+      if (id.startsWith(PREFIXES[source])) return this.others[source];
+    }
+    return this.asmr;
+  }
+
+  private allOthers(): MusicExtension[] {
+    return Object.values(this.others);
   }
 
   get loginForms(): readonly LoginForm[] {
@@ -46,15 +64,12 @@ export class SourceRouter implements MusicExtension {
   /** One settings store for both sources (Japanese ASMR reads the translation language from it). */
   setSettings(settings: Settings): void {
     this.asmr.setSettings(settings);
-    this.jasmr.setSettings(settings);
+    for (const ext of this.allOthers()) ext.setSettings(settings);
   }
 
   async getSettingItems(): Promise<readonly Setting[]> {
-    const [asmr, jasmr] = await Promise.all([
-      this.asmr.getSettingItems(),
-      this.jasmr.getSettingItems(),
-    ]);
-    return [...asmr, ...jasmr];
+    const lists = await Promise.all([this.asmr, ...this.allOthers()].map((ext) => ext.getSettingItems()));
+    return lists.flat();
   }
 
   // feeds (asmr.one unless the caller uses forSource)
