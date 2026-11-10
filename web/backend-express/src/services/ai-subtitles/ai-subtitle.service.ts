@@ -72,7 +72,8 @@ export class AiSubtitleService {
    */
   async get(track: Track, positionMs: number | null = null): Promise<Lyrics> {
     const saved = await this.deps.repository.get(track.id);
-    if (saved) return this.toLyrics(track, 'done', saved, {});
+    // Cleaned again so subtitles saved by an older version get the current rules (e.g. line splitting).
+    if (saved) return this.toLyrics(track, 'done', cleanTranscript(saved), {});
 
     const reason = await this.unavailableReason();
     if (reason !== null) return this.toLyrics(track, 'unavailable', [], { aiMessage: reason });
@@ -82,7 +83,7 @@ export class AiSubtitleService {
     if (job === null) {
       // Finished between the disk read and the request.
       const done = await this.deps.repository.get(track.id);
-      return this.toLyrics(track, 'done', done ?? [], {});
+      return this.toLyrics(track, 'done', cleanTranscript(done ?? []), {});
     }
     if (job.status === 'failed') {
       return this.toLyrics(track, 'failed', cleanTranscript(job.lines), { aiMessage: job.message });

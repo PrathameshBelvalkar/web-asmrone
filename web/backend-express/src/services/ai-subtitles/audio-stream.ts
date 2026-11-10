@@ -25,12 +25,16 @@ export function ffmpegArgs(input: AudioInput): string[] {
     args.push('-reconnect', '1', '-reconnect_streamed', '1', '-reconnect_delay_max', '5');
   const headers = Object.entries(input.headers);
   if (headers.length > 0) args.push('-headers', headers.map(([k, v]) => `${k}: ${v}\r\n`).join(''));
-  if (input.startSec !== null && input.startSec > 0) args.push('-ss', String(input.startSec));
+  const start = input.startSec !== null && input.startSec > 0 ? String(input.startSec) : null;
+  // Fast jump close to the chapter. In HLS this lands on a segment boundary (up to ~10 s early)...
+  if (start !== null) args.push('-ss', start);
+  args.push('-i', input.url);
+  // ...so keep the stream's own timestamps and trim exactly to the chapter start. Without this,
+  // subtitles of a chapter would be late by however far into its segment the chapter starts.
+  if (start !== null) args.push('-copyts', '-start_at_zero', '-ss', start);
   if (input.endSec !== null)
     args.push('-t', String(Math.max(0, input.endSec - (input.startSec ?? 0))));
   args.push(
-    '-i',
-    input.url,
     '-vn',
     '-ac',
     '1',

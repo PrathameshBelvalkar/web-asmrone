@@ -13,7 +13,7 @@ import {
   planNextPiece,
   type PlanInput,
 } from '../../src/services/ai-subtitles/chunk-planner.js';
-import { cleanTranscript } from '../../src/services/ai-subtitles/cleanup.js';
+import { cleanTranscript, splitLongLine } from '../../src/services/ai-subtitles/cleanup.js';
 import { LiveTranscriber } from '../../src/services/ai-subtitles/live-transcriber.js';
 import {
   bytesToMs,
@@ -124,6 +124,39 @@ describe('cleanTranscript', () => {
   });
 });
 
+describe('splitLongLine', () => {
+  it('splits a long line at sentence ends, sharing its time by character count', () => {
+    const out = splitLongLine(
+      line(10_000, 22_000, '在籍する女性はリリーと呼ばれる。みな高いレズバトルの実力を持つ。'),
+    );
+    expect(out.map((l) => l.text)).toEqual([
+      '在籍する女性はリリーと呼ばれる。',
+      'みな高いレズバトルの実力を持つ。',
+    ]);
+    expect(out[0]?.start).toBe(10_000);
+    expect(out[0]?.end).toBe(out[1]?.start);
+    expect(out[1]?.end).toBe(22_000);
+    // 15 and 15 spoken characters: the split lands in the middle.
+    expect(out[1]?.start).toBe(16_000);
+  });
+
+  it('splits at pauses (spaces) and joins tiny pieces to a neighbour', () => {
+    const out = splitLongLine(
+      line(0, 9_000, 'レズバトル風俗 リリープリンセス嬢 はい ようこそいらっしゃいました'),
+    );
+    expect(out.map((l) => l.text)).toEqual([
+      'レズバトル風俗',
+      'リリープリンセス嬢はい',
+      'ようこそいらっしゃいました',
+    ]);
+  });
+
+  it('leaves short lines alone', () => {
+    const short = line(0, 3_000, 'おかえりなさい。今日も。');
+    expect(splitLongLine(short)).toEqual([short]);
+  });
+});
+
 describe('pcm helpers', () => {
   it('wraps PCM in a 16 kHz mono WAV header', () => {
     const wav = wavFromPcm(Buffer.alloc(320));
@@ -179,7 +212,12 @@ describe('ffmpegArgs', () => {
     expect(args).toEqual(
       expect.arrayContaining(['-headers', 'Referer: https://site/\r\n', '-ss', '60', '-t', '30']),
     );
-    expect(args.indexOf('-ss')).toBeLessThan(args.indexOf('-i'));
+    // A fast jump before the input, then an exact trim on the stream's own timestamps after it
+    // (HLS jumps land on a segment boundary, which made chapter subtitles late).
+    const input1 = args.indexOf('-i');
+    expect(args.indexOf('-ss')).toBeLessThan(input1);
+    expect(args.slice(input1 + 2, input1 + 6)).toEqual(['-copyts', '-start_at_zero', '-ss', '60']);
+    expect(args.indexOf('-t')).toBeGreaterThan(input1);
   });
 });
 
