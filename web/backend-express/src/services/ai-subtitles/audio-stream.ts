@@ -23,7 +23,10 @@ export function ffmpegArgs(input: AudioInput): string[] {
   const args = ['-hide_banner', '-loglevel', 'error', '-nostdin'];
   if (/^https?:/i.test(input.url))
     args.push('-reconnect', '1', '-reconnect_streamed', '1', '-reconnect_delay_max', '5');
-  const headers = Object.entries(input.headers);
+  // The user agent has its own ffmpeg option; the other headers go in one -headers block.
+  const { 'User-Agent': userAgent, ...rest } = input.headers;
+  if (userAgent !== undefined) args.push('-user_agent', userAgent);
+  const headers = Object.entries(rest);
   if (headers.length > 0) args.push('-headers', headers.map(([k, v]) => `${k}: ${v}\r\n`).join(''));
   const start = input.startSec !== null && input.startSec > 0 ? String(input.startSec) : null;
   // Fast jump close to the chapter. In HLS this lands on a segment boundary (up to ~10 s early)...
