@@ -1,6 +1,13 @@
 import type { Dispatcher } from 'undici';
 import type { Feed } from '../../models/feed.js';
-import type { Album, Artist, EchoMediaItem, Playlist, Radio, Track } from '../../models/echo/media.js';
+import type {
+  Album,
+  Artist,
+  EchoMediaItem,
+  Playlist,
+  Radio,
+  Track,
+} from '../../models/echo/media.js';
 import type { Lyrics } from '../../models/echo/lyrics.js';
 import type { Shelf } from '../../models/echo/shelf.js';
 import type { QuickSearchItem } from '../../models/echo/quick-search.js';
@@ -20,6 +27,23 @@ import { SearchSuggestions } from './features/search.feature.js';
 import type { PendingLikes } from './mappers/works.js';
 import { buildSettingItems } from './settings-definitions.js';
 import { sortByText } from './util/text.js';
+import { appLogger } from '../../lib/app-logger.js';
+
+/** How long the settings list waits for asmr.one's tag names. */
+const SETTINGS_TAGS_TIMEOUT_MS = 5_000;
+
+/** Rejects when the promise takes longer than `ms`. */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`Timed out after ${ms} ms`));
+    }, ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => {
+    clearTimeout(timer);
+  });
+}
 
 /** asmr.one implementation of the music extension port. Delegates to feature modules. */
 export class AsmrOneExtension implements MusicExtension {
@@ -64,12 +88,21 @@ export class AsmrOneExtension implements MusicExtension {
     this.settings = settings;
   }
 
+  /**
+   * The tag list comes from asmr.one. When it is slow or down, the settings are still listed (the
+   * tag choice is then empty), so the Settings page never waits on asmr.one.
+   */
   async getSettingItems(): Promise<readonly Setting[]> {
-    const tags = await this.api.getTags();
-    const names = sortByText(
-      tags.map((t) => t.i18n['en-us'].name ?? t.name),
-      (name) => name,
-    );
+    let names: string[] = [];
+    try {
+      const tags = await withTimeout(this.api.getTags(), SETTINGS_TAGS_TIMEOUT_MS);
+      names = sortByText(
+        tags.map((t) => t.i18n['en-us'].name ?? t.name),
+        (name) => name,
+      );
+    } catch (err) {
+      appLogger().warn({ err }, 'asmr.one tags unavailable; listing settings without them');
+    }
     return buildSettingItems(names);
   }
 
@@ -180,7 +213,11 @@ export class AsmrOneExtension implements MusicExtension {
     return this.playlists.deletePlaylist(playlist);
   }
 
-  editPlaylistMetadata(playlist: Playlist, title: string, description: string | null): Promise<void> {
+  editPlaylistMetadata(
+    playlist: Playlist,
+    title: string,
+    description: string | null,
+  ): Promise<void> {
     return this.playlists.editPlaylistMetadata(playlist, title, description);
   }
 

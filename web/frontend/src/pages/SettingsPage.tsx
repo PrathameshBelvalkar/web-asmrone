@@ -18,13 +18,16 @@ import { toast } from '../lib/toast';
 import { useCrumbs } from '../lib/crumbs';
 import { SOURCES, useSource } from '../lib/source';
 
+/** The preferences that apply to Japanese ASMR (the rest only change asmr.one). */
+const JASMR_SETTINGS = new Set(['jasmrTranslateTitles', 'translationLanguage', 'aiSubtitles']);
+
 export function SettingsPage() {
   useCrumbs([{ label: 'Home', to: '/' }, { label: 'Settings' }]);
   const me = useQuery(meOptions());
   const forms = useQuery({ ...formsOptions(), enabled: me.isSuccess && !me.data });
   const source = useSource((s) => s.source);
-  // The preference list belongs to asmr.one; Japanese ASMR has none yet.
-  const settings = useQuery({ ...settingsOptions(), enabled: source === 'asmrone' });
+  const settings = useQuery(settingsOptions());
+  const shown = settings.data?.filter((s) => (source === 'jasmr' ? JASMR_SETTINGS.has(s.key) : s.key !== 'jasmrTranslateTitles'));
   const logoutMutation = useLogout();
 
   return (
@@ -77,22 +80,13 @@ export function SettingsPage() {
           </CardHeader>
           <CardContent>
             <MusicSourceRow />
-            {source === 'jasmr' && (
-              <p className="text-sm text-muted-foreground">
-                Japanese ASMR has no preferences yet. The preferences below belong to asmr.one and appear when it is the music source.
-              </p>
-            )}
-            {source === 'asmrone' && (
-              <>
-                {settings.isPending && <RowSkeletons count={4} />}
-                {settings.error && <ErrorState error={settings.error} onRetry={() => void settings.refetch()} />}
-                <div className="divide-y">
-                  {settings.data?.map((s) => (
-                    <SettingRow key={s.key} setting={s} />
-                  ))}
-                </div>
-              </>
-            )}
+            {settings.isPending && <RowSkeletons count={4} />}
+            {settings.error && <ErrorState error={settings.error} onRetry={() => void settings.refetch()} />}
+            <div className="divide-y">
+              {shown?.map((s) => (
+                <SettingRow key={s.key} setting={s} />
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>

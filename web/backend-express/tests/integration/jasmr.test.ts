@@ -5,6 +5,7 @@ import { MockAgent } from 'undici';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { makeTestApp, type TestApp } from '../helpers/app.js';
 import { createFakeExtension } from '../helpers/fake-extension.js';
+import { configureTranslator } from '../../src/extension/asmrone/translation/gtx-translator.js';
 
 const POST_HTML = readFileSync(
   join(__dirname, '..', 'fixtures', 'jasmr', 'post-151994.html'),
@@ -46,6 +47,12 @@ function mockSite(siteAgent: MockAgent, cdnAgent: MockAgent): void {
     .reply(403, '<html>Just a moment... cdn-cgi/challenge-platform</html>')
     .persist();
   site.intercept({ path: '/tags/', method: 'GET' }).reply(200, TAGS_HTML).persist();
+  // The work's playlist, read (with the site's Referer) for the stream's total length: 6400 s.
+  siteAgent
+    .get('https://v.weeab0o.xyz')
+    .intercept({ path: '/RJ01755181.m3u8', method: 'GET', headers: { referer: REFERER } })
+    .reply(200, '#EXTM3U\n#EXTINF:6000.0,\na.ts\n#EXTINF:400.0,\nb.ts\n#EXT-X-ENDLIST\n')
+    .persist();
 
   const hosts = cdnAgent.get('https://v.weeab0o.xyz');
   hosts
@@ -68,6 +75,23 @@ function mockSite(siteAgent: MockAgent, cdnAgent: MockAgent): void {
       .persist();
   }
 }
+
+/** Google translate stand-in: every line comes back as "EN:" + the line. */
+const translateAgent = new MockAgent();
+translateAgent.disableNetConnect();
+translateAgent
+  .get('https://translate.googleapis.com')
+  .intercept({ path: /translate_a\/single/, method: 'GET' })
+  .reply(200, (opts) => {
+    const q = new URL(opts.path, 'https://translate.googleapis.com').searchParams.get('q') ?? '';
+    const out = q
+      .split('\n')
+      .map((line) => `EN:${line}`)
+      .join('\n');
+    return JSON.stringify([[[out, q, null, null, 1]], null, 'ja']);
+  })
+  .persist();
+configureTranslator({ dispatcher: translateAgent });
 
 const siteAgent = new MockAgent();
 const cdnAgent = new MockAgent();
@@ -107,6 +131,7 @@ describe('japaneseasmr through the API', () => {
     expect(latest.kind).toBe('items');
     expect(latest.items.length).toBe(3);
     expect(latest.items[0].id).toBe('jasmr:151979');
+    expect(latest.items[0].title).toMatch(/^EN:/);
     expect(ratings.categories.map((c: { id: string }) => c.id)).toEqual([
       'rating-sfw',
       'rating-r15',
@@ -156,12 +181,29 @@ describe('japaneseasmr through the API', () => {
     const work = await request(t.app).post('/api/album/load').send({ item: album }).expect(200);
     expect(work.body.id).toBe('jasmr:151994');
     expect(work.body.title).toContain('リリィプリンセス');
+    // Translated into the Translation Language (English by default); the original is kept.
+    expect(work.body.title).toMatch(/^EN:/);
+    expect(work.body.extras.originalTitle).toMatch(/^【KU100】リリィプリンセス/);
+    const descriptionLines = (work.body.description as string)
+      .split('\n')
+      .filter((l: string) => l.trim());
+    expect(descriptionLines.length).toBeGreaterThan(0);
+    expect(descriptionLines.every((l: string) => l.startsWith('EN:'))).toBe(true);
 
     const tracks = await request(t.app).post('/api/album/tracks').send({ item: album }).expect(200);
     const page = await request(t.app).get(`/api/pages/${tracks.body.pagedId}`).expect(200);
     expect(page.body.items).toHaveLength(16);
     const second = page.body.items[1];
     expect(second.id).toBe('jasmr:151994#1');
+    expect(second.title).toBe('EN:02 リリィプリンセス城、門番の部屋にて');
+    // Durations are in ms; the last chapter runs to the end of the stream (from the playlist).
+    expect(second.duration).toBe(279_000);
+    const last = page.body.items[15];
+    expect(last.extras).toMatchObject({ start: '6041', end: '6400' });
+    expect(last.duration).toBe(359_000);
+    expect(work.body.duration).toBe(6_400_000);
+    expect(second.extras.originalTitle).toBe('02 リリィプリンセス城、門番の部屋にて');
+    expect(second.album.title).toMatch(/^EN:/);
     expect(second.extras).toMatchObject({ start: '265', end: '544' });
     expect(second.isPlayable.type).toMatch(/Playable\.Yes$/);
   });

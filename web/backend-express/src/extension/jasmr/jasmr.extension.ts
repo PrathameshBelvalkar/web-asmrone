@@ -18,9 +18,13 @@ import { feedOfPaged, type Feed } from '../../models/feed.js';
 import type { LoginForm, MusicExtension } from '../../models/extension.js';
 import { PagedData } from '../../models/paged-data.js';
 import { JasmrClient } from './api/jasmr.client.js';
+import { readPlaylist } from './parsers/playlist.js';
+import { httpCall } from '../../lib/http-client.js';
+import { LruCache } from '../../lib/lru-cache.js';
 import {
   JASMR_REFERER,
   JASMR_SITE,
+  JASMR_USER_AGENT,
   decodeStreamId,
   parseArtistId,
   workAlbumId,
@@ -39,6 +43,13 @@ import {
 import { appLogger } from '../../lib/app-logger.js';
 import { parseFeatured, parseTermIndex, type TermEntry } from './parsers/index-pages.js';
 import { parseListing, type Listing, type ListingCard } from './parsers/listing.js';
+import {
+  TRANSLATE_TITLES_SETTING,
+  TitleTranslator,
+  descriptionLines,
+  retitle,
+  translateDescription,
+} from './translation.js';
 import { parsePost, type Post } from './parsers/post.js';
 
 interface BrowseEntry {
@@ -87,6 +98,8 @@ const QUICK_SEARCH_LIMIT = 8;
 export interface JasmrExtensionOptions {
   readonly crawlDelayMs: number;
   readonly cacheTtlMs: number;
+  /** Replaces the translator (tests). */
+  readonly translator?: TitleTranslator;
 }
 
 /**
@@ -101,15 +114,23 @@ export class JasmrExtension implements MusicExtension {
   private readonly client: JasmrClient;
   /** Works seen on listing pages and on loaded work pages, for search. Oldest dropped past SEEN_LIMIT. */
   private readonly seen = new Map<string, Album>();
+  private settings: Settings | null = null;
+  private readonly translator: TitleTranslator;
+  /** Stream length in seconds per playlist URL. Failures are not kept, so they are retried. */
+  private readonly streamSeconds = new LruCache<string, number>(500);
 
-  constructor(dispatcher: Dispatcher, options: JasmrExtensionOptions) {
+  constructor(
+    private readonly dispatcher: Dispatcher,
+    options: JasmrExtensionOptions,
+  ) {
     this.client = new JasmrClient(dispatcher, {
       crawlDelayMs: options.crawlDelayMs,
       cacheTtlMs: options.cacheTtlMs,
     });
+    this.translator = options.translator ?? new TitleTranslator(() => this.settings);
   }
 
-  // lifecycle and settings: none for this source
+  // lifecycle and settings
   onInitialize(): Promise<void> {
     return Promise.resolve();
   }
@@ -118,12 +139,13 @@ export class JasmrExtension implements MusicExtension {
     return Promise.resolve();
   }
 
-  setSettings(_settings: Settings): void {
-    // No settings.
+  /** Shared settings: this source reads the translation language and its own title switch. */
+  setSettings(settings: Settings): void {
+    this.settings = settings;
   }
 
   getSettingItems(): Promise<readonly Setting[]> {
-    return Promise.resolve([]);
+    return Promise.resolve([TRANSLATE_TITLES_SETTING]);
   }
 
   // feeds
@@ -174,9 +196,15 @@ export class JasmrExtension implements MusicExtension {
 
   // albums, artists, playlists
   async loadAlbum(album: Album): Promise<Album> {
-    const full = postToAlbum(await this.post(workIdOf(album.id)));
-    this.see(full);
-    return full;
+    const post = await this.post(workIdOf(album.id));
+    const full = postToAlbum(post, await this.streamLength(post.streamUrl));
+    const t = await this.translator.lookup([full.title, ...descriptionLines(full.description)]);
+    const translated = {
+      ...retitle(full, t),
+      description: translateDescription(full.description, t),
+    };
+    this.see(translated);
+    return translated;
   }
 
   loadAlbumFeed(_album: Album): Promise<Feed<Shelf> | null> {
@@ -188,7 +216,16 @@ export class JasmrExtension implements MusicExtension {
       feedOfPaged(
         PagedData.single<Track>(async () => {
           const post = await this.post(workIdOf(album.id));
-          return postToTracks(post, postToAlbum(post));
+          const total = await this.streamLength(post.streamUrl);
+          const work = postToAlbum(post, total);
+          const tracks = postToTracks(post, work, total);
+          // One request for the work title and every chapter title.
+          const t = await this.translator.lookup([
+            work.title,
+            ...tracks.map((track) => track.title),
+          ]);
+          const translatedWork = retitle(work, t);
+          return tracks.map((track) => ({ ...retitle(track, t), album: translatedWork }));
         }),
       ),
     );
@@ -341,17 +378,48 @@ export class JasmrExtension implements MusicExtension {
         const page = continuation === null ? firstPage : Number(continuation);
         const listing = await this.listing(base, page);
         return {
-          data: listing.cards.map((card) => itemShelf(this.remember(card))),
+          data: (await this.rememberAll(listing.cards)).map(itemShelf),
           continuation: listing.nextPage === null ? null : String(listing.nextPage),
         };
       }),
     );
   }
 
+  /**
+   * Length of a work's stream in seconds, from its HLS playlist (the site doesn't list it). Needed
+   * for the last chapter's duration and the work's total. Null when the playlist can't be read.
+   */
+  private async streamLength(url: string | null): Promise<number | null> {
+    if (url === null) return null;
+    const cached = this.streamSeconds.get(url);
+    if (cached !== undefined) return cached;
+    let seconds: number | null = null;
+    try {
+      let target = url;
+      for (let hop = 0; hop < 2 && seconds === null; hop++) {
+        const res = await httpCall(this.dispatcher, {
+          url: target,
+          method: 'GET',
+          headers: { Referer: JASMR_REFERER, 'User-Agent': JASMR_USER_AGENT },
+        });
+        const text = await res.body.text();
+        if (res.statusCode !== 200) break;
+        const read = readPlaylist(text, target);
+        if (read === null) break;
+        if ('seconds' in read) seconds = read.seconds;
+        else target = read.variant;
+      }
+    } catch (err) {
+      appLogger().warn({ err, url }, 'could not read the stream length');
+    }
+    if (seconds !== null) this.streamSeconds.set(url, seconds);
+    return seconds;
+  }
+
   private async frontPageShelves(): Promise<Shelf[]> {
     const html = await this.client.page('/');
     const first = parseListing(html, 1);
-    const latest = first.cards.map((card) => this.remember(card));
+    const latest = await this.rememberAll(first.cards);
     const featured = parseFeatured(html).map((work) =>
       featuredToAlbum(work, this.seen.get(workAlbumId(work.workId))),
     );
@@ -395,10 +463,15 @@ export class JasmrExtension implements MusicExtension {
     return parsePost(await this.client.page(`/${workId}/`), workId);
   }
 
-  private remember(card: ListingCard): Album {
-    const album = cardToAlbum(card);
-    this.see(album);
-    return album;
+  /** Albums for listing cards, titles translated in one request, remembered for search. */
+  private async rememberAll(cards: readonly ListingCard[]): Promise<Album[]> {
+    const albums = cards.map(cardToAlbum);
+    const t = await this.translator.lookup(albums.map((album) => album.title));
+    return albums.map((album) => {
+      const translated = retitle(album, t);
+      this.see(translated);
+      return translated;
+    });
   }
 
   private see(album: Album): void {
@@ -416,7 +489,12 @@ export class JasmrExtension implements MusicExtension {
     const matches: Album[] = [];
     // Most recently seen first.
     for (const album of [...this.seen.values()].reverse()) {
-      const haystack = [album.title, album.subtitle ?? '', album.extras.rjCode ?? '']
+      const haystack = [
+        album.title,
+        album.extras.originalTitle ?? '',
+        album.subtitle ?? '',
+        album.extras.rjCode ?? '',
+      ]
         .join(' ')
         .toLowerCase();
       if (haystack.includes(q)) matches.push(album);

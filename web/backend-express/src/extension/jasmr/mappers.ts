@@ -64,7 +64,8 @@ export function featuredToAlbum(work: FeaturedWork, known: Album | undefined): A
   });
 }
 
-export function postToAlbum(post: Post): Album {
+/** `totalSec` is the length of the work's stream when known (from its playlist). Durations are in ms. */
+export function postToAlbum(post: Post, totalSec: number | null = null): Album {
   return makeAlbum({
     id: workAlbumId(post.workId),
     title: post.title,
@@ -73,6 +74,7 @@ export function postToAlbum(post: Post): Album {
     subtitle: post.cv.length > 0 ? post.cv.join(', ') : null,
     description: post.description,
     trackCount: Math.max(1, post.chapters.length),
+    duration: totalSec !== null && totalSec > 0 ? Math.round(totalSec * 1000) : null,
     extras: post.rjCode === null ? {} : { rjCode: post.rjCode },
     isLikeable: false,
     isRadioSupported: false,
@@ -86,7 +88,11 @@ export function postToAlbum(post: Post): Album {
  * stream. `extras.start` and `extras.end` are in seconds; the last chapter has no end. A work without
  * a chapter list becomes one track for the whole stream.
  */
-export function postToTracks(post: Post, album: Album): Track[] {
+/**
+ * Chapters as tracks. Track durations are in milliseconds (the site gives seconds). The last
+ * chapter's length, and its end, come from `totalSec` (the stream's length) when known.
+ */
+export function postToTracks(post: Post, album: Album, totalSec: number | null = null): Track[] {
   const streamables: Streamable[] =
     post.streamUrl === null ? [] : [serverStreamable(streamId(post.streamUrl), 0)];
   const isPlayable =
@@ -102,6 +108,7 @@ export function postToTracks(post: Post, album: Album): Track[] {
         cover: album.cover,
         album,
         artists: album.artists,
+        duration: totalSec !== null && totalSec > 0 ? Math.round(totalSec * 1000) : null,
         streamables,
         isPlayable,
         extras: { start: '0', chapter: '0' },
@@ -118,14 +125,15 @@ export function postToTracks(post: Post, album: Album): Track[] {
       start: String(chapter.start),
       chapter: String(chapter.index),
     };
-    if (next !== undefined) extras.end = String(next.start);
+    const end = next?.start ?? (totalSec !== null && totalSec > chapter.start ? totalSec : null);
+    if (end !== null) extras.end = String(end);
     return makeTrack({
       id: chapterTrackId(post.workId, chapter.index),
       title: chapter.title,
       cover: album.cover,
       album,
       artists: album.artists,
-      duration: next !== undefined ? next.start - chapter.start : null,
+      duration: end !== null ? Math.round((end - chapter.start) * 1000) : null,
       streamables,
       isPlayable,
       extras,

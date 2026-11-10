@@ -61,7 +61,16 @@ export function parsePost(html: string, workId: string): Post {
     .filter((src) => src.startsWith('https://'));
   const cover = covers.find((src) => /_img_main/.test(src)) ?? covers[0] ?? null;
 
-  const descriptionText = $('[itemprop="description"]').first().text().replace(/\s+/g, ' ').trim();
+  // Keep the description's line breaks (<br>, paragraphs): it reads better and translates line by line.
+  const descriptionNode = $('[itemprop="description"]').first();
+  descriptionNode.find('br').replaceWith('\n');
+  descriptionNode.find('p, div, li, h1, h2, h3, h4, h5, h6, tr').append('\n');
+  const descriptionText = descriptionNode
+    .text()
+    .split('\n')
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter((line) => line.length > 0)
+    .join('\n');
   const description = descriptionText.length > 0 ? descriptionText.slice(0, MAX_DESCRIPTION) : null;
 
   const streamUrl = HLS_URL.exec(html)?.[0] ?? null;

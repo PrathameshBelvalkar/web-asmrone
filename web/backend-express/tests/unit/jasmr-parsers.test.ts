@@ -1,6 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import type { Settings } from '../../src/models/echo/settings.js';
+import {
+  TitleTranslator,
+  splitLongText,
+  retitle,
+  translateDescription,
+} from '../../src/extension/jasmr/translation.js';
+import { readPlaylist } from '../../src/extension/jasmr/parsers/playlist.js';
 import {
   parseLabel,
   parseListing,
@@ -126,5 +134,104 @@ describe('japaneseasmr index pages', () => {
 
   it('finds no featured works on a page without the box', () => {
     expect(parseFeatured(fixture('listing-page-2.html'))).toEqual([]);
+  });
+});
+
+describe('japaneseasmr title translation', () => {
+  const settings = (values: Record<string, unknown>): Settings =>
+    ({
+      getString: (k: string) => (typeof values[k] === 'string' ? values[k] : null),
+      getBoolean: (k: string) => (typeof values[k] === 'boolean' ? values[k] : null),
+    }) as unknown as Settings;
+  const fake = vi.fn((list: readonly string[], _language: { code: string }) =>
+    Promise.resolve(new Map(list.map((t) => [t, `EN:${t}`]))),
+  );
+
+  it('translates a batch once, into the Translation Language, skipping blanks and duplicates', async () => {
+    fake.mockClear();
+    const t = await new TitleTranslator(() => settings({ translationLanguage: 'en' }), fake).lookup(
+      ['猫', '猫', ' ', '犬'],
+    );
+    expect(t('猫')).toBe('EN:猫');
+    expect(t('unknown')).toBe('unknown');
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake.mock.calls[0]?.[0]).toEqual(['猫', '犬']);
+    expect(fake.mock.calls[0]?.[1]).toMatchObject({ code: 'en' });
+  });
+
+  it('does nothing when switched off or when the target is Japanese', async () => {
+    fake.mockClear();
+    const off = await new TitleTranslator(
+      () => settings({ jasmrTranslateTitles: false }),
+      fake,
+    ).lookup(['猫']);
+    const ja = await new TitleTranslator(
+      () => settings({ translationLanguage: 'ja' }),
+      fake,
+    ).lookup(['猫']);
+    expect([off('猫'), ja('猫')]).toEqual(['猫', '猫']);
+    expect(fake).not.toHaveBeenCalled();
+  });
+
+  it('keeps originals when translation fails', async () => {
+    const t = await new TitleTranslator(
+      () => null,
+      () => Promise.resolve(null),
+    ).lookup(['猫']);
+    expect(t('猫')).toBe('猫');
+  });
+
+  it('keeps the original title in extras and translates descriptions line by line', () => {
+    const t = (s: string) => `EN:${s}`;
+    expect(retitle({ title: '猫', extras: { rjCode: 'RJ1' } }, t)).toEqual({
+      title: 'EN:猫',
+      extras: { rjCode: 'RJ1', originalTitle: '猫' },
+    });
+    const same = { title: 'x', extras: {} };
+    expect(retitle(same, (s) => s)).toBe(same);
+    expect(translateDescription('一行目\n\n二行目', t)).toBe('EN:一行目\n\nEN:二行目');
+  });
+});
+
+describe('japaneseasmr playlist and long text helpers', () => {
+  it('adds up a media playlist and points to the first variant of a master playlist', () => {
+    expect(
+      readPlaylist('#EXTM3U\n#EXTINF:10.005333,\na.ts\n#EXTINF:9.984,\nb.ts\n', 'https://x/p.m3u8'),
+    ).toEqual({ seconds: 19.989 });
+    expect(
+      readPlaylist(
+        '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1\nlow/index.m3u8\n',
+        'https://x/a/p.m3u8',
+      ),
+    ).toEqual({ variant: 'https://x/a/low/index.m3u8' });
+    expect(readPlaylist('not a playlist', 'https://x/p.m3u8')).toBeNull();
+  });
+
+  it('splits long text into sentence pieces under the limit', () => {
+    const sentence = 'あ'.repeat(40) + '。';
+    const pieces = splitLongText(sentence.repeat(30), 200);
+    expect(pieces.every((p) => p.length <= 200)).toBe(true);
+    expect(pieces.join('')).toBe(sentence.repeat(30));
+    expect(splitLongText('short')).toEqual(['short']);
+    // A sentence longer than the limit is cut at a comma, or at the limit.
+    const long = splitLongText('い'.repeat(150) + '、' + 'う'.repeat(150), 200);
+    expect(long).toEqual(['い'.repeat(150) + '、', 'う'.repeat(150)]);
+  });
+
+  it('translates long texts piece by piece and joins them', async () => {
+    const translate = vi.fn((list: readonly string[], _language: { code: string }) =>
+      Promise.resolve(new Map(list.map((t) => [t, `[${String(t.length)}]`]))),
+    );
+    const text = ('え'.repeat(299) + '。').repeat(3);
+    const t = await new TitleTranslator(() => null, translate).lookup([text]);
+    expect(t(text)).toBe('[600] [300]');
+  });
+
+  it('keeps line breaks in a work description', () => {
+    const html =
+      '<div itemprop="description"><p>コンセプト<br>元・トップ嬢:雪姫</p><p>  VS   現役風俗嬢 </p><div>最後</div></div>';
+    expect(parsePost(html, '1').description).toBe(
+      'コンセプト\n元・トップ嬢:雪姫\nVS 現役風俗嬢\n最後',
+    );
   });
 });

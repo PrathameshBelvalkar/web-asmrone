@@ -52,11 +52,10 @@ export function useSetSetting() {
   return useMutation({
     mutationFn: ({ key, value }: { key: string; value: unknown }) => api.putSetting(key, value),
     onSuccess: () => {
-      // Settings change what home and search return.
+      // Settings change what most screens show (titles and their language, lyrics, home, search),
+      // so everything is fetched again when next shown.
       void queryClient.invalidateQueries({ queryKey: ['settings'], refetchType: 'all' });
-      void queryClient.invalidateQueries({ queryKey: ['home'] });
-      void queryClient.invalidateQueries({ queryKey: ['search'] });
-      void queryClient.invalidateQueries({ queryKey: ['quick'] });
+      void queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] !== 'settings' && q.queryKey[0] !== 'me' && q.queryKey[0] !== 'forms' });
     },
   });
 }

@@ -43,12 +43,18 @@ export class SourceRouter implements MusicExtension {
     return this.asmr.onExtensionSelected();
   }
 
+  /** One settings store for both sources (Japanese ASMR reads the translation language from it). */
   setSettings(settings: Settings): void {
     this.asmr.setSettings(settings);
+    this.jasmr.setSettings(settings);
   }
 
-  getSettingItems(): Promise<readonly Setting[]> {
-    return this.asmr.getSettingItems();
+  async getSettingItems(): Promise<readonly Setting[]> {
+    const [asmr, jasmr] = await Promise.all([
+      this.asmr.getSettingItems(),
+      this.jasmr.getSettingItems(),
+    ]);
+    return [...asmr, ...jasmr];
   }
 
   // feeds (asmr.one unless the caller uses forSource)
@@ -147,7 +153,9 @@ export class SourceRouter implements MusicExtension {
 
   // playlist editing: a track from japaneseasmr.com can't go into an asmr.one playlist
   listEditablePlaylists(track: Track | null): Promise<Array<readonly [Playlist, boolean]>> {
-    return track ? this.byId(track.id).listEditablePlaylists(track) : this.asmr.listEditablePlaylists(track);
+    return track
+      ? this.byId(track.id).listEditablePlaylists(track)
+      : this.asmr.listEditablePlaylists(track);
   }
 
   createPlaylist(title: string, description: string | null): Promise<Playlist> {
@@ -158,7 +166,11 @@ export class SourceRouter implements MusicExtension {
     return this.asmr.deletePlaylist(playlist);
   }
 
-  editPlaylistMetadata(playlist: Playlist, title: string, description: string | null): Promise<void> {
+  editPlaylistMetadata(
+    playlist: Playlist,
+    title: string,
+    description: string | null,
+  ): Promise<void> {
     return this.asmr.editPlaylistMetadata(playlist, title, description);
   }
 
@@ -166,11 +178,20 @@ export class SourceRouter implements MusicExtension {
     return this.asmr.setPrivacy(playlist, isPrivate);
   }
 
-  addTracksToPlaylist(playlist: Playlist, tracks: readonly Track[], index: number, added: readonly Track[]): Promise<void> {
+  addTracksToPlaylist(
+    playlist: Playlist,
+    tracks: readonly Track[],
+    index: number,
+    added: readonly Track[],
+  ): Promise<void> {
     return this.asmr.addTracksToPlaylist(playlist, tracks, index, added);
   }
 
-  removeTracksFromPlaylist(playlist: Playlist, tracks: readonly Track[], indexes: readonly number[]): Promise<void> {
+  removeTracksFromPlaylist(
+    playlist: Playlist,
+    tracks: readonly Track[],
+    indexes: readonly number[],
+  ): Promise<void> {
     return this.asmr.removeTracksFromPlaylist(playlist, tracks, indexes);
   }
 
