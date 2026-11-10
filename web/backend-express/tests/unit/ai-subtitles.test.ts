@@ -390,6 +390,30 @@ describe('LiveTranscriber', () => {
     expect(order).toEqual(['b', 'a']);
   });
 
+  it('keeps a newly asked-for track when the limit is reached, dropping the oldest instead', async () => {
+    const streams = new Map<string, FakeAudio>();
+    const live = new LiveTranscriber<string>({
+      engine: fakeEngine(),
+      openAudio: (key) => {
+        const audio = new FakeAudio(pcm(10_000), key);
+        streams.set(key, audio);
+        return Promise.resolve(audio);
+      },
+      save: () => Promise.resolve(),
+      expectedMs: () => null,
+      maxJobs: 3,
+      idleMs: 5,
+    });
+    for (const key of ['a', 'b', 'c', 'd']) live.request(key, key, null);
+    expect(live.status('d')).toMatchObject({ status: 'running' });
+    expect(live.status('a')).toBeNull();
+    await vi.waitFor(() => {
+      expect(streams.get('a')?.closed).toBe(true);
+    });
+    for (const audio of streams.values()) audio.arriveAll();
+    await live.idle();
+  });
+
   it('fails a track whose audio cannot be read, and does not retry it straight away', async () => {
     const audio = new FakeAudio(Buffer.alloc(0));
     audio.failure = new Error('Audio download exited with code 1: 404');

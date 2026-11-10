@@ -91,10 +91,12 @@ export class LiveTranscriber<T> {
         appLogger().warn({ err }, 'speech engine warm-up failed');
       });
       this.openAudio(job);
-      this.evictExtraJobs();
     }
+    // Most recent first, then drop the oldest beyond the limit. In the other order a new track
+    // still had priority 0 and was itself dropped when three others were in progress.
     job.priority = ++this.counter;
     if (focusMs !== null && Number.isFinite(focusMs)) job.focusMs = Math.max(0, focusMs);
+    this.evictExtraJobs();
     this.kick();
   }
 

@@ -95,8 +95,10 @@ export const lyricsOptions = (track: Track) =>
     queryKey: ['lyrics', track.id],
     queryFn: () => api.lyrics(track, playingPositionMs(track)),
     staleTime: (query) => {
-      const extras = query.state.data?.extras;
-      return extras?.aiGenerated && extras.aiStatus !== 'done' ? 0 : Infinity;
+      const data = query.state.data;
+      const extras = data?.extras;
+      // Unfinished AI results, and finished ones with no lines, are checked again when shown.
+      return extras?.aiGenerated && (extras.aiStatus !== 'done' || !data?.lyrics) ? 0 : Infinity;
     },
     refetchInterval: (query) => (aiSubtitlesPending(query.state.data) ? 2000 : false),
   });

@@ -113,6 +113,9 @@ export class WhisperServerEngine implements SpeechEngine {
       '-mc',
       '0',
       '-sns',
+      // No language probabilities in replies: computing them on a piece with no speech (silence,
+      // common in ASMR) crashes whisper-server ("unknown language id -2").
+      '-nlp',
     ];
     if (await readable(this.config.vadModel)) args.push('--vad', '-vm', this.config.vadModel);
 

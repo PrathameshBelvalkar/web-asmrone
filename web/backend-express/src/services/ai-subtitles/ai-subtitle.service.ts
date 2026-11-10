@@ -81,9 +81,15 @@ export class AiSubtitleService {
     this.live.request(track.id, track, positionMs);
     const job = this.live.status(track.id);
     if (job === null) {
-      // Finished between the disk read and the request.
+      // Finished between the disk read and the request; otherwise report it as starting (never as
+      // "done" without a saved result, which the client would keep as "no speech").
       const done = await this.deps.repository.get(track.id);
-      return this.toLyrics(track, 'done', cleanTranscript(done ?? []), {});
+      if (done) return this.toLyrics(track, 'done', cleanTranscript(done), {});
+      return this.toLyrics(track, 'running', [], {
+        aiPhase: 'starting',
+        aiCoveredMs: '0',
+        aiCovered: '',
+      });
     }
     if (job.status === 'failed') {
       return this.toLyrics(track, 'failed', cleanTranscript(job.lines), { aiMessage: job.message });
