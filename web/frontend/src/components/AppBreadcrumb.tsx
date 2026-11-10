@@ -16,7 +16,8 @@ export function AppBreadcrumb() {
           const hideOnPhone = !last ? 'hidden sm:flex' : 'flex';
           return (
             <Fragment key={`${crumb.label}-${i}`}>
-              <BreadcrumbItem className={`${hideOnPhone} min-w-0`}>
+              {/* Only the page name shrinks (and truncates); earlier steps keep their width. */}
+              <BreadcrumbItem className={`${hideOnPhone} ${last ? 'min-w-0' : 'shrink-0'}`}>
                 {last || !crumb.to ? (
                   <BreadcrumbPage className="truncate">{crumb.label}</BreadcrumbPage>
                 ) : (

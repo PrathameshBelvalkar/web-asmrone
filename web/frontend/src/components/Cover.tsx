@@ -4,15 +4,19 @@ import type { ImageHolder } from '../api/types';
 import { proxyUrl } from '../api/client';
 import { imageNeedsProxy, imageUrl } from '../lib/media';
 
-/** Cover art with a skeleton while loading, a placeholder when missing, and a proxy fallback. */
+/**
+ * Cover art with a skeleton while loading, a placeholder when missing, and a proxy fallback.
+ * `fit="contain"` shows the whole image (letterboxed) instead of filling and cropping the box.
+ */
 export function Cover({
-  holder, src, alt = '', className = '', rounded = 'rounded-md',
+  holder, src, alt = '', className = '', rounded = 'rounded-md', fit = 'cover',
 }: {
   holder?: ImageHolder | null;
   src?: string;
   alt?: string;
   className?: string;
   rounded?: string;
+  fit?: 'cover' | 'contain';
 }) {
   const direct = src ?? imageUrl(holder);
   const needsProxy = src === undefined && imageNeedsProxy(holder);
@@ -45,7 +49,7 @@ export function Cover({
         loading="lazy"
         decoding="async"
         onLoad={() => setLoaded(true)}
-        className={`h-full w-full object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+        className={`h-full w-full ${fit === 'contain' ? 'object-contain' : 'object-cover'} transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
         onError={() => {
           if (!proxied && direct) {
             setProxied(true);

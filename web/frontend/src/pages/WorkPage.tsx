@@ -73,15 +73,22 @@ export function WorkPage() {
 
   return (
     <>
-      <section className="relative mb-12 overflow-hidden rounded-2xl border border-border bg-card">
+      {/* @container: the layout follows the hero's own width, which the sidebar narrows on tablets. */}
+      <section className="@container relative mb-12 overflow-hidden rounded-2xl border border-border bg-card">
         <div className="absolute inset-0 -z-0 opacity-30 blur-3xl" aria-hidden>
           <Cover holder={album.cover} className="h-full w-full scale-125" rounded="" />
         </div>
-        <div className="relative flex flex-col gap-6 p-5 sm:flex-row sm:gap-8 sm:p-8">
-          <Cover holder={album.cover} className="aspect-square w-full max-w-[260px] shrink-0 shadow-2xl shadow-black/60 sm:w-60" rounded="rounded-xl" />
+        <div className="relative flex flex-col gap-6 p-5 @2xl:flex-row @2xl:gap-8 @2xl:p-8">
+          {/* 4:3 like the covers themselves, the whole image shown, and never stretched by a long description. */}
+          <Cover
+            holder={album.cover}
+            fit="contain"
+            className="aspect-[4/3] w-full max-w-[360px] shrink-0 self-start bg-black/30 shadow-2xl shadow-black/60 @2xl:w-72"
+            rounded="rounded-xl"
+          />
           <div className="flex min-w-0 flex-1 flex-col justify-end">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Work</p>
-            <h1 className="mt-2 text-balance text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
+            <h1 className="mt-2 text-balance break-words text-2xl font-semibold leading-tight tracking-tight [overflow-wrap:anywhere] @2xl:text-3xl">
               {album.title || 'Untitled work'}
             </h1>
             {album.artists?.length > 0 && (
@@ -169,13 +176,15 @@ function RowSkeletons() {
 
 function HeroSkeleton() {
   return (
-    <div className="mb-12 flex flex-col gap-8 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:p-8" aria-hidden>
-      <Skeleton className="aspect-square w-full max-w-[260px] sm:w-60" />
+    <div className="@container mb-12 rounded-2xl border border-border bg-card" aria-hidden>
+      <div className="flex flex-col gap-6 p-5 @2xl:flex-row @2xl:gap-8 @2xl:p-8">
+      <Skeleton className="aspect-[4/3] w-full max-w-[360px] shrink-0 self-start @2xl:w-72" />
       <div className="flex-1 space-y-4 pt-2">
         <Skeleton className="h-3 w-16" />
         <Skeleton className="h-8 w-3/4" />
         <Skeleton className="h-8 w-1/2" />
         <Skeleton className="mt-6 h-10 w-48 rounded-full" />
+      </div>
       </div>
     </div>
   );

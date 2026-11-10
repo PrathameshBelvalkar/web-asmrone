@@ -18,7 +18,8 @@ export function Shell() {
     <CrumbProvider>
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset className="min-h-svh">
+        {/* min-w-0: lets the page shrink beside the sidebar; long content (a breadcrumb title) would otherwise push it off-screen. */}
+        <SidebarInset className="min-h-svh min-w-0">
           <ShellInner />
         </SidebarInset>
       </SidebarProvider>
