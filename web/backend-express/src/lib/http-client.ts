@@ -1,3 +1,4 @@
+import { lookup, type LookupAddress, type LookupOptions } from 'node:dns';
 import { Agent, interceptors, request, type Dispatcher } from 'undici';
 
 export interface HttpClientTimeouts {
@@ -11,11 +12,25 @@ export interface HttpClientTimeouts {
  */
 export function createDispatcher(timeouts: HttpClientTimeouts, maxRedirections = 10): Dispatcher {
   const agent = new Agent({
-    connect: { timeout: timeouts.connectMs },
+    connect: { timeout: timeouts.connectMs, lookup: lookupIpv6First },
     headersTimeout: timeouts.responseMs,
     bodyTimeout: timeouts.responseMs,
   });
   return agent.compose(interceptors.redirect({ maxRedirections }));
+}
+
+/**
+ * DNS lookup that lists IPv6 addresses first, so connections try IPv6 and fall back to IPv4 only
+ * when IPv6 does not connect (as browsers do). Some hosts are much slower over IPv4: the
+ * japaneseasmr.com image CDN takes 7–12 s per reply over IPv4 against 0.4 s over IPv6, which made
+ * covers hang when many loaded at once.
+ */
+function lookupIpv6First(
+  hostname: string,
+  options: LookupOptions,
+  callback: (err: NodeJS.ErrnoException | null, address: string | LookupAddress[], family: number) => void,
+): void {
+  lookup(hostname, { ...options, order: 'ipv6first' }, callback);
 }
 
 export interface HttpCall {
