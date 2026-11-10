@@ -68,20 +68,17 @@ export function LyricsView({ track }: { track: Track }) {
           {timed.map((line, i) => {
             const active = i === activeIndex;
             const past = activeIndex >= 0 && i < activeIndex;
-            const progress = active
-              ? Math.min(100, Math.max(0, ((ms - line.startTime) / Math.max(1, line.endTime - line.startTime)) * 100))
-              : 0;
             return (
               <li key={`${line.startTime}-${i}`}>
                 <button
                   ref={active ? activeRef : undefined}
                   type="button"
                   onClick={() => seek(line.startTime / 1000)}
-                  style={active ? ({ '--lyric-p': `${progress}%` } as React.CSSProperties) : undefined}
                   className={cn(
-                    // One font size for every line: the active line never changes size.
+                    // One font size for every line: the active line never changes size. Lines are
+                    // only timed per line (not per word), so the active line is lit as a whole.
                     'block w-full text-left text-3xl font-semibold leading-snug transition-opacity duration-500 ease-[cubic-bezier(0.2,0,0,1)] md:text-4xl',
-                    active ? 'lyric-active opacity-100' : past ? 'text-white opacity-45 hover:opacity-80' : 'text-white opacity-30 hover:opacity-70',
+                    active ? 'text-white opacity-100' : past ? 'text-white opacity-45 hover:opacity-80' : 'text-white opacity-30 hover:opacity-70',
                   )}
                 >
                   {line.text}

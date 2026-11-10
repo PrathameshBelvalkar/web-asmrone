@@ -292,22 +292,6 @@
   }
 }
 
-/* Lyrics: the sung part of the active line fills left to right. --lyric-p is animated, so the fill
-   glides between timeupdate ticks instead of jumping. Font size never changes (no reflow). */
-@property --lyric-p {
-  syntax: "<percentage>";
-  inherits: false;
-  initial-value: 0%;
-}
-
-.lyric-active {
-  background-image: linear-gradient(90deg, #ffffff var(--lyric-p), rgb(255 255 255 / 0.32) var(--lyric-p));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  transition: --lyric-p 320ms linear;
-}
-
 /* Player bar sliders: thin line, handle shows on hover or focus. */
 @layer components {
   .seek-bar [data-slot="slider-track"],
