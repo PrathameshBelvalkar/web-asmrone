@@ -1,6 +1,6 @@
 import type {
   Album, Artist, EditableDto, FeedDto, Lyrics, LoginForm, MediaItem,
-  PageDto, Playlist, QuickSearchItem, RadioDto, SettingDto, StreamMedia, Track, User,
+  PageDto, Playlist, QuickSearchItem, RadioDto, SettingDto, SourceId, StreamMedia, Track, User,
 } from './types';
 import { MODEL_PREFIX } from './types';
 
@@ -33,10 +33,11 @@ export function typed<T extends MediaItem>(kind: 'Album' | 'Artist' | 'Playlist'
 }
 
 export const api = {
-  home: () => req<FeedDto>('GET', '/home'),
+  home: (source: SourceId) => req<FeedDto>('GET', `/home?source=${enc(source)}`),
   library: () => req<FeedDto>('GET', '/library'),
-  search: (q: string) => req<FeedDto>('GET', `/search?q=${enc(q)}`),
-  quickSearch: (q: string) => req<QuickSearchItem[]>('GET', `/quicksearch?q=${enc(q)}`),
+  search: (q: string, source: SourceId) => req<FeedDto>('GET', `/search?q=${enc(q)}&source=${enc(source)}`),
+  quickSearch: (q: string, source: SourceId) =>
+    req<QuickSearchItem[]>('GET', `/quicksearch?q=${enc(q)}&source=${enc(source)}`),
   openFeed: (feedId: string, tab?: string | null) =>
     req<FeedDto>('GET', `/feeds/${enc(feedId)}/open${tab ? `?tab=${enc(tab)}` : ''}`),
   page: (pagedId: string, cont?: string | null) =>

@@ -9,7 +9,7 @@ export function streamView(media: StreamMedia, issue: Registrar): Json {
       return {
         mediaType: `${MODEL}Streamable.Media.Server`,
         sources: media.sources.map((source) => {
-          issue(source.request.url);
+          issue(source.request.url, source.request.headers);
           return {
             sourceType: `${MODEL}Streamable.Source.Http`,
             id: source.request.url,

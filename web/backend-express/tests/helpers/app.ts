@@ -21,9 +21,18 @@ export async function makeTestApp(options: {
   extension?: MusicExtension;
   asmrDispatcher?: Dispatcher;
   proxyDispatcher?: Dispatcher;
+  jasmrDispatcher?: Dispatcher;
+  distDir?: string | null;
 } = {}): Promise<TestApp> {
   const t = await tempDir();
-  const config: AppConfig = { port: 0, host: '127.0.0.1', dataDir: t.dir, logLevel: 'silent' };
+  const config: AppConfig = {
+    port: 0,
+    host: '127.0.0.1',
+    dataDir: t.dir,
+    distDir: options.distDir ?? null,
+    jasmrCrawlDelayMs: 0,
+    logLevel: 'silent',
+  };
   const logger = createLogger('silent');
   const container = createContainer(config, logger, options);
   await container.init();

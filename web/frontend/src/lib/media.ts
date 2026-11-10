@@ -1,6 +1,11 @@
 import type { Album, Artist, ImageHolder, MediaItem, Playlist, Track, Kind } from '../api/types';
 import { MODEL_PREFIX } from '../api/types';
 
+/** Works and chapters from japaneseasmr.com carry this id prefix. Playlists, likes and radio are asmr.one only. */
+export function isJasmr(id: string): boolean {
+  return id.startsWith('jasmr:');
+}
+
 export function kindOf(item: { mediaItemType: string }): Kind {
   return item.mediaItemType.slice(MODEL_PREFIX.length) as Kind;
 }
@@ -20,6 +25,11 @@ export function imageUrl(holder: ImageHolder | null | undefined): string | undef
   if (holder.type.endsWith('NetworkRequestImageHolder')) return holder.request?.url;
   if (holder.type.endsWith('ResourceUriImageHolder')) return holder.uri;
   return undefined;
+}
+
+/** Images that need request headers (japaneseasmr.com covers need its Referer) only load through the proxy. */
+export function imageNeedsProxy(holder: ImageHolder | null | undefined): boolean {
+  return !!holder && holder.type.endsWith('NetworkRequestImageHolder') && Object.keys(holder.request?.headers ?? {}).length > 0;
 }
 
 export function isPlayable(track: Track): boolean {

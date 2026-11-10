@@ -6,7 +6,14 @@ export const LIMITS = {
   registryMaxSize: 500,
   /** Maximum URLs the extension may hand out for proxying. */
   issuedUrlsMax: 20_000,
+  /** asmr.one: connect and response-header timeouts. Track lists take about 20 s upstream. */
+  asmrConnectTimeoutMs: 10_000,
+  asmrResponseTimeoutMs: 60_000,
   /** Proxy upstream timeouts. */
   proxyConnectTimeoutMs: 15_000,
   proxyReadTimeoutMs: 60_000,
+  /** japaneseasmr.com: connect and response-header timeouts, and how long fetched pages are kept. */
+  jasmrConnectTimeoutMs: 10_000,
+  jasmrResponseTimeoutMs: 30_000,
+  jasmrCacheTtlMs: 30 * 60_000,
 } as const;

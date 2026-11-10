@@ -3,17 +3,19 @@
 A browser version of Echo that plays only the **asmr.one** extension
 ([rebelonion/echo-asmr-one](https://github.com/rebelonion/echo-asmr-one)).
 
-- `backend/` – Kotlin + Ktor server. It runs the extension in-process, keeps
-  paging state, stores settings and the login, and proxies audio.
+- `backend-express/` – Node.js + Express server, the default. It runs the extension in-process,
+  keeps paging state, stores settings and the login, proxies audio, and serves the built UI.
+- `backend/` – Kotlin + Ktor server. It does the same job and is kept as an alternative.
 - `frontend/` – React + Vite + TypeScript app (Tailwind, TanStack Query, Zustand).
 
-Runs on your Mac, for one user. The server listens on `127.0.0.1` only.
+Runs on your Mac, for one user. Both servers listen on `127.0.0.1` only.
 
 ## Requirements
 
-- JDK 17: `brew install openjdk@17`, then `export JAVA_HOME=/opt/homebrew/opt/openjdk@17`
-- Gradle: `brew install gradle` (the backend has no wrapper; see below)
 - Node.js 20+ and npm
+- For the Kotlin server only: JDK 17 (`brew install openjdk@17`, then
+  `export JAVA_HOME=/opt/homebrew/opt/openjdk@17`) and Gradle (`brew install gradle`; the
+  backend has no wrapper)
 
 ## Run it
 
@@ -24,18 +26,28 @@ npm install
 npm run build
 
 # 2. Start the server (serves the UI on http://127.0.0.1:8080)
-cd ../backend
-gradle :server:run
+cd ../backend-express
+npm install
+npm run dev        # or: npm run build && npm start
 ```
 
 Open <http://127.0.0.1:8080>.
 
-For UI development with hot reload, run the server as above and, in another
-terminal:
+For UI development with hot reload, keep the server running and, in another terminal:
 
 ```bash
 cd web/frontend && npm run dev     # http://127.0.0.1:5173, proxies /api to :8080
 ```
+
+### Kotlin server instead
+
+```bash
+cd web/backend
+gradle :server:run
+```
+
+It serves the same API and UI on the same port. Don't run it and the Express server at the
+same time.
 
 ### Environment variables
 
@@ -43,8 +55,14 @@ cd web/frontend && npm run dev     # http://127.0.0.1:5173, proxies /api to :808
 |---|---|---|
 | `PORT` | `8080` | Server port |
 | `ECHO_WEB_DATA` | `~/.echo-web` | Settings and saved login |
-| `ECHO_WEB_DIST` | auto-detected `web/frontend/dist` | Built UI to serve |
+| `ECHO_WEB_DIST` | auto-detected `web/frontend/dist` | Built UI to serve (both servers) |
+| `LOG_LEVEL` | `info` | Express server log level |
 | `ECHO_WEB_API` | `http://127.0.0.1:8080` | Dev-server proxy target (frontend) |
+| `JASMR_CRAWL_DELAY_MS` | `10000` | Express only: gap between japaneseasmr.com page requests |
+
+## Sources
+
+Pick the source in **Settings → Music source**: **asmr.one** (with accounts, playlists and likes) or **Japanese ASMR** (japaneseasmr.com: browse, search of loaded listings, and playback of its works by chapter). The choice is remembered in the browser. Japanese ASMR has no accounts, library or radio. Its works play through the server, which fetches its HLS streams with the site's `Referer`. Use only with a licence that covers the works you play.
 
 ## Accounts
 
@@ -56,11 +74,14 @@ password. The password is sent only to asmr.one. The login is kept in
 ## Tests
 
 ```bash
+cd web/backend-express && npm test
 cd web/backend && gradle :server:test
 cd web/frontend && npm run typecheck
 ```
 
-## Layout of the backend
+## Layout of the Kotlin backend
+
+The Express server's layout is in [backend-express/README.md](backend-express/README.md).
 
 | File | Role |
 |---|---|

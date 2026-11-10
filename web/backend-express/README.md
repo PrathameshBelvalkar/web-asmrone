@@ -1,10 +1,10 @@
 # Echo Web backend (Express)
 
 Node.js port of `web/backend` (Kotlin/Ktor). It serves the Echo Web `/api` for the asmr.one
-extension and runs the extension in-process. **API only.** The frontend is not wired to this
-server yet, and the Kotlin server is unchanged.
+extension, runs the extension in-process, and serves the built web UI from `web/frontend/dist`,
+so one process runs the whole app.
 
-The JSON contract matches the Kotlin server, so `web/frontend` can be pointed here later. See
+The JSON contract matches the Kotlin server, so the same `web/frontend` works with either. See
 `SOURCE.md` for provenance, the echo-web patches carried over, and the deliberate differences.
 
 ## Requirements
@@ -23,13 +23,19 @@ npm run build && npm start
 
 The server binds to `127.0.0.1` only. It is for one local user, like the Kotlin server.
 
+It also serves the built web UI. Build it first with `npm run build` in `web/frontend`. Then
+`http://127.0.0.1:8080` opens the app. Without a build, `/` shows a short hint and the API still
+works. The folder is found automatically, or set `ECHO_WEB_DIST`.
+
 ### Environment
 
 | Variable | Default | Purpose |
 |---|---|---|
 | `PORT` | `8080` | Port (1–65535). An invalid value stops startup. |
 | `ECHO_WEB_DATA` | `~/.echo-web` | Holds `settings.json` and `user.json`. The format matches the Kotlin server, so an existing login carries over. |
+| `ECHO_WEB_DIST` | `web/frontend/dist` (auto) | Built UI to serve at `/`. If set but not a directory, the UI is not served and a warning is logged. |
 | `LOG_LEVEL` | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent` |
+| `JASMR_CRAWL_DELAY_MS` | `10000` | Minimum gap between two japaneseasmr.com page requests (robots.txt asks for 10 s). Stream and image requests are not delayed. |
 
 Do not run this server and the Kotlin server on the same port or data directory at once.
 
@@ -57,7 +63,7 @@ models/        domain types (Echo common slice), PagedData, Feed, errors, the ex
 extension/     the asmr.one implementation of the port (API client, features, mappers)
 repositories/  settings.json and user.json (atomic writes)
 stores/        expiring feed and page registries; the issued-URL allow-list
-middlewares/   body parsing, error envelope, 405 with Allow, JSON 404
+middlewares/   body parsing, error envelope, 405 with Allow, JSON 404, built UI with SPA fallback
 lib/           HTTP dispatcher, LRU cache, mutex, atomic file writes, logger
 container.ts   composition root: builds every object once
 app.ts         Express app (no listen); server.ts starts it
@@ -73,9 +79,11 @@ All paths are under `/api`. Errors use `{ "type": string, "message": string | nu
 
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/home`, `/library` | Opens a feed (`FeedDto`) |
+| GET | `/home`, `/library` | Opens a feed (`FeedDto`). `/library` is asmr.one only |
 | GET | `/search?q=` | Opens a search feed |
 | GET | `/quicksearch?q=` | Suggestions; blank `q` gives `[]` |
+
+`/home`, `/search` and `/quicksearch` take `source=asmrone` (default) or `source=jasmr`. Any other value is a 400.
 | GET | `/feeds/:id/open?tab=` | Reopen a feed at a tab; 410 if expired |
 | GET | `/pages/:id?cont=` | Next page; 410 if expired |
 | POST | `/album/load`, `/album/feed`, `/album/tracks` | Body `{item: Album}` |
@@ -96,11 +104,27 @@ All paths are under `/api`. Errors use `{ "type": string, "message": string | nu
 
 An unknown `/api` path returns `404 {"type":"not_found","message":null}`. A known path with a method it doesn't support returns `405 {"type":"method_not_allowed","message":null}` with an `Allow` header.
 
+## Sources
+
+Two sources run side by side. Ids from japaneseasmr.com start with `jasmr:`: a work is `jasmr:<id>` (an album), each chapter is `jasmr:<id>#<n>` (a track, playing from `extras.start` to `extras.end` seconds in the work's one HLS file), and a circle is an artist `jasmr:cat:<slug>`. Every other id is asmr.one.
+
+- The site has no public API, so its pages are read as HTML. Requests are spaced by `JASMR_CRAWL_DELAY_MS`, and fetched pages are kept for 30 minutes.
+- Its stream and cover hosts only answer with the site's `Referer`, so the server sends it. Playlists are rewritten so each segment also goes through `/api/proxy`.
+- Site search is not used: it sits behind a bot check, which the server reports as a 503 and never gets around. Search and quick search match the works from listing pages already loaded.
+- Login, library, playlists, likes, radio and lyrics are not supported for this source (`not_supported`, 501).
+
+## Serving the UI
+
+When a build exists, `GET` and `HEAD` requests outside `/api` get the files in `frontend/dist`.
+Any other path gets `index.html`, so client-side routes such as `/work/123` load. Hashed files under
+`/assets/` are cached for a year (`immutable`). `index.html` is `no-cache`. Other methods outside
+`/api` get a plain 404. The UI is only served after the `/api` routes, so API paths never return HTML.
+
 ## Tests
 
 - `tests/unit`: stores, repositories, paging, translation chunking, lyric parsers, media tree,
   wire parsing and view shapes.
-- `tests/integration`: every route through supertest against a fake extension; the proxy
+- `tests/integration`: every route through supertest against a fake extension; the japaneseasmr routes against recorded pages; the built UI and its fallback; the proxy
   against a real local upstream (Range, redirects, errors); the asmr.one extension against
   undici `MockAgent` fixtures.
 - `tests/live`: real asmr.one and Google translate, only with `LIVE=1`.

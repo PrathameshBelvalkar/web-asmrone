@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { LogIn, LogOut, Search, SlidersHorizontal, UserRound } from 'lucide-react';
 import { useLogin, useLogout, useSetSetting } from '../api/mutations';
 import { formsOptions, meOptions, settingsOptions } from '../api/queries';
-import type { FormField, LoginForm, SettingDto } from '../api/types';
+import type { FormField, LoginForm, SettingDto, SourceId } from '../api/types';
 import { ErrorState, RowSkeletons } from '../components/States';
 import { Button, PageHeader, Toggle } from '../components/ui';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -16,12 +16,15 @@ import { Separator } from '../components/ui/separator';
 import { messageFor } from '../lib/errors';
 import { toast } from '../lib/toast';
 import { useCrumbs } from '../lib/crumbs';
+import { SOURCES, useSource } from '../lib/source';
 
 export function SettingsPage() {
   useCrumbs([{ label: 'Home', to: '/' }, { label: 'Settings' }]);
   const me = useQuery(meOptions());
   const forms = useQuery({ ...formsOptions(), enabled: me.isSuccess && !me.data });
-  const settings = useQuery(settingsOptions());
+  const source = useSource((s) => s.source);
+  // The preference list belongs to asmr.one; Japanese ASMR has none yet.
+  const settings = useQuery({ ...settingsOptions(), enabled: source === 'asmrone' });
   const logoutMutation = useLogout();
 
   return (
@@ -73,17 +76,57 @@ export function SettingsPage() {
             <CardDescription>Changes apply straight away.</CardDescription>
           </CardHeader>
           <CardContent>
-            {settings.isPending && <RowSkeletons count={4} />}
-            {settings.error && <ErrorState error={settings.error} onRetry={() => void settings.refetch()} />}
-            <div className="divide-y">
-              {settings.data?.map((s) => (
-                <SettingRow key={s.key} setting={s} />
-              ))}
-            </div>
+            <MusicSourceRow />
+            {source === 'jasmr' && (
+              <p className="text-sm text-muted-foreground">
+                Japanese ASMR has no preferences yet. The preferences below belong to asmr.one and appear when it is the music source.
+              </p>
+            )}
+            {source === 'asmrone' && (
+              <>
+                {settings.isPending && <RowSkeletons count={4} />}
+                {settings.error && <ErrorState error={settings.error} onRetry={() => void settings.refetch()} />}
+                <div className="divide-y">
+                  {settings.data?.map((s) => (
+                    <SettingRow key={s.key} setting={s} />
+                  ))}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
     </>
+  );
+}
+
+/** Which catalogue Home and Search browse. The sidebar follows this choice. */
+function MusicSourceRow() {
+  const source = useSource((s) => s.source);
+  const setSource = useSource((s) => s.setSource);
+  const choose = (value: string) => {
+    const next = value as SourceId;
+    if (next === source) return;
+    setSource(next);
+    toast(`Music source: ${SOURCES.find((o) => o.id === next)?.label ?? next}`);
+  };
+  return (
+    <div className="mb-4 flex items-center justify-between gap-4 border-b pb-4">
+      <div className="min-w-0">
+        <div className="text-sm">Music source</div>
+        <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+          asmr.one has accounts, playlists and likes. Japanese ASMR (japaneseasmr.com) is browse and play only.
+        </div>
+      </div>
+      <Select value={source} onValueChange={choose}>
+        <SelectTrigger aria-label="Music source" className="w-auto min-w-52 max-w-[55%] rounded-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {SOURCES.map((option) => <SelectItem key={option.id} value={option.id}>{option.label}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
 

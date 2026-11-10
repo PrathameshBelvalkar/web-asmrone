@@ -4,8 +4,8 @@ import type { Json } from '../models/json.js';
 /** Fully-qualified discriminator prefix used by the Kotlin server for polymorphic types. */
 export const MODEL = 'dev.brahmkshatriya.echo.common.models.';
 
-/** Registers an upstream URL so the proxy will serve it. */
-export type Registrar = (url: string) => void;
+/** Registers an upstream URL, with the headers the proxy must send, so the proxy will serve it. */
+export type Registrar = (url: string, headers?: Readonly<Record<string, string>>) => void;
 export const NO_REGISTRATION: Registrar = () => undefined;
 
 export function requestView(request: NetworkRequest): Json {
@@ -22,7 +22,7 @@ export function imageView(image: ImageHolder | null, issue: Registrar): Json {
   if (image === null) return null;
   switch (image.kind) {
     case 'NetworkRequest':
-      issue(image.request.url);
+      issue(image.request.url, image.request.headers);
       return {
         type: `${MODEL}ImageHolder.NetworkRequestImageHolder`,
         request: requestView(image.request),

@@ -1,3 +1,4 @@
+import Hls from 'hls.js';
 import { proxyUrl } from '../api/client';
 import { mediaOptions } from '../api/queries';
 import { queryClient } from '../lib/queryClient';
@@ -7,28 +8,105 @@ import { usePlayer } from './store';
 
 /**
  * One audio element for the whole app, so playback continues across pages.
- * Stream URLs come from the server; if the browser can't load one directly,
- * it is retried once through the server's media proxy.
+ *
+ * Files come from the server: progressive files play directly, and if the browser can't load one it
+ * is retried once through the server's media proxy. HLS playlists (japaneseasmr.com) always go
+ * through the proxy and are played with hls.js (Safari plays them natively).
+ *
+ * A chapter is a track with `extras.start` (and `extras.end`) in seconds inside one file. Chapters
+ * of the same file share the loaded file, so moving between them does not reload it.
  */
 const audio = new Audio();
 audio.preload = 'auto';
 
+interface Stream {
+  readonly url: string;
+  readonly hls: boolean;
+}
+
 let token = 0;
 let proxied = false;
-const urlCache = new Map<string, string>();
+let streaming = false;
+let hls: Hls | null = null;
+/** The remote URL of the file that is loaded now. */
+let loadedUrl: string | null = null;
+/** Where the current chapter starts and ends inside the loaded file (end null = end of file). */
+let base = 0;
+let end: number | null = null;
+let pendingSeek: number | null = null;
+const streams = new Map<string, Stream>();
 
-async function resolveUrl(track: Track): Promise<string> {
-  const cached = urlCache.get(track.id);
+async function resolveStream(track: Track): Promise<Stream> {
+  const cached = streams.get(track.id);
   if (cached) return cached;
   const media = await queryClient.fetchQuery(mediaOptions(track));
   const source = media.sources.find((s) => s.request?.url);
   if (!source?.request) throw new Error('This track has no playable stream.');
-  urlCache.set(track.id, source.request.url);
-  return source.request.url;
+  const stream: Stream = { url: source.request.url, hls: source.type === 'HLS' };
+  streams.set(track.id, stream);
+  return stream;
+}
+
+/** Chapter start in seconds (0 for a whole file). */
+function startOf(track: Track): number {
+  const value = Number(track.extras?.start ?? 0);
+  return Number.isFinite(value) && value >= 0 ? value : 0;
+}
+
+/** Chapter end in seconds, or null when the chapter runs to the end of the file. */
+function endOf(track: Track): number | null {
+  const raw = track.extras?.end;
+  if (raw === undefined) return null;
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : null;
 }
 
 function setError(message: string | null) {
   usePlayer.getState().setState({ error: message });
+}
+
+function destroyHls() {
+  if (hls) {
+    hls.destroy();
+    hls = null;
+  }
+}
+
+/** Points the audio element at a stream. HLS goes through hls.js unless the browser plays it natively. */
+function attach(stream: Stream) {
+  destroyHls();
+  proxied = false;
+  streaming = stream.hls;
+  loadedUrl = stream.url;
+  if (!stream.hls) {
+    audio.src = stream.url;
+    return;
+  }
+  const playlist = proxyUrl(stream.url);
+  if (Hls.isSupported()) {
+    const instance = new Hls();
+    instance.on(Hls.Events.ERROR, (_event, data) => {
+      if (!data.fatal) return;
+      if (hls === instance) destroyHls();
+      loadedUrl = null;
+      usePlayer.getState().setState({ loading: false, playing: false });
+      setError('This work could not be played.');
+    });
+    instance.loadSource(playlist);
+    instance.attachMedia(audio);
+    hls = instance;
+  } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+    audio.src = playlist;
+  } else {
+    throw new Error('This browser cannot play this stream.');
+  }
+}
+
+/** Length of the current chapter, in seconds. */
+function chapterDuration(): number {
+  const total = audio.duration;
+  const stop = end ?? (Number.isFinite(total) && total > 0 ? total : null);
+  return stop === null ? 0 : Math.max(0, stop - base);
 }
 
 export async function loadAndPlay(index: number): Promise<void> {
@@ -39,9 +117,18 @@ export async function loadAndPlay(index: number): Promise<void> {
   proxied = false;
   state.setState({ index, loading: true, error: null, position: 0, duration: 0 });
   try {
-    const url = await resolveUrl(track);
+    const stream = await resolveStream(track);
     if (myToken !== token) return;
-    audio.src = url;
+    base = startOf(track);
+    end = endOf(track);
+    if (stream.url === loadedUrl) {
+      // Same file: only move to the chapter.
+      audio.currentTime = base;
+    } else {
+      attach(stream);
+      pendingSeek = base;
+    }
+    usePlayer.getState().setState({ duration: chapterDuration(), position: 0 });
     updateSession(track);
     await audio.play();
   } catch (e) {
@@ -76,7 +163,7 @@ export function togglePlay(): void {
   const state = usePlayer.getState();
   if (state.index < 0) return;
   if (audio.paused) {
-    if (!audio.src) void loadAndPlay(state.index);
+    if (loadedUrl === null) void loadAndPlay(state.index);
     else void audio.play().catch(() => setError('Playback was blocked. Press play again.'));
   } else {
     audio.pause();
@@ -108,17 +195,19 @@ export function nextTrack(): void {
 
 export function prevTrack(): void {
   const { index } = usePlayer.getState();
-  if (audio.currentTime > 3 || index <= 0) {
+  if (audio.currentTime - base > 3 || index <= 0) {
     seek(0);
     return;
   }
   void loadAndPlay(index - 1);
 }
 
+/** Seek within the current track (chapter-relative seconds). */
 export function seek(seconds: number): void {
   if (!Number.isFinite(seconds)) return;
-  audio.currentTime = Math.max(0, seconds);
-  usePlayer.getState().setState({ position: audio.currentTime });
+  const offset = Math.max(0, seconds);
+  audio.currentTime = base + offset;
+  usePlayer.getState().setState({ position: offset });
 }
 
 export function setVolume(volume: number): void {
@@ -134,6 +223,8 @@ export function removeFromQueue(position: number): void {
   if (position === state.index) {
     audio.pause();
     audio.removeAttribute('src');
+    destroyHls();
+    loadedUrl = null;
     usePlayer.getState().setState({ queue, index: -1, playing: false, position: 0, duration: 0 });
     return;
   }
@@ -171,23 +262,37 @@ audio.addEventListener('play', () => usePlayer.getState().setState({ playing: tr
 audio.addEventListener('pause', () => usePlayer.getState().setState({ playing: false }));
 audio.addEventListener('waiting', () => usePlayer.getState().setState({ loading: true }));
 audio.addEventListener('playing', () => usePlayer.getState().setState({ loading: false }));
-audio.addEventListener('loadedmetadata', () => usePlayer.getState().setState({ duration: audio.duration || 0 }));
-audio.addEventListener('timeupdate', () => usePlayer.getState().setState({ position: audio.currentTime }));
+audio.addEventListener('loadedmetadata', () => {
+  if (pendingSeek !== null) {
+    audio.currentTime = pendingSeek;
+    pendingSeek = null;
+  }
+  usePlayer.getState().setState({ duration: chapterDuration() });
+});
+audio.addEventListener('durationchange', () => usePlayer.getState().setState({ duration: chapterDuration() }));
+audio.addEventListener('timeupdate', () => {
+  if (end !== null && audio.currentTime >= end) {
+    // The chapter is over. Clear the end first so a repeated event cannot advance twice.
+    end = null;
+    nextTrack();
+    return;
+  }
+  usePlayer.getState().setState({ position: Math.max(0, audio.currentTime - base) });
+});
 audio.addEventListener('ended', () => nextTrack());
 audio.addEventListener('error', () => {
   const state = usePlayer.getState();
   const track = state.queue[state.index];
-  if (!track || !audio.src || proxied) {
+  if (!track || loadedUrl === null || proxied || streaming) {
     usePlayer.getState().setState({ loading: false, playing: false });
     setError('This track could not be loaded.');
     return;
   }
-  // Retry once through the server proxy, keeping the position.
+  // Retry once through the server proxy, keeping the chapter position.
   proxied = true;
-  const current = audio.src;
-  const original = urlCache.get(track.id) ?? current;
+  const original = streams.get(track.id)?.url ?? loadedUrl;
+  pendingSeek = base;
   audio.src = proxyUrl(original);
-  audio.currentTime = 0;
   void audio.play().catch(() => setError('This track could not be loaded.'));
 });
 

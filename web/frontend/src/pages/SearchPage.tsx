@@ -10,6 +10,7 @@ import { IconButton, PageHeader } from '../components/ui';
 import { openMedia } from '../lib/actions';
 import { artistsOf, titleOf } from '../lib/media';
 import { useCrumbs } from '../lib/crumbs';
+import { useSource } from '../lib/source';
 
 function useDebounced<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -35,8 +36,9 @@ export function SearchPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const debounced = useDebounced(text.trim(), 250);
 
-  const suggestions = useQuery({ ...quickSearchOptions(debounced), enabled: debounced.length > 0 && debounced !== submitted });
-  const results = useQuery(searchOptions(submitted));
+  const source = useSource((s) => s.source);
+  const suggestions = useQuery({ ...quickSearchOptions(debounced, source), enabled: debounced.length > 0 && debounced !== submitted });
+  const results = useQuery(searchOptions(submitted, source));
   const items = suggestions.data ?? [];
 
   const commit = (q: string) => {

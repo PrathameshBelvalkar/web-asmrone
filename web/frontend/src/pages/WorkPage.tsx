@@ -12,6 +12,7 @@ import { ErrorState } from '../components/States';
 import { Button, Chip, IconButton, Skeleton } from '../components/ui';
 import { useCrumbs } from '../lib/crumbs';
 import { artistLinkFor, playFeed, shareItem, startRadio } from '../lib/actions';
+import { isJasmr } from '../lib/media';
 import { albumStub, formatDuration } from '../lib/media';
 import { messageFor } from '../lib/errors';
 import { toast } from '../lib/toast';
@@ -48,7 +49,9 @@ export function WorkPage() {
   const currentTitle = folderId ? folders.find((f) => f.feedId === folderId)?.title ?? 'Folder' : 'Episodes';
   const currentQuery = folderId ? folderFeed : episodes;
 
-  const like = useQuery({ ...likeOptions(source), enabled: !!album });
+  // japaneseasmr.com works have no likes or radio.
+  const jasmr = isJasmr(source.id);
+  const like = useQuery({ ...likeOptions(source), enabled: !!album && !jasmr });
   const likeMutation = useLike(source);
 
   if (detail.isPending) return <HeroSkeleton />;
@@ -96,8 +99,12 @@ export function WorkPage() {
 
             <div className="mt-6 flex flex-wrap items-center gap-2">
               <Button variant="primary" icon={Play} onClick={playAll}>Play</Button>
-              <Button variant="secondary" icon={Radio} onClick={() => startRadio(album)}>Radio</Button>
-              <IconButton icon={Heart} label={liked ? 'Remove from favourites' : 'Add to favourites'} active={liked} size="lg" onClick={toggleFavourite} disabled={!like.data} className="border border-input" />
+              {!jasmr && (
+                <>
+                  <Button variant="secondary" icon={Radio} onClick={() => startRadio(album)}>Radio</Button>
+                  <IconButton icon={Heart} label={liked ? 'Remove from favourites' : 'Add to favourites'} active={liked} size="lg" onClick={toggleFavourite} disabled={!like.data} className="border border-input" />
+                </>
+              )}
               <IconButton icon={Link2} label="Copy link" size="lg" onClick={() => shareItem(album)} className="border border-input" />
             </div>
 

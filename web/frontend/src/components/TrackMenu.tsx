@@ -8,6 +8,7 @@ import { useLike } from '../api/mutations';
 import { likeOptions } from '../api/queries';
 import { messageFor } from '../lib/errors';
 import { openMedia, playTrackNext, shareItem, startRadio } from '../lib/actions';
+import { isJasmr } from '../lib/media';
 import { toast } from '../lib/toast';
 import { PlaylistDialog } from './PlaylistDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
@@ -18,6 +19,8 @@ export function TrackMenu({ track, label, className }: { track: Track; label: st
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [playlistOpen, setPlaylistOpen] = useState(false);
+  // japaneseasmr.com tracks have no likes, radio or playlists.
+  const jasmr = isJasmr(track.id);
   // The like state is only fetched when the menu opens.
   const like = useQuery({ ...likeOptions(track), enabled: open, staleTime: 0 });
   const likeMutation = useLike(track);
@@ -42,11 +45,15 @@ export function TrackMenu({ track, label, className }: { track: Track; label: st
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <Item icon={ListEnd} onSelect={() => playTrackNext(track)}>Play next</Item>
-          <Item icon={Radio} onSelect={() => void startRadio(track)}>Start radio</Item>
-          <Item icon={Heart} onSelect={toggleFavourite}>
-            {like.data?.liked ? 'Remove from favourites' : 'Add to favourites'}
-          </Item>
-          <Item icon={ListPlus} onSelect={() => setPlaylistOpen(true)}>Add to playlist…</Item>
+          {!jasmr && (
+            <>
+              <Item icon={Radio} onSelect={() => void startRadio(track)}>Start radio</Item>
+              <Item icon={Heart} onSelect={toggleFavourite}>
+                {like.data?.liked ? 'Remove from favourites' : 'Add to favourites'}
+              </Item>
+              <Item icon={ListPlus} onSelect={() => setPlaylistOpen(true)}>Add to playlist…</Item>
+            </>
+          )}
           <Item icon={Link2} onSelect={() => void shareItem(track)}>Copy link</Item>
           <Item icon={Disc3} onSelect={() => openMedia(track, navigate)}>Go to work</Item>
         </DropdownMenuContent>

@@ -4,10 +4,12 @@ import { FeedView } from '../components/FeedView';
 import { CardSkeletons, ErrorState } from '../components/States';
 import { PageHeader } from '../components/ui';
 import { useCrumbs } from '../lib/crumbs';
+import { useSource } from '../lib/source';
 
 export function HomePage() {
   useCrumbs([{ label: 'Home' }]);
-  const home = useQuery(homeOptions());
+  const source = useSource((s) => s.source);
+  const home = useQuery(homeOptions(source));
   return (
     <>
       <PageHeader title="Home" />

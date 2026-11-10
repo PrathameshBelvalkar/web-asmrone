@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { meOptions } from '../api/queries';
+import { useSource } from '../lib/source';
 import { NavUser } from './nav-user';
 import {
   Sidebar,
@@ -27,6 +28,9 @@ const BROWSE: { title: string; url: string; icon: LucideIcon; end?: boolean }[] 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const me = useQuery(meOptions());
   const { pathname } = useLocation();
+  const source = useSource((s) => s.source);
+  // The library is asmr.one only (it needs an account there).
+  const browse = source === 'jasmr' ? BROWSE.filter((item) => item.url !== '/library') : BROWSE;
   const isActive = (url: string, end?: boolean) => (end ? pathname === url : pathname.startsWith(url));
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -52,7 +56,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup>
           <SidebarGroupLabel>Browse</SidebarGroupLabel>
           <SidebarMenu>
-            {BROWSE.map((item) => (
+            {browse.map((item) => (
               <SidebarMenuItem key={item.url}>
                 <SidebarMenuButton asChild tooltip={item.title} isActive={isActive(item.url, item.end)}>
                   <NavLink to={item.url} end={item.end}>

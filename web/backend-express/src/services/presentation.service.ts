@@ -15,8 +15,8 @@ export class PresentationService {
       registerFeed: (feed: Feed<unknown>) => {
         return this.feeds.put(feed);
       },
-      issueUrl: (url: string) => {
-        this.issued.add(url);
+      issueUrl: (url: string, headers?: Readonly<Record<string, string>>) => {
+        this.issued.add(url, headers ?? {});
       },
     };
   }

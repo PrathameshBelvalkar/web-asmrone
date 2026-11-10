@@ -6,12 +6,18 @@ import { createLogger } from './lib/logger.js';
 async function main(): Promise<void> {
   const config = loadConfig();
   const logger = createLogger(config.logLevel);
+  if (process.env.ECHO_WEB_DIST !== undefined && config.distDir === null) {
+    logger.warn({ path: process.env.ECHO_WEB_DIST }, 'ECHO_WEB_DIST is not a directory; the UI is not served');
+  }
   const container = createContainer(config, logger);
   await container.init();
 
   const app = createApp(container, logger);
   const server = app.listen(config.port, config.host, () => {
-    logger.info({ url: `http://${config.host}:${config.port}`, dataDir: config.dataDir }, 'Echo Web API listening');
+    logger.info(
+      { url: `http://${config.host}:${config.port}`, dataDir: config.dataDir, ui: config.distDir ?? 'not built' },
+      'Echo Web listening',
+    );
   });
 
   const shutdown = (signal: NodeJS.Signals): void => {

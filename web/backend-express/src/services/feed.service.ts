@@ -1,6 +1,7 @@
 import type { Feed } from '../models/feed.js';
 import type { PagedData } from '../models/paged-data.js';
-import type { MusicExtension } from '../models/extension.js';
+import type { SourceId } from '../models/source.js';
+import type { SourceRouter } from '../extension/source-router.js';
 import type { OpenedFeed, PageItem } from '../models/presentation.js';
 import type { ExpiringRegistry } from '../stores/expiring-registry.js';
 import type { Page } from '../models/paged-data.js';
@@ -12,25 +13,25 @@ import type { QuickSearchItem } from '../models/echo/quick-search.js';
  */
 export class FeedService {
   constructor(
-    private readonly ext: MusicExtension,
+    private readonly ext: SourceRouter,
     private readonly feeds: ExpiringRegistry<Feed<unknown>>,
     private readonly pages: ExpiringRegistry<PagedData<unknown>>,
   ) {}
 
-  quickSearch(query: string): Promise<QuickSearchItem[]> {
-    return this.ext.quickSearch(query);
+  quickSearch(query: string, source: SourceId): Promise<QuickSearchItem[]> {
+    return this.ext.forSource(source).quickSearch(query);
   }
 
-  home(): Promise<OpenedFeed> {
-    return this.ext.loadHomeFeed().then((feed) => this.openNew(feed));
+  home(source: SourceId): Promise<OpenedFeed> {
+    return this.ext.forSource(source).loadHomeFeed().then((feed) => this.openNew(feed));
   }
 
   library(): Promise<OpenedFeed> {
     return this.ext.loadLibraryFeed().then((feed) => this.openNew(feed));
   }
 
-  search(query: string): Promise<OpenedFeed> {
-    return this.ext.loadSearchFeed(query).then((feed) => this.openNew(feed));
+  search(query: string, source: SourceId): Promise<OpenedFeed> {
+    return this.ext.forSource(source).loadSearchFeed(query).then((feed) => this.openNew(feed));
   }
 
   /** Opens a feed that was registered earlier (optionally at a tab). Null when it has expired. */

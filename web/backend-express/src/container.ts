@@ -14,6 +14,8 @@ import type { Feed } from './models/feed.js';
 import type { PagedData } from './models/paged-data.js';
 import type { MusicExtension } from './models/extension.js';
 import { AsmrOneExtension } from './extension/asmrone/asmr-one.extension.js';
+import { JasmrExtension } from './extension/jasmr/jasmr.extension.js';
+import { SourceRouter } from './extension/source-router.js';
 import { SettingsRepository } from './repositories/settings.repository.js';
 import { UserRepository } from './repositories/user.repository.js';
 import { AuthService } from './services/auth.service.js';
@@ -45,6 +47,7 @@ export interface ContainerOptions {
   readonly extension?: MusicExtension;
   readonly asmrDispatcher?: Dispatcher;
   readonly proxyDispatcher?: Dispatcher;
+  readonly jasmrDispatcher?: Dispatcher;
 }
 
 export function createContainer(config: AppConfig, logger: Logger, options: ContainerOptions = {}): Container {
@@ -58,13 +61,23 @@ export function createContainer(config: AppConfig, logger: Logger, options: Cont
 
   const ownAsmr = options.asmrDispatcher === undefined;
   const asmrDispatcher: Dispatcher =
-    options.asmrDispatcher ?? createDispatcher({ connectMs: 10_000, responseMs: 10_000 });
+    options.asmrDispatcher ?? createDispatcher({ connectMs: LIMITS.asmrConnectTimeoutMs, responseMs: LIMITS.asmrResponseTimeoutMs });
   const ownProxy = options.proxyDispatcher === undefined;
   const proxyDispatcher: Dispatcher =
     options.proxyDispatcher ??
     createDispatcher({ connectMs: LIMITS.proxyConnectTimeoutMs, responseMs: LIMITS.proxyReadTimeoutMs });
 
-  const extension: MusicExtension = options.extension ?? new AsmrOneExtension(asmrDispatcher);
+  const ownJasmr = options.jasmrDispatcher === undefined;
+  const jasmrDispatcher: Dispatcher =
+    options.jasmrDispatcher ??
+    createDispatcher({ connectMs: LIMITS.jasmrConnectTimeoutMs, responseMs: LIMITS.jasmrResponseTimeoutMs });
+
+  const asmrExtension: MusicExtension = options.extension ?? new AsmrOneExtension(asmrDispatcher);
+  const jasmrExtension: MusicExtension = new JasmrExtension(jasmrDispatcher, {
+    crawlDelayMs: config.jasmrCrawlDelayMs,
+    cacheTtlMs: LIMITS.jasmrCacheTtlMs,
+  });
+  const extension = new SourceRouter(asmrExtension, jasmrExtension);
 
   const presentation = new PresentationService(feeds, issued);
   const feedService = new FeedService(extension, feeds, pages);
@@ -98,6 +111,7 @@ export function createContainer(config: AppConfig, logger: Logger, options: Cont
       await Promise.all([
         ownAsmr ? asmrDispatcher.close() : undefined,
         ownProxy ? proxyDispatcher.close() : undefined,
+        ownJasmr ? jasmrDispatcher.close() : undefined,
       ]);
     },
   };

@@ -2,6 +2,9 @@
 
 export const MODEL_PREFIX = 'dev.brahmkshatriya.echo.common.models.';
 
+/** Music sources: asmr.one (default) and japaneseasmr.com. */
+export type SourceId = 'asmrone' | 'jasmr';
+
 export type Kind = 'Track' | 'Album' | 'Artist' | 'Playlist' | 'Radio';
 
 export interface ImageHolder {
@@ -141,6 +144,8 @@ export interface Lyrics {
 
 export interface MediaSource {
   sourceType: string;
+  /** Progressive file or HLS playlist. */
+  type?: string;
   request?: { url: string; headers: Record<string, string> };
   title?: string | null;
 }

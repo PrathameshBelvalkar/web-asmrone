@@ -1,4 +1,6 @@
 import type { Request } from 'express';
+import { HttpError } from '../models/errors.js';
+import { isSourceId, type SourceId } from '../models/source.js';
 
 /** Query value as a string, or undefined when absent (repeated keys use the first value). */
 export function queryString(req: Request, name: string): string | undefined {
@@ -11,4 +13,11 @@ export function queryString(req: Request, name: string): string | undefined {
 export function paramString(req: Request, name: string): string {
   const value = req.params[name];
   return typeof value === 'string' ? value : '';
+}
+
+/** The `source` query value: `asmrone` by default, `jasmr` for japaneseasmr.com. Anything else is a 400. */
+export function sourceParam(req: Request): SourceId {
+  const value = queryString(req, 'source') ?? 'asmrone';
+  if (!isSourceId(value)) throw HttpError.badRequest('source must be asmrone or jasmr');
+  return value;
 }

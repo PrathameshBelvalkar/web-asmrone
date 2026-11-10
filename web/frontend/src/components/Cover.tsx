@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Music2 } from 'lucide-react';
 import type { ImageHolder } from '../api/types';
 import { proxyUrl } from '../api/client';
-import { imageUrl } from '../lib/media';
+import { imageNeedsProxy, imageUrl } from '../lib/media';
 
 /** Cover art with a skeleton while loading, a placeholder when missing, and a proxy fallback. */
 export function Cover({
@@ -15,15 +15,17 @@ export function Cover({
   rounded?: string;
 }) {
   const direct = src ?? imageUrl(holder);
-  const [current, setCurrent] = useState<string | undefined>(direct);
-  const [proxied, setProxied] = useState(false);
+  const needsProxy = src === undefined && imageNeedsProxy(holder);
+  const initial = needsProxy && direct ? proxyUrl(direct) : direct;
+  const [current, setCurrent] = useState<string | undefined>(initial);
+  const [proxied, setProxied] = useState(needsProxy);
   const [loaded, setLoaded] = useState(false);
   const [previous, setPrevious] = useState(direct);
   if (direct !== previous) {
     // The source changed (new track or item): start over.
     setPrevious(direct);
-    setCurrent(direct);
-    setProxied(false);
+    setCurrent(initial);
+    setProxied(needsProxy);
     setLoaded(false);
   }
 

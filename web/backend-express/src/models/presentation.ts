@@ -13,7 +13,7 @@ import type { Json } from './json.js';
  */
 export interface ViewContext {
   readonly registerFeed: (feed: Feed<unknown>) => string;
-  readonly issueUrl: (url: string) => void;
+  readonly issueUrl: (url: string, headers?: Readonly<Record<string, string>>) => void;
 }
 
 /** A feed opened for the client: ids, tabs, and the flags the screen needs. */

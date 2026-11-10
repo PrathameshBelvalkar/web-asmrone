@@ -4,7 +4,7 @@ import { HttpError } from '../models/errors.js';
 import type { ProxyService } from '../services/proxy.service.js';
 import { queryString } from './query.js';
 
-/** Streams an issued upstream URL. Client disconnects abort the upstream request. */
+/** Streams an issued upstream URL. HLS playlists are rewritten so their segments also go through here. */
 export class ProxyController {
   constructor(private readonly proxy: ProxyService) {}
 
@@ -19,6 +19,14 @@ export class ProxyController {
 
     const range = req.headers.range;
     const upstream = await this.proxy.open(url, range, abort.signal);
+
+    if (this.proxy.isPlaylist(url, upstream.headers['content-type'])) {
+      const text = await upstream.body.text();
+      res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
+      res.setHeader('Cache-Control', 'no-store');
+      res.status(200).send(this.proxy.rewritePlaylist(url, text));
+      return;
+    }
 
     const contentRange = upstream.headers['content-range'];
     const contentLength = upstream.headers['content-length'];

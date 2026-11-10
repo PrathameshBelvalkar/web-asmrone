@@ -5,7 +5,7 @@ import type { PresentationService } from '../services/presentation.service.js';
 import { feedView } from '../views/feed.view.js';
 import { pageView } from '../views/page.view.js';
 import { quickSearchView } from '../views/quick-search.view.js';
-import { paramString, queryString } from './query.js';
+import { paramString, queryString, sourceParam } from './query.js';
 
 /** Home, library, search, quick search and paging. */
 export class FeedController {
@@ -14,8 +14,8 @@ export class FeedController {
     private readonly presentation: PresentationService,
   ) {}
 
-  home = async (_req: Request, res: Response): Promise<void> => {
-    res.json(feedView(await this.feeds.home(), this.presentation.context()));
+  home = async (req: Request, res: Response): Promise<void> => {
+    res.json(feedView(await this.feeds.home(sourceParam(req)), this.presentation.context()));
   };
 
   library = async (_req: Request, res: Response): Promise<void> => {
@@ -24,7 +24,7 @@ export class FeedController {
 
   search = async (req: Request, res: Response): Promise<void> => {
     const q = queryString(req, 'q') ?? '';
-    res.json(feedView(await this.feeds.search(q), this.presentation.context()));
+    res.json(feedView(await this.feeds.search(q, sourceParam(req)), this.presentation.context()));
   };
 
   quickSearch = async (req: Request, res: Response): Promise<void> => {
@@ -33,7 +33,7 @@ export class FeedController {
       res.json([]);
       return;
     }
-    res.json(quickSearchView(await this.feeds.quickSearch(q)));
+    res.json(quickSearchView(await this.feeds.quickSearch(q, sourceParam(req))));
   };
 
   openFeed = async (req: Request, res: Response): Promise<void> => {

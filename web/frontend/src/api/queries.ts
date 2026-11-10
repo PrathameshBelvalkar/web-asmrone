@@ -1,6 +1,6 @@
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import { api } from './client';
-import type { Album, Artist, MediaItem, Playlist, Track } from './types';
+import type { Album, Artist, MediaItem, Playlist, SourceId, Track } from './types';
 
 /** Shared cache times. Content is long-lived; user-specific data is shorter. */
 const MIN = 60_000;
@@ -21,17 +21,17 @@ export const formsOptions = () =>
 export const settingsOptions = () =>
   queryOptions({ queryKey: ['settings'], queryFn: () => api.settings(), staleTime: STALE.user });
 
-export const homeOptions = () =>
-  queryOptions({ queryKey: ['home'], queryFn: () => api.home(), staleTime: STALE.content });
+export const homeOptions = (source: SourceId) =>
+  queryOptions({ queryKey: ['home', source], queryFn: () => api.home(source), staleTime: STALE.content });
 
 export const libraryOptions = () =>
   queryOptions({ queryKey: ['library'], queryFn: () => api.library(), staleTime: STALE.live, retry: false });
 
-export const searchOptions = (q: string) =>
-  queryOptions({ queryKey: ['search', q], queryFn: () => api.search(q), staleTime: STALE.content, enabled: q.length > 0 });
+export const searchOptions = (q: string, source: SourceId) =>
+  queryOptions({ queryKey: ['search', source, q], queryFn: () => api.search(q, source), staleTime: STALE.content, enabled: q.length > 0 });
 
-export const quickSearchOptions = (q: string) =>
-  queryOptions({ queryKey: ['quick', q], queryFn: () => api.quickSearch(q), staleTime: STALE.content, enabled: q.length > 0 });
+export const quickSearchOptions = (q: string, source: SourceId) =>
+  queryOptions({ queryKey: ['quick', source, q], queryFn: () => api.quickSearch(q, source), staleTime: STALE.content, enabled: q.length > 0 });
 
 export const feedOptions = (feedId: string, tab: string | null = null) =>
   queryOptions({
