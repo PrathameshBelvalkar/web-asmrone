@@ -63,7 +63,8 @@ export const api = {
     req<void>('POST', '/playlists/add-tracks', { item, tracks: [], index: 0, new: [track] }),
   trackLoad: (item: Track) => req<Track>('POST', '/track/load', { item }),
   trackMedia: (item: Track) => req<StreamMedia>('POST', '/track/media', { item }),
-  lyrics: (item: Track) => req<Lyrics | null>('POST', '/lyrics', { item }),
+  /** `positionMs` (the listening position) tells the server where to start AI subtitles. */
+  lyrics: (item: Track, positionMs?: number) => req<Lyrics | null>('POST', '/lyrics', { item, positionMs }),
   radio: (item: MediaItem) => req<RadioDto>('POST', '/radio', { item }),
   share: (item: MediaItem) => req<{ url: string }>('POST', '/share', { item }),
   like: (item: MediaItem, shouldLike: boolean) => req<void>('POST', '/like', { item, shouldLike }),

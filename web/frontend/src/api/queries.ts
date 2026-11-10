@@ -1,6 +1,7 @@
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import { api } from './client';
-import type { Album, Artist, MediaItem, Playlist, SourceId, Track } from './types';
+import type { Album, Artist, Lyrics, MediaItem, Playlist, SourceId, Track } from './types';
+import { usePlayer } from '../player/store';
 
 /** Shared cache times. Content is long-lived; user-specific data is shorter. */
 const MIN = 60_000;
@@ -74,8 +75,31 @@ export const editableOptions = (track: Track) =>
 export const likeOptions = (item: MediaItem) =>
   queryOptions({ queryKey: ['like', item.id], queryFn: () => api.likeStatus(item), staleTime: STALE.live });
 
+/** The listening position when `track` is the one playing, so AI subtitles start there. */
+function playingPositionMs(track: Track): number | undefined {
+  const { queue, index, position } = usePlayer.getState();
+  return queue[index]?.id === track.id ? Math.round(position * 1000) : undefined;
+}
+
+/** True while AI subtitles for the track are still being made (the server is polled). */
+export const aiSubtitlesPending = (lyrics: Lyrics | null | undefined) => {
+  return lyrics?.extras?.aiStatus === 'running';
+};
+
+/**
+ * Lyrics never change once found. AI subtitles that are still being made are polled every 2 s, and
+ * any unfinished AI result (pending, failed, unavailable) is refetched the next time it is shown.
+ */
 export const lyricsOptions = (track: Track) =>
-  queryOptions({ queryKey: ['lyrics', track.id], queryFn: () => api.lyrics(track), staleTime: Infinity });
+  queryOptions({
+    queryKey: ['lyrics', track.id],
+    queryFn: () => api.lyrics(track, playingPositionMs(track)),
+    staleTime: (query) => {
+      const extras = query.state.data?.extras;
+      return extras?.aiGenerated && extras.aiStatus !== 'done' ? 0 : Infinity;
+    },
+    refetchInterval: (query) => (aiSubtitlesPending(query.state.data) ? 2000 : false),
+  });
 
 /** The playable stream for a track. */
 export const mediaOptions = (track: Track) =>

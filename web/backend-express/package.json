@@ -16,7 +16,8 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:live": "LIVE=1 vitest run tests/live"
+    "test:live": "LIVE=1 vitest run tests/live",
+    "setup:whisper": "bash scripts/setup-whisper.sh"
   },
   "dependencies": {
     "cheerio": "^1.2.0",

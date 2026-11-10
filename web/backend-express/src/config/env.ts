@@ -9,6 +9,10 @@ const envSchema = z.object({
   ECHO_WEB_DATA: z.string().min(1).optional(),
   ECHO_WEB_DIST: z.string().min(1).optional(),
   JASMR_CRAWL_DELAY_MS: z.coerce.number().int().min(0).max(600_000).default(10_000),
+  WHISPER_SERVER_BIN: z.string().min(1).default('whisper-server'),
+  FFMPEG_BIN: z.string().min(1).default('ffmpeg'),
+  WHISPER_MODEL: z.string().min(1).optional(),
+  WHISPER_VAD_MODEL: z.string().min(1).optional(),
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .default('info'),
@@ -24,6 +28,16 @@ export interface AppConfig {
   /** Minimum gap between two japaneseasmr.com page requests (robots.txt asks for 10 s). */
   readonly jasmrCrawlDelayMs: number;
   readonly logLevel: z.infer<typeof envSchema>['LOG_LEVEL'];
+  /** Local speech-to-text for tracks without lyrics. */
+  readonly whisper: WhisperConfig;
+}
+
+export interface WhisperConfig {
+  readonly whisperServerBin: string;
+  readonly ffmpegBin: string;
+  readonly model: string;
+  /** Silero VAD model; used only when the file exists. */
+  readonly vadModel: string;
 }
 
 /** Parses environment variables. Throws a readable error for invalid values. */
@@ -34,13 +48,15 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     throw new Error(`Invalid environment: ${details}`);
   }
   const raw = parsed.data.ECHO_WEB_DATA;
+  const dataDir = raw ? expandHome(raw) : join(homedir(), '.echo-web');
   return {
     port: parsed.data.PORT,
     host: '127.0.0.1',
-    dataDir: raw ? expandHome(raw) : join(homedir(), '.echo-web'),
+    dataDir,
     distDir: findDist(parsed.data.ECHO_WEB_DIST),
     jasmrCrawlDelayMs: parsed.data.JASMR_CRAWL_DELAY_MS,
     logLevel: parsed.data.LOG_LEVEL,
+    whisper: whisperConfig(parsed.data, dataDir),
   };
 }
 
@@ -69,6 +85,20 @@ function isDirectory(path: string): boolean {
   } catch {
     return false;
   }
+}
+
+/** Binaries are looked up on PATH; models default to `<dataDir>/models` (see scripts/setup-whisper.sh). */
+export function whisperConfig(
+  env: Pick<z.infer<typeof envSchema>, 'WHISPER_SERVER_BIN' | 'FFMPEG_BIN' | 'WHISPER_MODEL' | 'WHISPER_VAD_MODEL'>,
+  dataDir: string,
+): WhisperConfig {
+  const models = join(dataDir, 'models');
+  return {
+    whisperServerBin: expandHome(env.WHISPER_SERVER_BIN),
+    ffmpegBin: expandHome(env.FFMPEG_BIN),
+    model: env.WHISPER_MODEL ? expandHome(env.WHISPER_MODEL) : join(models, 'ggml-large-v3-turbo-q5_0.bin'),
+    vadModel: env.WHISPER_VAD_MODEL ? expandHome(env.WHISPER_VAD_MODEL) : join(models, 'ggml-silero-v5.1.2.bin'),
+  };
 }
 
 function expandHome(path: string): string {

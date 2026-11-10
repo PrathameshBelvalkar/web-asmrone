@@ -5,12 +5,14 @@ import type { StreamMedia } from '../models/echo/streamable.js';
 import type { OpenedFeed } from '../models/presentation.js';
 import { HttpError } from '../models/errors.js';
 import type { FeedService } from './feed.service.js';
+import type { AiSubtitleService } from './ai-subtitles/ai-subtitle.service.js';
 
 /** Albums, artists, playlists, tracks, lyrics, radio, sharing and likes. */
 export class MediaService {
   constructor(
     private readonly ext: MusicExtension,
     private readonly feeds: FeedService,
+    private readonly aiSubtitles: AiSubtitleService | null = null,
   ) {}
 
   loadAlbum(album: Album): Promise<Album> {
@@ -60,8 +62,19 @@ export class MediaService {
     return this.ext.loadStreamableMedia(server);
   }
 
-  /** First lyrics match for the track, loaded in full. Null when there is none. */
-  async lyrics(track: Track): Promise<Lyrics | null> {
+  /**
+   * First lyrics match for the track, loaded in full. Without one, AI subtitles (when enabled):
+   * possibly still being generated, see `extras.aiStatus`. Null when there is nothing.
+   * `positionMs` (the listening position) is where AI transcription starts.
+   */
+  async lyrics(track: Track, positionMs: number | null = null): Promise<Lyrics | null> {
+    const found = await this.sourceLyrics(track);
+    if (found !== null) return found;
+    if (this.aiSubtitles?.isEnabled()) return this.aiSubtitles.get(track, positionMs);
+    return null;
+  }
+
+  private async sourceLyrics(track: Track): Promise<Lyrics | null> {
     const feed = await this.ext.searchTrackLyrics(track);
     const first = (await (await feed.getPagedData(feed.notSortTabs[0] ?? null)).pagedData.loadPage(null)).data[0];
     if (first === undefined) return null;

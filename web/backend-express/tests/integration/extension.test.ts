@@ -61,7 +61,7 @@ describe('settings page', () => {
   it('lists the five settings with the documented defaults', async () => {
     tagsIntercept();
     const items = await ext.getSettingItems();
-    expect(items.map((s) => s.key)).toEqual(['onlyShowSubtitled', 'onlyShowSfw', 'siteMirror', 'translationLanguage', 'showTags']);
+    expect(items.map((s) => s.key)).toEqual(['onlyShowSubtitled', 'aiSubtitles', 'onlyShowSfw', 'siteMirror', 'translationLanguage', 'showTags']);
 
     const mirror = items.find((s) => s.key === 'siteMirror');
     expect(mirror).toMatchObject({ kind: 'List', defaultEntryIndex: 0, entryValues: ['asmr-100', 'asmr-200', 'asmr-300'] });

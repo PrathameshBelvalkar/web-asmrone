@@ -16,6 +16,13 @@ export function buildSettingItems(tagNames: readonly string[]): Setting[] {
     },
     {
       kind: 'Switch',
+      title: 'Auto-generate AI subtitles',
+      summary: 'Transcribe tracks without lyrics on this computer with Whisper (free, works offline)',
+      key: 'aiSubtitles',
+      defaultValue: true,
+    },
+    {
+      kind: 'Switch',
       title: 'Only Show SFW Works In Search',
       key: 'onlyShowSfw',
       defaultValue: false,

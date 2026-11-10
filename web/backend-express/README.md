@@ -35,9 +35,39 @@ works. The folder is found automatically, or set `ECHO_WEB_DIST`.
 | `ECHO_WEB_DATA` | `~/.echo-web` | Holds `settings.json` and `user.json`. The format matches the Kotlin server, so an existing login carries over. |
 | `ECHO_WEB_DIST` | `web/frontend/dist` (auto) | Built UI to serve at `/`. If set but not a directory, the UI is not served and a warning is logged. |
 | `LOG_LEVEL` | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent` |
+| `WHISPER_SERVER_BIN` | `whisper-server` | whisper.cpp server for AI subtitles (name on `PATH` or a full path) |
+| `FFMPEG_BIN` | `ffmpeg` | Used to read and resample audio for AI subtitles |
+| `WHISPER_MODEL` | `<data>/models/ggml-large-v3-turbo-q5_0.bin` | Whisper model file |
+| `WHISPER_VAD_MODEL` | `<data>/models/ggml-silero-v5.1.2.bin` | Voice-activity model; skipped if the file is missing |
 | `JASMR_CRAWL_DELAY_MS` | `10000` | Minimum gap between two japaneseasmr.com page requests (robots.txt asks for 10 s). Stream and image requests are not delayed. |
 
 Do not run this server and the Kotlin server on the same port or data directory at once.
+
+## AI subtitles
+
+Tracks without a subtitle file get subtitles made on this computer with
+[whisper.cpp](https://github.com/ggml-org/whisper.cpp), for free and offline. One-time setup:
+
+```bash
+brew install whisper-cpp ffmpeg
+npm run setup:whisper   # downloads about 550 MB of models into ~/.echo-web/models
+```
+
+How it works:
+
+- When `/api/lyrics` finds no subtitle file, the server starts decoding the track with ffmpeg
+  (asmr.one's smaller low-quality copy when there is one) and transcribes it **while it downloads**,
+  in pieces of about 20–28 s cut at quiet moments, so lines appear within seconds.
+- `whisper-server` is started on first use on a free local port and keeps the model loaded.
+- The client sends `positionMs` with each poll. The next piece always starts where the listener is,
+  so seeking ahead moves the work there; earlier gaps are filled in afterwards.
+- One piece runs at a time. The most recently requested track goes first (the playing track is
+  polled; the next one in the queue is asked for once). Up to 3 tracks are kept in progress.
+- The response's `extras.aiStatus` is `running` (with `aiPhase`, `aiCoveredMs`, `aiCovered` ranges,
+  and `aiTotalMs`/`aiProgress` when the length is known), `done`, `failed` or `unavailable` (with
+  `aiMessage`). Lines are Japanese from Whisper, translated with the existing translator.
+- Finished transcripts are saved in `<data>/ai-subtitles/`, so each track is transcribed once.
+- The **Auto-generate AI subtitles** setting turns this off.
 
 ## Scripts
 
@@ -50,6 +80,7 @@ Do not run this server and the Kotlin server on the same port or data directory 
 | `npm run lint` | ESLint, including the MVC layering rules |
 | `npm test` | Unit and integration tests (no network) |
 | `npm run test:live` | Live checks against asmr.one (needs network) |
+| `npm run setup:whisper` | Download the Whisper models for AI subtitles |
 
 ## Architecture (MVC)
 

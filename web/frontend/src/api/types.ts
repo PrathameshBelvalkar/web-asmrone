@@ -140,7 +140,16 @@ export interface Lyrics {
   title: string;
   subtitle?: string | null;
   lyrics: { type: string; list?: Lyric[]; text?: string } | null;
+  /**
+   * AI subtitles set `aiGenerated` and `aiStatus`. While running: `aiPhase` (starting, transcribing),
+   * `aiCoveredMs`, `aiCovered` ("start-end,…" in ms), and `aiTotalMs`/`aiProgress` when the length is
+   * known. `aiMessage` explains failed and unavailable.
+   */
+  extras?: Record<string, string>;
 }
+
+/** Status of AI-generated subtitles (`extras.aiStatus`). */
+export type AiStatus = 'running' | 'done' | 'failed' | 'unavailable';
 
 export interface MediaSource {
   sourceType: string;

@@ -25,6 +25,13 @@ import { PlaylistService } from './services/playlist.service.js';
 import { PresentationService } from './services/presentation.service.js';
 import { ProxyService } from './services/proxy.service.js';
 import { SettingsService } from './services/settings.service.js';
+import { AiSubtitleService } from './services/ai-subtitles/ai-subtitle.service.js';
+import { WhisperServerEngine } from './services/ai-subtitles/whisper-server.js';
+import { FfmpegAudioStream } from './services/ai-subtitles/audio-stream.js';
+import { AiSubtitleRepository } from './repositories/ai-subtitle.repository.js';
+import { languageForCode } from './extension/asmrone/languages.js';
+import { translateList } from './extension/asmrone/translation/translate-list.js';
+import { moveFirstGroupToEnd } from './extension/asmrone/translation/title.js';
 import { ExpiringRegistry } from './stores/expiring-registry.js';
 import { IssuedUrls } from './stores/issued-urls.js';
 import type { Controllers } from './routes/index.js';
@@ -48,6 +55,8 @@ export interface ContainerOptions {
   readonly asmrDispatcher?: Dispatcher;
   readonly proxyDispatcher?: Dispatcher;
   readonly jasmrDispatcher?: Dispatcher;
+  /** AI subtitles for tracks without lyrics; null turns them off. Defaults to local Whisper. */
+  readonly aiSubtitles?: AiSubtitleService | null;
 }
 
 export function createContainer(config: AppConfig, logger: Logger, options: ContainerOptions = {}): Container {
@@ -81,7 +90,24 @@ export function createContainer(config: AppConfig, logger: Logger, options: Cont
 
   const presentation = new PresentationService(feeds, issued);
   const feedService = new FeedService(extension, feeds, pages);
-  const mediaService = new MediaService(extension, feedService);
+  const aiSubtitles =
+    options.aiSubtitles === undefined
+      ? new AiSubtitleService({
+          extension,
+          engine: new WhisperServerEngine(config.whisper),
+          openAudio: (input) => FfmpegAudioStream.open(config.whisper.ffmpegBin, input),
+          repository: new AiSubtitleRepository(join(config.dataDir, 'ai-subtitles')),
+          translator: {
+            languageCode: () => languageForCode(settingsRepo.getString('translationLanguage')).code,
+            translate: async (texts) => {
+              const map = await translateList(texts, languageForCode(settingsRepo.getString('translationLanguage')));
+              return map ? texts.map((t) => moveFirstGroupToEnd(map.get(t) ?? t)) : null;
+            },
+          },
+          enabled: () => settingsRepo.getBoolean('aiSubtitles') ?? true,
+        })
+      : options.aiSubtitles;
+  const mediaService = new MediaService(extension, feedService, aiSubtitles);
   const playlistService = new PlaylistService(extension);
   const authService = new AuthService(extension, userRepo);
   const settingsService = new SettingsService(extension, settingsRepo);
@@ -112,6 +138,7 @@ export function createContainer(config: AppConfig, logger: Logger, options: Cont
         ownAsmr ? asmrDispatcher.close() : undefined,
         ownProxy ? proxyDispatcher.close() : undefined,
         ownJasmr ? jasmrDispatcher.close() : undefined,
+        aiSubtitles?.close(),
       ]);
     },
   };

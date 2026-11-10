@@ -1,0 +1,1693 @@
+{
+  "info": {
+    "_postman_id": "3b0b7b87-dfb5-45ef-b006-488fbbae0944",
+    "name": "Echo Web API (Express)",
+    "description": "Every /api route of web/backend-express, the Express port of the Kotlin Echo Web server.\n\nSetup\n1. cd web/backend-express && npm install && npm run dev (serves http://127.0.0.1:8080 unless PORT is set).\n2. If you change PORT, update `baseUrl` in the collection variables.\n3. Set `username` and `password` to a real asmr.one account, and replace the sample ids with real ones.\n4. Run the folders top to bottom. Account > Login comes first and Cleanup > Logout last. Home, Library or Search must run before Open feed and Page. Playlist editing > Create must run before the other editing requests. Tracks > Media must run before Proxy.\n\nNotes\n- Requests that reach asmr.one need network access and a working upstream.\n- Login stores the session on the server, so no Authorization header is needed.\n- Playlist editing changes only the playlist that Create made. Like, Settings and Logout change saved state on the server.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Account",
+      "description": "Login state. Run first: the playlist and like requests need a session. Login saves the session on the server (user.json), so no token header is needed.",
+      "item": [
+        {
+          "name": "Login forms",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response is an array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/forms",
+            "description": "The login form definition (fields and keys)."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has an id\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"id\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Logs in with `username` and `password`. Calls asmr.one, so it needs network access and real credentials.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"login\",\n  \"data\": {\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Me",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "The current user, or null when nobody is logged in."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Feeds",
+      "description": "Home, library and search feeds. Home, Library and Search set feedId and pagedId for the requests below them.",
+      "item": [
+        {
+          "name": "Home",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const j = pm.response.json();",
+                  "    pm.collectionVariables.set(\"feedId\", j.feedId || \"\");",
+                  "    pm.collectionVariables.set(\"pagedId\", j.pagedId || \"\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/home",
+            "description": "Opens the home feed. Saves feedId and pagedId."
+          },
+          "response": []
+        },
+        {
+          "name": "Library",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const j = pm.response.json();",
+                  "    pm.collectionVariables.set(\"feedId\", j.feedId || \"\");",
+                  "    pm.collectionVariables.set(\"pagedId\", j.pagedId || \"\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/library",
+            "description": "Opens the library feed. Saves feedId and pagedId like Home."
+          },
+          "response": []
+        },
+        {
+          "name": "Search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const j = pm.response.json();",
+                  "    pm.collectionVariables.set(\"feedId\", j.feedId || \"\");",
+                  "    pm.collectionVariables.set(\"pagedId\", j.pagedId || \"\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/search?q={{query}}",
+            "description": "Opens a search feed for `query`. Saves feedId and pagedId."
+          },
+          "response": []
+        },
+        {
+          "name": "Quick search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response is an array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/quicksearch?q={{query}}",
+            "description": "Search suggestions for `query`."
+          },
+          "response": []
+        },
+        {
+          "name": "Quick search (blank)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response is an empty array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\").that.is.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/quicksearch?q=",
+            "description": "A blank `q` returns an empty list without calling asmr.one."
+          },
+          "response": []
+        },
+        {
+          "name": "Open feed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/feeds/{{feedId}}/open?tab={{tab}}",
+            "description": "Reopens the feed in `feedId` at `tab` (empty means the first tab). Returns 410 when the feed has expired, so run Home or Search first."
+          },
+          "response": []
+        },
+        {
+          "name": "Page (first)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const j = pm.response.json();",
+                  "    pm.collectionVariables.set(\"continuation\", j.continuation || \"\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/pages/{{pagedId}}",
+            "description": "First page of `pagedId`. Saves `continuation` when the page has more."
+          },
+          "response": []
+        },
+        {
+          "name": "Page (next)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/pages/{{pagedId}}?cont={{continuation}}",
+            "description": "Next page, using `continuation` from Page (first). Returns 410 when the paged list has expired."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Albums",
+      "description": "Album details and the feeds opened from an album.",
+      "item": [
+        {
+          "name": "Load",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/album/load",
+            "description": "Loads one album from `albumId`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Album\",\n    \"id\": \"{{albumId}}\",\n    \"title\": \"{{albumTitle}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Feed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/album/feed",
+            "description": "Opens the album feed (FeedDto).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Album\",\n    \"id\": \"{{albumId}}\",\n    \"title\": \"{{albumTitle}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tracks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/album/tracks",
+            "description": "Opens the album tracks as a feed (FeedDto).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Album\",\n    \"id\": \"{{albumId}}\",\n    \"title\": \"{{albumTitle}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Artists",
+      "description": "Artist details and the feeds opened from an artist.",
+      "item": [
+        {
+          "name": "Load",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/artist/load",
+            "description": "Loads one artist from `artistId`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Artist\",\n    \"id\": \"{{artistId}}\",\n    \"name\": \"{{artistName}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Feed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/artist/feed",
+            "description": "Opens the artist feed (FeedDto).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Artist\",\n    \"id\": \"{{artistId}}\",\n    \"name\": \"{{artistName}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Playlists (read)",
+      "description": "Existing playlists. These requests only read; they use `playlistId`.",
+      "item": [
+        {
+          "name": "Load",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/playlist/load",
+            "description": "Loads one playlist from `playlistId`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Playlist\",\n    \"id\": \"{{playlistId}}\",\n    \"title\": \"{{playlistTitle}}\",\n    \"isEditable\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Feed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/playlist/feed",
+            "description": "Opens the playlist feed (FeedDto).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Playlist\",\n    \"id\": \"{{playlistId}}\",\n    \"title\": \"{{playlistTitle}}\",\n    \"isEditable\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tracks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/playlist/tracks",
+            "description": "Opens the playlist tracks as a feed (FeedDto).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Playlist\",\n    \"id\": \"{{playlistId}}\",\n    \"title\": \"{{playlistTitle}}\",\n    \"isEditable\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Tracks",
+      "description": "Track details, stream sources and lyrics.",
+      "item": [
+        {
+          "name": "Load",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/track/load",
+            "description": "Loads one track from `trackId`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Track\",\n    \"id\": \"{{trackId}}\",\n    \"title\": \"{{trackTitle}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Media",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const j = pm.response.json();",
+                  "    if (j.sources && j.sources.length) {",
+                  "        pm.collectionVariables.set(\"streamUrl\", encodeURIComponent(j.sources[0].id));",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/track/media",
+            "description": "Lists the stream sources for the track. Saves the first source to `streamUrl` for Proxy.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Track\",\n    \"id\": \"{{trackId}}\",\n    \"title\": \"{{trackTitle}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lyrics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/lyrics",
+            "description": "Lyrics for the track. The body is null when there are none.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Track\",\n    \"id\": \"{{trackId}}\",\n    \"title\": \"{{trackTitle}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Radio, share and likes",
+      "description": "Radio, share links and likes. Likes need a session (Account > Login).",
+      "item": [
+        {
+          "name": "Radio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/radio",
+            "description": "Radio for the artist. `context` is optional and omitted here.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Artist\",\n    \"id\": \"{{artistId}}\",\n    \"name\": \"{{artistName}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Share",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has a url\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"url\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/share",
+            "description": "Returns the share URL for the track.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Track\",\n    \"id\": \"{{trackId}}\",\n    \"title\": \"{{trackTitle}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Like",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/like",
+            "description": "Likes the track. Set `shouldLike` to false to unlike. This changes the saved likes on asmr.one.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Track\",\n    \"id\": \"{{trackId}}\",\n    \"title\": \"{{trackTitle}}\"\n  },\n  \"shouldLike\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Like status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has liked\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"liked\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/like/status",
+            "description": "Returns { \"liked\": true | false } for the track.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Track\",\n    \"id\": \"{{trackId}}\",\n    \"title\": \"{{trackTitle}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Playlist editing",
+      "description": "Create, change and delete playlists. Create runs first and sets createdPlaylistId; the other requests change only that playlist.",
+      "item": [
+        {
+          "name": "Editable playlists",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response is an array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/playlists/editable",
+            "description": "Lists the playlists that can be edited, with whether each one already contains `trackId`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"track\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Track\",\n    \"id\": \"{{trackId}}\",\n    \"title\": \"{{trackTitle}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const j = pm.response.json();",
+                  "    pm.collectionVariables.set(\"createdPlaylistId\", j.id || \"\");",
+                  "    pm.collectionVariables.set(\"createdPlaylistTitle\", j.title || \"\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/playlists/create",
+            "description": "Creates a playlist. Saves its id and title to createdPlaylistId and createdPlaylistTitle.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Echo API test playlist\",\n  \"description\": \"Created by the Postman collection\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Edit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/playlists/edit",
+            "description": "Changes the title and description of the created playlist.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Playlist\",\n    \"id\": \"{{createdPlaylistId}}\",\n    \"title\": \"{{createdPlaylistTitle}}\",\n    \"isEditable\": true\n  },\n  \"title\": \"Echo API test playlist (edited)\",\n  \"description\": \"Edited by the Postman collection\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Privacy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/playlists/privacy",
+            "description": "Makes the created playlist private. Set `isPrivate` to false to make it public.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Playlist\",\n    \"id\": \"{{createdPlaylistId}}\",\n    \"title\": \"{{createdPlaylistTitle}}\",\n    \"isEditable\": true\n  },\n  \"isPrivate\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add tracks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/playlists/add-tracks",
+            "description": "Adds `trackId` to the created playlist at position 0. `tracks` lists the tracks already in it.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Playlist\",\n    \"id\": \"{{createdPlaylistId}}\",\n    \"title\": \"{{createdPlaylistTitle}}\",\n    \"isEditable\": true\n  },\n  \"tracks\": [],\n  \"new\": [\n    {\n      \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Track\",\n      \"id\": \"{{trackId}}\",\n      \"title\": \"{{trackTitle}}\"\n    }\n  ],\n  \"index\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove tracks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/playlists/remove-tracks",
+            "description": "Removes the track at position 0 of the created playlist.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Playlist\",\n    \"id\": \"{{createdPlaylistId}}\",\n    \"title\": \"{{createdPlaylistTitle}}\",\n    \"isEditable\": true\n  },\n  \"tracks\": [\n    {\n      \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Track\",\n      \"id\": \"{{trackId}}\",\n      \"title\": \"{{trackTitle}}\"\n    }\n  ],\n  \"indexes\": [\n    0\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/playlists/delete",
+            "description": "Deletes the created playlist.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Playlist\",\n    \"id\": \"{{createdPlaylistId}}\",\n    \"title\": \"{{createdPlaylistTitle}}\",\n    \"isEditable\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "description": "App settings. Update and Clear change the saved settings on the server.",
+      "item": [
+        {
+          "name": "List",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response is an array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/settings",
+            "description": "All settings with their resolved values."
+          },
+          "response": []
+        },
+        {
+          "name": "Update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/settings/{{settingKey}}",
+            "description": "Saves `settingValue` for `settingKey`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"{{settingValue}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Clear",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/settings/{{settingKey}}",
+            "description": "Removes the saved value for `settingKey`, so the default applies again.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Proxy",
+      "description": "Streams an upstream URL that the server issued earlier.",
+      "item": [
+        {
+          "name": "Stream",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200 or 206\", function () {",
+                  "    pm.expect([200, 206]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/proxy?url={{streamUrl}}",
+            "description": "Streams `streamUrl`. Run Tracks > Media first. Range requests return 206."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Error cases",
+      "description": "Expected error envelopes: { \"type\": string, \"message\": string | null }.",
+      "item": [
+        {
+          "name": "Unknown route (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Error type is not_found\", function () {",
+                  "    pm.expect(j.type).to.eql(\"not_found\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/does-not-exist",
+            "description": "An unknown /api path returns 404 not_found."
+          },
+          "response": []
+        },
+        {
+          "name": "Wrong method (405)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 405\", function () {",
+                  "    pm.response.to.have.status(405);",
+                  "});",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Error type is method_not_allowed\", function () {",
+                  "    pm.expect(j.type).to.eql(\"method_not_allowed\");",
+                  "});",
+                  "pm.test(\"Allow header lists GET\", function () {",
+                  "    pm.response.to.have.header(\"Allow\", \"GET\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/home",
+            "description": "A known path with an unsupported method returns 405 with an Allow header."
+          },
+          "response": []
+        },
+        {
+          "name": "Malformed body (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Error type is bad_request\", function () {",
+                  "    pm.expect(j.type).to.eql(\"bad_request\");",
+                  "});",
+                  "pm.test(\"Error message is 'Body must be a JSON object'\", function () {",
+                  "    pm.expect(j.message).to.eql(\"Body must be a JSON object\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/album/load",
+            "description": "A body that is not a JSON object returns 400 bad_request.",
+            "body": {
+              "mode": "raw",
+              "raw": "not json",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Missing media item (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Error type is bad_request\", function () {",
+                  "    pm.expect(j.type).to.eql(\"bad_request\");",
+                  "});",
+                  "pm.test(\"Error message is 'Missing media item'\", function () {",
+                  "    pm.expect(j.message).to.eql(\"Missing media item\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/track/load",
+            "description": "A request without `item` returns 400 bad_request.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Expired feed (410)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 410\", function () {",
+                  "    pm.response.to.have.status(410);",
+                  "});",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Error type is expired\", function () {",
+                  "    pm.expect(j.type).to.eql(\"expired\");",
+                  "});",
+                  "pm.test(\"Error message is 'This list expired. Reopen it.'\", function () {",
+                  "    pm.expect(j.message).to.eql(\"This list expired. Reopen it.\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/feeds/expired-feed-id/open",
+            "description": "An unknown or expired feed id returns 410 expired."
+          },
+          "response": []
+        },
+        {
+          "name": "Proxy without url (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Error type is bad_request\", function () {",
+                  "    pm.expect(j.type).to.eql(\"bad_request\");",
+                  "});",
+                  "pm.test(\"Error message is 'url is required'\", function () {",
+                  "    pm.expect(j.message).to.eql(\"url is required\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/proxy",
+            "description": "The proxy needs a `url` query parameter."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cleanup",
+      "description": "Run last. Logout clears the saved session, so the requests above need to run first.",
+      "item": [
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/logout",
+            "description": "Clears the saved login."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8080",
+      "description": "Server root. Change the port here if you start the server with a different PORT.",
+      "type": "string"
+    },
+    {
+      "key": "username",
+      "value": "your-username",
+      "description": "asmr.one account name, used by Account > Login.",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "your-password",
+      "description": "asmr.one account password, used by Account > Login.",
+      "type": "string"
+    },
+    {
+      "key": "query",
+      "value": "ASMR",
+      "description": "Search text for Search and Quick search.",
+      "type": "string"
+    },
+    {
+      "key": "feedId",
+      "value": "",
+      "description": "Set by Home, Library or Search. Used by Open feed.",
+      "type": "string"
+    },
+    {
+      "key": "pagedId",
+      "value": "",
+      "description": "Set by Home, Library or Search. Used by Page (first) and Page (next).",
+      "type": "string"
+    },
+    {
+      "key": "tab",
+      "value": "",
+      "description": "Optional tab id for Open feed. Empty opens the first tab.",
+      "type": "string"
+    },
+    {
+      "key": "continuation",
+      "value": "",
+      "description": "Set by Page (first) when more pages exist. Used by Page (next).",
+      "type": "string"
+    },
+    {
+      "key": "albumId",
+      "value": "123456",
+      "description": "Sample album id. Replace with a real id from asmr.one.",
+      "type": "string"
+    },
+    {
+      "key": "albumTitle",
+      "value": "Sample Album",
+      "description": "Title sent with the album item.",
+      "type": "string"
+    },
+    {
+      "key": "artistId",
+      "value": "1",
+      "description": "Sample artist id. Replace with a real id from asmr.one.",
+      "type": "string"
+    },
+    {
+      "key": "artistName",
+      "value": "Sample Artist",
+      "description": "Name sent with the artist item.",
+      "type": "string"
+    },
+    {
+      "key": "trackId",
+      "value": "123456",
+      "description": "Sample track id. Replace with a real id from asmr.one.",
+      "type": "string"
+    },
+    {
+      "key": "trackTitle",
+      "value": "Sample Track",
+      "description": "Title sent with the track item.",
+      "type": "string"
+    },
+    {
+      "key": "playlistId",
+      "value": "1",
+      "description": "Existing playlist id for the read requests. The editing requests never touch it.",
+      "type": "string"
+    },
+    {
+      "key": "playlistTitle",
+      "value": "Sample Playlist",
+      "description": "Title sent with the existing playlist item.",
+      "type": "string"
+    },
+    {
+      "key": "createdPlaylistId",
+      "value": "",
+      "description": "Set by Playlist editing > Create. The other editing requests act only on this playlist.",
+      "type": "string"
+    },
+    {
+      "key": "createdPlaylistTitle",
+      "value": "",
+      "description": "Set by Playlist editing > Create.",
+      "type": "string"
+    },
+    {
+      "key": "settingKey",
+      "value": "siteMirror",
+      "description": "Setting key for Settings > Update and Clear.",
+      "type": "string"
+    },
+    {
+      "key": "settingValue",
+      "value": "asmr-100",
+      "description": "Value for Settings > Update. asmr-100 is the default mirror.",
+      "type": "string"
+    },
+    {
+      "key": "streamUrl",
+      "value": "",
+      "description": "URL-encoded stream URL set by Tracks > Media. Used by Proxy.",
+      "type": "string"
+    }
+  ]
+}

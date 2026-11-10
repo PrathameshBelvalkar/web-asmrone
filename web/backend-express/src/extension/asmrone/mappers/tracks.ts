@@ -25,6 +25,8 @@ export function audioToTrack(audio: AudioNode, album: Album, folderTitle: string
       untranslatedTitle: audio.untranslatedTitle,
       id: album.id,
       isLiked: album.extras.isLiked ?? 'false',
+      // A smaller copy, used for AI subtitles (speech recognition doesn't need full quality).
+      ...(audio.streamLowQualityUrl ? { lowQualityStreamUrl: audio.streamLowQualityUrl } : {}),
     },
   });
 }
