@@ -1,0 +1,30 @@
+{
+  "name": "echo-desktop",
+  "productName": "Echo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Echo music player with AI subtitles",
+  "author": "Prathamesh",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "dev": "npm run build && electron ."
+  },
+  "keywords": [],
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "electron-updater": "^6.8.11"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^26.6.6",
+    "electron": "45.3.1",
+    "electron-builder": "26.18.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}
