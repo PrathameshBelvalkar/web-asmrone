@@ -202,3 +202,38 @@ export interface User {
   cover?: ImageHolder | null;
   subtitle?: string | null;
 }
+
+/* AI subtitle setup (`GET /api/tools`). Mirrors the server's ToolsStatus. */
+
+export type Variant = 'metal' | 'vulkan' | 'cpu' | 'system';
+
+export type DownloadState =
+  | { status: 'idle' }
+  | { status: 'downloading'; modelId: string; received: number; total: number; bytesPerSecond: number }
+  | { status: 'verifying'; modelId: string }
+  | { status: 'failed'; modelId: string; message: string };
+
+export interface ToolsModel {
+  id: string;
+  title: string;
+  note: string;
+  size: number;
+  installed: boolean;
+  selected: boolean;
+  recommended: boolean;
+  partialBytes: number;
+}
+
+export interface ToolsStatus {
+  desktop: boolean;
+  appVersion: string | null;
+  ffmpeg: { found: boolean };
+  engine: { variants: Variant[]; selected: Variant | null };
+  models: ToolsModel[];
+  download: DownloadState;
+  benchmark: { status: 'idle' | 'running' | 'done' | 'failed'; speedFactor: number | null; message: string | null };
+  freeDiskBytes: number;
+  enabled: boolean;
+  problem: string | null;
+  ready: boolean;
+}

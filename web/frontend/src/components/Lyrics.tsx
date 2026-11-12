@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { AlertCircle, LoaderCircle, Mic2, Sparkles } from 'lucide-react';
-import { aiSubtitlesPending, lyricsOptions } from '../api/queries';
+import { aiSubtitlesPending, lyricsOptions, toolsBusy, toolsOptions } from '../api/queries';
 import type { AiStatus, Lyrics, Track } from '../api/types';
 import { formatTime } from '../lib/media';
 import { seek } from '../player/engine';
@@ -138,6 +139,17 @@ function AiBadge({ data, positionMs }: { data: Lyrics; positionMs: number }) {
 function AiEmptyState({ data }: { data: Lyrics }) {
   const status = data.extras?.aiStatus as AiStatus | undefined;
   const message = data.extras?.aiMessage;
+  const tools = useQuery(toolsOptions());
+  if (status === 'unavailable' && toolsBusy(tools.data)) {
+    const download = tools.data?.download;
+    const percent = download?.status === 'downloading' && download.total > 0 ? Math.floor((download.received / download.total) * 100) : null;
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center text-white/70" role="status">
+        <LoaderCircle size={28} className="animate-spin" aria-hidden />
+        <p>AI subtitles are being set up{percent !== null ? ` (${percent} %)` : ''}</p>
+      </div>
+    );
+  }
   if (status === 'running') {
     const percent = aiPercent(data);
     return (
@@ -161,6 +173,11 @@ function AiEmptyState({ data }: { data: Lyrics }) {
       {status === 'done' ? <Mic2 size={28} aria-hidden /> : <AlertCircle size={28} aria-hidden />}
       <p>{title}</p>
       {message && <p className="max-w-md break-words text-xs text-white/45">{message}</p>}
+      {status === 'unavailable' && (
+        <Link to="/settings" className="text-sm text-white/80 underline underline-offset-4 hover:text-white">
+          Turn on AI subtitles in Settings
+        </Link>
+      )}
     </div>
   );
 }

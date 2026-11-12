@@ -1,6 +1,6 @@
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import { api } from './client';
-import type { Album, Artist, Lyrics, MediaItem, Playlist, SourceId, Track } from './types';
+import type { Album, Artist, Lyrics, MediaItem, Playlist, SourceId, ToolsStatus, Track } from './types';
 import { usePlayer } from '../player/store';
 
 /** Shared cache times. Content is long-lived; user-specific data is shorter. */
@@ -112,3 +112,18 @@ export const radioOptions = (item: MediaItem) =>
 
 export const shareOptions = (item: MediaItem) =>
   queryOptions({ queryKey: ['share', item.id], queryFn: () => api.share(item), staleTime: STALE.content });
+
+/** True while a model is downloading or being checked, or the speed test runs. */
+export const toolsBusy = (data: ToolsStatus | undefined) =>
+  data?.download.status === 'downloading' ||
+  data?.download.status === 'verifying' ||
+  data?.benchmark.status === 'running';
+
+/** AI subtitle setup. Polled once a second while something is running. */
+export const toolsOptions = () =>
+  queryOptions({
+    queryKey: ['tools'],
+    queryFn: () => api.tools(),
+    staleTime: 0,
+    refetchInterval: (query) => (toolsBusy(query.state.data) ? 1000 : false),
+  });

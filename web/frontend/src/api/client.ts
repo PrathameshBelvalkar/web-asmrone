@@ -1,6 +1,6 @@
 import type {
   Album, Artist, EditableDto, FeedDto, Lyrics, LoginForm, MediaItem,
-  PageDto, Playlist, QuickSearchItem, RadioDto, SettingDto, SourceId, StreamMedia, Track, User,
+  PageDto, Playlist, QuickSearchItem, RadioDto, SettingDto, SourceId, StreamMedia, Track, ToolsStatus, User,
 } from './types';
 import { MODEL_PREFIX } from './types';
 
@@ -77,6 +77,14 @@ export const api = {
 
   settings: () => req<SettingDto[]>('GET', '/settings'),
   putSetting: (key: string, value: unknown) => req<void>('PUT', `/settings/${enc(key)}`, { value }),
+
+  tools: () => req<ToolsStatus>('GET', '/tools'),
+  setupTools: () => req<void>('POST', '/tools/setup'),
+  downloadModel: (id: string) => req<void>('POST', `/tools/models/${enc(id)}/download`),
+  cancelDownload: () => req<void>('POST', '/tools/download/cancel'),
+  selectModel: (id: string) => req<void>('PUT', '/tools/model', { id }),
+  deleteModel: (id: string) => req<void>('POST', `/tools/models/${enc(id)}/delete`),
+  runBenchmark: () => req<void>('POST', '/tools/benchmark'),
 };
 
 export interface LikeStatusDto {

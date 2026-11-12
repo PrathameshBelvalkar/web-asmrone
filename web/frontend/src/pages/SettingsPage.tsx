@@ -5,6 +5,7 @@ import { useLogin, useLogout, useSetSetting } from '../api/mutations';
 import { formsOptions, meOptions, settingsOptions } from '../api/queries';
 import type { FormField, LoginForm, SettingDto, SourceId } from '../api/types';
 import { ErrorState, RowSkeletons } from '../components/States';
+import { AiSubtitlesCard } from '../components/AiSubtitlesCard';
 import { Button, PageHeader, Toggle } from '../components/ui';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -19,7 +20,7 @@ import { useCrumbs } from '../lib/crumbs';
 import { SOURCES, useSource } from '../lib/source';
 
 /** The preferences that apply to Japanese ASMR (the rest only change asmr.one). */
-const JASMR_SETTINGS = new Set(['jasmrTranslateTitles', 'translationLanguage', 'aiSubtitles']);
+const JASMR_SETTINGS = new Set(['jasmrTranslateTitles', 'translationLanguage']);
 
 export function SettingsPage() {
   useCrumbs([{ label: 'Home', to: '/' }, { label: 'Settings' }]);
@@ -27,7 +28,7 @@ export function SettingsPage() {
   const forms = useQuery({ ...formsOptions(), enabled: me.isSuccess && !me.data });
   const source = useSource((s) => s.source);
   const settings = useQuery(settingsOptions());
-  const shown = settings.data?.filter((s) => (source !== 'asmrone' ? JASMR_SETTINGS.has(s.key) : s.key !== 'jasmrTranslateTitles'));
+  const shown = settings.data?.filter((s) => s.key !== 'aiSubtitles' && (source !== 'asmrone' ? JASMR_SETTINGS.has(s.key) : s.key !== 'jasmrTranslateTitles'));
   const logoutMutation = useLogout();
 
   return (
@@ -89,6 +90,8 @@ export function SettingsPage() {
             </div>
           </CardContent>
         </Card>
+
+        <AiSubtitlesCard />
       </div>
     </>
   );

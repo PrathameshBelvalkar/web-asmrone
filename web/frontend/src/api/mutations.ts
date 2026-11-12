@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from './client';
+import { messageFor } from '../lib/errors';
+import { toast } from '../lib/toast';
 import type { Playlist, MediaItem, Track, User } from './types';
 
 /** Like or unlike a work or track. The cached state updates straight away. */
@@ -101,4 +103,46 @@ export function usePlaylistDelete(playlist: Playlist) {
     mutationFn: () => api.playlistDelete(playlist),
     onSuccess: () => refreshPlaylists(queryClient, playlist.id),
   });
+}
+
+/* AI subtitle setup. Every change refreshes the tools status; errors are shown as a toast. */
+
+function useToolsMutation<T = void>(mutationFn: (arg: T) => Promise<void>, after?: (queryClient: ReturnType<typeof useQueryClient>) => void) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['tools'] });
+      after?.(queryClient);
+    },
+    onError: (error) => toast(messageFor(error)),
+  });
+}
+
+export function useSetupTools() {
+  return useToolsMutation(() => api.setupTools());
+}
+
+export function useDownloadModel() {
+  return useToolsMutation((id: string) => api.downloadModel(id));
+}
+
+export function useCancelDownload() {
+  return useToolsMutation(() => api.cancelDownload());
+}
+
+/** Choosing a model changes which subtitles are used, so lyrics are fetched again. */
+export function useSelectModel() {
+  return useToolsMutation(
+    (id: string) => api.selectModel(id),
+    (queryClient) => void queryClient.invalidateQueries({ queryKey: ['lyrics'] }),
+  );
+}
+
+export function useDeleteModel() {
+  return useToolsMutation((id: string) => api.deleteModel(id));
+}
+
+export function useRunBenchmark() {
+  return useToolsMutation(() => api.runBenchmark());
 }

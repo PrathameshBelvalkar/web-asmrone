@@ -11,6 +11,7 @@ import { CrumbProvider } from '../lib/crumbs';
 import { usePlayer } from '../player/store';
 import { currentTrack, togglePlay } from '../player/engine';
 import { useAutoSubtitles } from '../hooks/use-auto-subtitles';
+import { useToolsReadyToast } from '../hooks/use-tools-ready-toast';
 
 /** App frame: sidebar, header with breadcrumbs, page content, and the player at the bottom. */
 export function Shell() {
@@ -33,6 +34,7 @@ function ShellInner() {
   const nowPlayingOpen = usePlayer((s) => s.nowPlayingOpen);
   const setState = usePlayer((s) => s.setState);
   useAutoSubtitles();
+  useToolsReadyToast();
 
   // Space toggles playback unless focus is in a control.
   useEffect(() => {
