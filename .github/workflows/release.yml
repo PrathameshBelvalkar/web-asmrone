@@ -1,0 +1,110 @@
+# Builds the installers for the four targets and publishes them as a DRAFT release.
+# Starts on a tag v<version> (for example v0.1.0) or by hand (builds without publishing).
+# Releasing: see README, "Releasing a version".
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: The tag must match the app version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          version="$(node -p "require('./apps/desktop/package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match apps/desktop/package.json version $version." >&2
+            exit 1
+          fi
+
+  build:
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: mac-arm64, os: macos-15, args: '--mac --arm64' }
+          - { target: mac-x64, os: macos-15-intel, args: '--mac --x64' }
+          - { target: win-x64, os: windows-2022, args: '--win --x64' }
+          - { target: linux-x64, os: ubuntu-22.04, args: '--linux --x64' }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            web/backend-express/package-lock.json
+            web/frontend/package-lock.json
+            apps/desktop/package-lock.json
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          (cd web/backend-express && npm ci)
+          (cd web/frontend && npm ci)
+          (cd apps/desktop && npm ci)
+
+      - name: Bundled tools (checksum checked)
+        run: node apps/desktop/scripts/fetch-tools.mjs ${{ matrix.target }}
+
+      - name: Stage and compile
+        shell: bash
+        run: cd apps/desktop && npm run stage && npm run build
+
+      - name: Unpacked build and smoke test
+        shell: bash
+        env:
+          ECHO_WEB_DATA: ${{ runner.temp }}/echo-smoke
+        run: |
+          cd apps/desktop
+          npx electron-builder ${{ matrix.args }} --dir
+          case "${{ matrix.target }}" in
+            mac-arm64) app="release/mac-arm64/Echo.app/Contents/MacOS/Echo" ;;
+            mac-x64)   app="release/mac/Echo.app/Contents/MacOS/Echo" ;;
+            win-x64)   app="release/win-unpacked/Echo.exe" ;;
+            linux-x64) app="release/linux-unpacked/echo" ;;
+          esac
+          if [ "${{ matrix.target }}" = "linux-x64" ]; then
+            xvfb-run -a "$app" --smoke-test
+          else
+            "$app" --smoke-test
+          fi
+        # Linux needs a virtual display for Electron; the other systems have one.
+
+      - name: Installers and publish
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: |
+          cd apps/desktop
+          npx electron-builder ${{ matrix.args }} \
+            --publish ${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: echo-${{ matrix.target }}
+          path: |
+            apps/desktop/release/*.dmg
+            apps/desktop/release/*.zip
+            apps/desktop/release/*.exe
+            apps/desktop/release/*.AppImage
+            apps/desktop/release/*.deb
+            apps/desktop/release/*.yml
+            apps/desktop/release/*.blockmap

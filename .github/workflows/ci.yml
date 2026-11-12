@@ -1,0 +1,52 @@
+# Tests on every push to main and every pull request. Three jobs run in parallel.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            web/backend-express/package-lock.json
+            web/frontend/package-lock.json
+            apps/desktop/package-lock.json
+      - run: cd web/backend-express && npm ci && npm run lint && npm run typecheck && npm test
+
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            web/backend-express/package-lock.json
+            web/frontend/package-lock.json
+            apps/desktop/package-lock.json
+      - run: cd web/frontend && npm ci && npm run typecheck && npm test && npm run build
+
+  desktop:
+    runs-on: ubuntu-latest
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            web/backend-express/package-lock.json
+            web/frontend/package-lock.json
+            apps/desktop/package-lock.json
+      - run: cd apps/desktop && npm ci && npm run typecheck && npm test

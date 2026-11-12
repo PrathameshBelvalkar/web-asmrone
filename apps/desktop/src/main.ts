@@ -73,12 +73,12 @@ app
       return;
     }
 
-    initUpdater();
+    initUpdater(paths.dataDir);
     buildAppMenu({
       dataDir: paths.dataDir,
       logsDir: paths.logsDir,
       licensesDir: paths.licensesDir,
-      checkForUpdates,
+      checkForUpdates: () => checkForUpdates(true),
     });
     createWindow(server.port);
     tray = createTray(
