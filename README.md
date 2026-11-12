@@ -1,4 +1,116 @@
-# Echo Web (asmr.one)
+# Echo
+
+Echo plays asmr.one and Japanese ASMR tracks on your computer. For tracks that have no subtitles,
+Echo can write them itself with AI: it runs on your computer, it is free, and nothing is uploaded.
+
+## Download
+
+| Computer | File |
+|---|---|
+| Mac with an Apple chip (M1 or newer) | `Echo-<version>-mac-arm64.dmg` |
+| Mac with an Intel chip | `Echo-<version>-mac-x64.dmg` |
+| Windows | `Echo-<version>-win-x64.exe` |
+| Linux | `Echo-<version>-linux-x64.AppImage` or `.deb` |
+
+Get them from the [latest release](https://github.com/PrathameshBelvalkar/web-asmrone/releases/latest).
+
+### The first time you open it
+
+The app is not signed yet, so your system asks you once:
+
+- **Mac:** open the `.dmg`, drag Echo to Applications and open it. If macOS blocks it, go to
+  System Settings → Privacy & Security and click **Open Anyway**. As a fallback, run
+  `xattr -cr /Applications/Echo.app` in Terminal.
+- **Windows:** on the blue SmartScreen box, click **More info**, then **Run anyway**.
+- **Linux:** run `chmod +x Echo-*.AppImage`, then the file. On Ubuntu 22.04 and newer, first run
+  `sudo apt install libfuse2`. Or install the `.deb`.
+
+## AI subtitles
+
+Open **Settings** and turn on **AI subtitles**. Echo then downloads what it needs by itself (190 to 550 MB,
+once) and tells you when it is ready. You can:
+
+- **pause** a download and resume it later, or **cancel** it (this deletes the partial file);
+- see the models you have, pick one, run a speed test, and **delete** a model you no longer need.
+
+Deleting the model in use switches to another downloaded model. If it was the last one, AI subtitles are turned off.
+
+## Where your data is
+
+| System | Folder |
+|---|---|
+| Mac | `~/Library/Application Support/Echo` |
+| Windows | `%APPDATA%\Echo` |
+| Linux | `~/.config/Echo` |
+
+Settings, your login, the saved queue, subtitles and the models are in that folder. The log is in its
+`logs` folder (**Help → Open log folder**). Your data stays on your computer.
+
+## Updates
+
+On Windows, and on Linux as an AppImage, Echo downloads updates and asks you to restart. On Mac and with the
+`.deb`, Echo tells you when a new version is out and opens the download page. **Help → Check for updates…**
+checks now.
+
+## Licence
+
+Echo is released under the Unabandon Public License (see `LICENSE.md`). The bundled FFmpeg is LGPL 2.1; its
+licence texts are in the app (**Help → Licences**). The source is this repository.
+
+## For developers
+
+### Desktop app
+
+```bash
+cd web/backend-express && npm ci && npm run build      # the server
+cd web/frontend && npm ci && npm run build             # the web UI
+cd apps/desktop && npm ci && npm run typecheck && npm test
+```
+
+Run the desktop app from this repository. It uses the tools in `apps/desktop/resources/bin/<target>` when they are
+built, and Homebrew's otherwise:
+
+```bash
+cd apps/desktop && npm run dev
+```
+
+Build the tools for your Mac (once):
+
+```bash
+brew install cmake nasm pkg-config
+cd apps/desktop
+WHISPER_REF=v1.9.5 bash scripts/build-whisper.sh mac-arm64 metal
+FFMPEG_REF=n9.0.2 bash scripts/build-ffmpeg.sh mac-arm64
+WHISPER_REF=v1.9.5 bash scripts/self-test.sh mac-arm64 metal
+```
+
+Package it:
+
+```bash
+cd apps/desktop
+npm run pack   # unpacked app in release/; its smoke test: release/mac-arm64/Echo.app/Contents/MacOS/Echo --smoke-test
+npm run e2e    # launches the packaged app and checks the first start
+npm run dist   # installers in release/
+```
+
+The tools for all four systems are built by the **tools** workflow on GitHub (Actions → tools → Run workflow).
+After it publishes a release, copy its `SHA256SUMS` into `apps/desktop/tools.lock.json`. The app checks its
+downloads against that file.
+
+The manual test checklist before a release is in [`apps/desktop/MANUAL-TESTS.md`](apps/desktop/MANUAL-TESTS.md).
+
+### Releasing a version
+
+```bash
+cd apps/desktop && npm version 0.1.0 --no-git-tag-version
+git commit -am "Release 0.1.0" && git tag v0.1.0 && git push personal main v0.1.0
+```
+
+The tag starts the **release** workflow. It builds all four installers and creates a **draft** release. Open the
+draft on GitHub, test one installer, edit the notes and publish.
+
+## Echo Web (the browser version)
+
 
 A browser version of Echo that plays only the **asmr.one** extension
 ([rebelonion/echo-asmr-one](https://github.com/rebelonion/echo-asmr-one)).
@@ -9,13 +121,13 @@ A browser version of Echo that plays only the **asmr.one** extension
 
 Runs on your Mac, for one user. The server listens on `127.0.0.1` only.
 
-## Requirements
+### Requirements
 
 - JDK 17: `brew install openjdk@17`, then `export JAVA_HOME=/opt/homebrew/opt/openjdk@17`
 - Gradle: `brew install gradle` (the backend has no wrapper; see below)
 - Node.js 20+ and npm
 
-## Run it
+### Run it
 
 ```bash
 # 1. Build the UI
@@ -46,21 +158,21 @@ cd web/frontend && npm run dev     # http://127.0.0.1:5173, proxies /api to :808
 | `ECHO_WEB_DIST` | auto-detected `web/frontend/dist` | Built UI to serve |
 | `ECHO_WEB_API` | `http://127.0.0.1:8080` | Dev-server proxy target (frontend) |
 
-## Accounts
+### Accounts
 
 Browsing, search and playback work without an account. To see playlists and
 favourites, log in under **Settings → Account** with your asmr.one username and
 password. The password is sent only to asmr.one. The login is kept in
 `~/.echo-web/user.json`.
 
-## Tests
+### Tests
 
 ```bash
 cd web/backend && gradle :server:test
 cd web/frontend && npm run typecheck
 ```
 
-## Layout of the backend
+### Layout of the backend
 
 | File | Role |
 |---|---|
@@ -89,7 +201,7 @@ Each change is marked `// echo-web patch N` in `asmrone/`:
 `/api/proxy` only serves URLs the extension has returned in this session, so
 it can't be used as an open proxy.
 
-## Licence
+### Licence
 
 The vendored extension is under the **Unabandon Public License** (GPLv3 plus a
 requirement to publish source for derivative works). This is fine for personal

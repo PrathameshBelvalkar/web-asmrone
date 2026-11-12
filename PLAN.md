@@ -424,13 +424,13 @@ These `/api/*` addresses stay **on this computer only**, as today.
 
 ### 7.10 Phase 1 checklist
 
-- [ ] `apps/desktop` Electron shell starts the server in a separate process and opens the window
-- [ ] Server reads data folder and tool paths from Electron
+- [x] `apps/desktop` Electron shell starts the server in a separate process and opens the window
+- [x] Server reads data folder and tool paths from Electron
 - [ ] Tray mode and clean shutdown (server and whisper-server stop)
-- [ ] `manifest.json`, resumable downloads, checksum checks
-- [ ] Whisper build picker with GPU → CPU fallback
-- [ ] Speed test and model suggestion
-- [ ] Settings → AI subtitles screen and `/api/tools*` endpoints
+- [x] Resumable downloads and checksum checks (the plan dropped `manifest.json`: the model catalog and `tools.lock.json` replace it)
+- [x] Whisper build picker with GPU → CPU fallback
+- [x] Speed test and model suggestion
+- [x] Settings → AI subtitles screen and `/api/tools*` endpoints
 - [ ] CI builds of whisper-server and audio-only FFmpeg
 - [ ] Installers, signing, notarizing, auto-update
 
