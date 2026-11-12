@@ -2,7 +2,7 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import { access, constants } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { availableParallelism } from 'node:os';
-import { delimiter, join } from 'node:path';
+import { delimiter, isAbsolute, join } from 'node:path';
 import { z } from 'zod';
 import type { WhisperConfig } from '../../config/env.js';
 import { appLogger } from '../../lib/app-logger.js';
@@ -20,8 +20,9 @@ export interface SpeechEngine {
   close(): Promise<void>;
 }
 
-const SETUP_HINT =
+export const SETUP_HINT =
   'Run `brew install whisper-cpp ffmpeg`, then `npm run setup:whisper` in web/backend-express.';
+export const DESKTOP_SETUP_HINT = 'Open Settings → AI subtitles to finish setup.';
 const START_TIMEOUT_MS = 60_000;
 const REQUEST_TIMEOUT_MS = 3 * 60_000;
 
@@ -37,15 +38,20 @@ export class WhisperServerEngine implements SpeechEngine {
   private child: ChildProcess | null = null;
   private baseUrl: Promise<string> | null = null;
 
-  constructor(private readonly config: WhisperConfig) {}
+  /** `getConfig` is read on every use, so the binary and model can change at run time. */
+  constructor(
+    private readonly getConfig: () => WhisperConfig,
+    private readonly options: { readonly setupHint: string },
+  ) {}
 
   async unavailableReason(): Promise<string | null> {
-    if (!(await findExecutable(this.config.whisperServerBin)))
-      return `whisper-server was not found. ${SETUP_HINT}`;
-    if (!(await findExecutable(this.config.ffmpegBin)))
-      return `ffmpeg was not found. ${SETUP_HINT}`;
-    if (!(await readable(this.config.model)))
-      return `The Whisper model is missing (${this.config.model}). ${SETUP_HINT}`;
+    const config = this.getConfig();
+    if (!(await findExecutable(config.whisperServerBin)))
+      return `whisper-server was not found. ${this.options.setupHint}`;
+    if (!(await findExecutable(config.ffmpegBin)))
+      return `ffmpeg was not found. ${this.options.setupHint}`;
+    if (!(await readable(config.model)))
+      return `The Whisper model is missing (${config.model}). ${this.options.setupHint}`;
     return null;
   }
 
@@ -95,12 +101,12 @@ export class WhisperServerEngine implements SpeechEngine {
   }
 
   private async start(): Promise<string> {
-    const bin =
-      (await findExecutable(this.config.whisperServerBin)) ?? this.config.whisperServerBin;
+    const config = this.getConfig();
+    const bin = (await findExecutable(config.whisperServerBin)) ?? config.whisperServerBin;
     const port = await freePort();
     const args = [
       '-m',
-      this.config.model,
+      config.model,
       '--host',
       '127.0.0.1',
       '--port',
@@ -117,7 +123,7 @@ export class WhisperServerEngine implements SpeechEngine {
       // common in ASMR) crashes whisper-server ("unknown language id -2").
       '-nlp',
     ];
-    if (await readable(this.config.vadModel)) args.push('--vad', '-vm', this.config.vadModel);
+    if (await readable(config.vadModel)) args.push('--vad', '-vm', config.vadModel);
 
     const child = spawn(bin, args, { stdio: ['ignore', 'ignore', 'pipe'] });
     this.child = child;
@@ -184,7 +190,9 @@ function freePort(): Promise<number> {
  * GUI-launched shell may not have). Null when it can't be found.
  */
 export async function findExecutable(bin: string): Promise<string | null> {
-  if (bin.includes('/')) return (await canRun(bin)) ? bin : null;
+  // A path (including a Windows path with backslashes) is checked as it is, not searched on PATH.
+  if (isAbsolute(bin) || bin.includes('/') || bin.includes('\\'))
+    return (await canRun(bin)) ? bin : null;
   const dirs = [
     ...(process.env.PATH ?? '').split(delimiter),
     '/opt/homebrew/bin',

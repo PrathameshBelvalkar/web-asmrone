@@ -36,6 +36,10 @@ export async function makeTestApp(options: {
     jasmrCrawlDelayMs: 0,
     logLevel: 'silent',
     whisper: { whisperServerBin: 'whisper-server', ffmpegBin: 'ffmpeg', model: join(t.dir, 'models/m.bin'), vadModel: join(t.dir, 'models/v.bin') },
+    binDir: null,
+    benchSample: '',
+    desktopVersion: null,
+    modelsDir: join(t.dir, 'models'),
   };
   const logger = createLogger('silent');
   const container = createContainer(config, logger, { ...options, aiSubtitles: options.aiSubtitles ?? null });

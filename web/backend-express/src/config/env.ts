@@ -13,6 +13,10 @@ const envSchema = z.object({
   FFMPEG_BIN: z.string().min(1).default('ffmpeg'),
   WHISPER_MODEL: z.string().min(1).optional(),
   WHISPER_VAD_MODEL: z.string().min(1).optional(),
+  /** Bundled tools folder (set by the desktop app). */
+  ECHO_BIN_DIR: z.string().min(1).optional(),
+  ECHO_BENCH_SAMPLE: z.string().min(1).optional(),
+  ECHO_DESKTOP_VERSION: z.string().min(1).optional(),
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .default('info'),
@@ -30,6 +34,14 @@ export interface AppConfig {
   readonly logLevel: z.infer<typeof envSchema>['LOG_LEVEL'];
   /** Local speech-to-text for tracks without lyrics. */
   readonly whisper: WhisperConfig;
+  /** Bundled tools folder, null outside the desktop app. */
+  readonly binDir: string | null;
+  /** 16 kHz mono WAV used by the speed test. */
+  readonly benchSample: string;
+  /** Desktop app version, set only inside the desktop app. */
+  readonly desktopVersion: string | null;
+  /** Downloaded Whisper models. */
+  readonly modelsDir: string;
 }
 
 export interface WhisperConfig {
@@ -49,6 +61,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   }
   const raw = parsed.data.ECHO_WEB_DATA;
   const dataDir = raw ? expandHome(raw) : join(homedir(), '.echo-web');
+  const binDir = parsed.data.ECHO_BIN_DIR ? expandHome(parsed.data.ECHO_BIN_DIR) : null;
   return {
     port: parsed.data.PORT,
     host: '127.0.0.1',
@@ -57,6 +70,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     jasmrCrawlDelayMs: parsed.data.JASMR_CRAWL_DELAY_MS,
     logLevel: parsed.data.LOG_LEVEL,
     whisper: whisperConfig(parsed.data, dataDir),
+    binDir,
+    benchSample:
+      parsed.data.ECHO_BENCH_SAMPLE ??
+      (binDir
+        ? join(binDir, 'samples', 'jfk.wav')
+        : fileURLToPath(new URL('../../assets/benchmark.wav', import.meta.url))),
+    desktopVersion: parsed.data.ECHO_DESKTOP_VERSION ?? null,
+    modelsDir: join(dataDir, 'models'),
   };
 }
 

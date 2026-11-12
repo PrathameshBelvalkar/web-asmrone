@@ -28,7 +28,12 @@ import { PresentationService } from './services/presentation.service.js';
 import { ProxyService } from './services/proxy.service.js';
 import { SettingsService } from './services/settings.service.js';
 import { AiSubtitleService } from './services/ai-subtitles/ai-subtitle.service.js';
-import { WhisperServerEngine } from './services/ai-subtitles/whisper-server.js';
+import {
+  DESKTOP_SETUP_HINT,
+  SETUP_HINT,
+  WhisperServerEngine,
+} from './services/ai-subtitles/whisper-server.js';
+import { availableVariants, ffmpegBin, whisperBin } from './services/tools/tool-paths.js';
 import { FfmpegAudioStream } from './services/ai-subtitles/audio-stream.js';
 import { AiSubtitleRepository } from './repositories/ai-subtitle.repository.js';
 import { languageForCode } from './extension/asmrone/languages.js';
@@ -144,12 +149,26 @@ export function createContainer(
 
   const presentation = new PresentationService(feeds, issued);
   const feedService = new FeedService(extension, feeds, pages);
+  // The engine reads this object on every use, so a new binary or model takes effect without a restart.
+  const whisperState = {
+    whisperServerBin: whisperBin(
+      config.binDir,
+      availableVariants(config.binDir)[0] ?? 'system',
+      config.whisper.whisperServerBin,
+    ),
+    ffmpegBin: ffmpegBin(config.binDir, config.whisper.ffmpegBin),
+    model: config.whisper.model,
+    vadModel: config.whisper.vadModel,
+  };
   const aiSubtitles =
     options.aiSubtitles === undefined
       ? new AiSubtitleService({
           extension,
-          engine: new WhisperServerEngine(config.whisper),
-          openAudio: (input) => FfmpegAudioStream.open(config.whisper.ffmpegBin, input),
+          engine: new WhisperServerEngine(() => whisperState, {
+            setupHint: config.desktopVersion === null ? SETUP_HINT : DESKTOP_SETUP_HINT,
+          }),
+          openAudio: (input) =>
+            FfmpegAudioStream.open(ffmpegBin(config.binDir, config.whisper.ffmpegBin), input),
           repository: new AiSubtitleRepository(join(config.dataDir, 'ai-subtitles')),
           translator: {
             languageCode: () => languageForCode(settingsRepo.getString('translationLanguage')).code,

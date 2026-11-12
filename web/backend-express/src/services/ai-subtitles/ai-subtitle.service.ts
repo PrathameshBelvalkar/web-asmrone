@@ -116,6 +116,11 @@ export class AiSubtitleService {
     await this.deps.engine.close();
   }
 
+  /** Forgets the cached "is it ready?" answer so a change in setup takes effect at once. */
+  resetAvailability(): void {
+    this.availability = null;
+  }
+
   /**
    * The audio to transcribe: a smaller low-quality copy when the source offers one (plenty for
    * speech, and much faster to download), and the chapter range when the track is part of a longer file.
