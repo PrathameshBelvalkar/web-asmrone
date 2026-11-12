@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 
 const envSchema = z.object({
-  PORT: z.coerce.number().int().min(1).max(65535).default(8080),
+  PORT: z.coerce.number().int().min(0).max(65535).default(8080),
   ECHO_WEB_DATA: z.string().min(1).optional(),
   ECHO_WEB_DIST: z.string().min(1).optional(),
   JASMR_CRAWL_DELAY_MS: z.coerce.number().int().min(0).max(600_000).default(10_000),
