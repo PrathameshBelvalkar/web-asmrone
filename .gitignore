@@ -8,3 +8,6 @@ build/
 # Installed design skill (kept for reference only; its hook is disabled)
 .agents/
 .claude/
+apps/desktop/staging/
+apps/desktop/resources/bin/
+apps/desktop/release/
