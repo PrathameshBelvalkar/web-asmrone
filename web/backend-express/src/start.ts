@@ -19,7 +19,10 @@ export async function startServer(env: NodeJS.ProcessEnv = process.env): Promise
   const config = loadConfig(env);
   const logger = createLogger(config.logLevel);
   if (env.ECHO_WEB_DIST !== undefined && config.distDir === null) {
-    logger.warn({ path: env.ECHO_WEB_DIST }, 'ECHO_WEB_DIST is not a directory; the UI is not served');
+    logger.warn(
+      { path: env.ECHO_WEB_DIST },
+      'ECHO_WEB_DIST is not a directory; the UI is not served',
+    );
   }
   const container = createContainer(config, logger);
   await container.init();

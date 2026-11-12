@@ -9,6 +9,7 @@ import { MediaController } from './controllers/media.controller.js';
 import { PlaylistController } from './controllers/playlist.controller.js';
 import { ProxyController } from './controllers/proxy.controller.js';
 import { SettingsController } from './controllers/settings.controller.js';
+import { ToolsController } from './controllers/tools.controller.js';
 import { createDispatcher } from './lib/http-client.js';
 import type { Feed } from './models/feed.js';
 import type { PagedData } from './models/paged-data.js';
@@ -33,6 +34,8 @@ import {
   SETUP_HINT,
   WhisperServerEngine,
 } from './services/ai-subtitles/whisper-server.js';
+import { ToolsService } from './services/tools/tools.service.js';
+import { ToolsRepository } from './repositories/tools.repository.js';
 import { availableVariants, ffmpegBin, whisperBin } from './services/tools/tool-paths.js';
 import { FfmpegAudioStream } from './services/ai-subtitles/audio-stream.js';
 import { AiSubtitleRepository } from './repositories/ai-subtitle.repository.js';
@@ -160,13 +163,14 @@ export function createContainer(
     model: config.whisper.model,
     vadModel: config.whisper.vadModel,
   };
+  const whisperEngine = new WhisperServerEngine(() => whisperState, {
+    setupHint: config.desktopVersion === null ? SETUP_HINT : DESKTOP_SETUP_HINT,
+  });
   const aiSubtitles =
     options.aiSubtitles === undefined
       ? new AiSubtitleService({
           extension,
-          engine: new WhisperServerEngine(() => whisperState, {
-            setupHint: config.desktopVersion === null ? SETUP_HINT : DESKTOP_SETUP_HINT,
-          }),
+          engine: whisperEngine,
           openAudio: (input) =>
             FfmpegAudioStream.open(ffmpegBin(config.binDir, config.whisper.ffmpegBin), input),
           repository: new AiSubtitleRepository(join(config.dataDir, 'ai-subtitles')),
@@ -183,6 +187,15 @@ export function createContainer(
           enabled: () => settingsRepo.getBoolean('aiSubtitles') ?? true,
         })
       : options.aiSubtitles;
+  const tools = new ToolsService({
+    config,
+    settings: settingsRepo,
+    repository: new ToolsRepository(join(config.dataDir, 'tools.json')),
+    whisper: whisperState,
+    engine: whisperEngine,
+    aiSubtitles,
+    fetch: globalThis.fetch,
+  });
   const mediaService = new MediaService(extension, feedService, aiSubtitles);
   const playlistService = new PlaylistService(extension);
   const authService = new AuthService(extension, userRepo);
@@ -196,6 +209,7 @@ export function createContainer(
     auth: new AuthController(authService),
     settings: new SettingsController(settingsService),
     proxy: new ProxyController(proxyService),
+    tools: new ToolsController(tools),
   };
 
   return {
@@ -208,8 +222,10 @@ export function createContainer(
       await extension.onInitialize();
       await extension.onExtensionSelected();
       await authService.restore();
+      await tools.init();
     },
     async close() {
+      tools.close();
       await Promise.all([
         ownAsmr ? asmrDispatcher.close() : undefined,
         ownProxy ? proxyDispatcher.close() : undefined,

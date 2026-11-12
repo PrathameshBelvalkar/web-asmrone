@@ -5,6 +5,7 @@ import type { MediaController } from '../controllers/media.controller.js';
 import type { PlaylistController } from '../controllers/playlist.controller.js';
 import type { ProxyController } from '../controllers/proxy.controller.js';
 import type { SettingsController } from '../controllers/settings.controller.js';
+import type { ToolsController } from '../controllers/tools.controller.js';
 import { jsonObjectBody } from '../middlewares/json-body.js';
 import { methodNotAllowed, type RouteMeta } from '../middlewares/method-not-allowed.js';
 import { notFound } from '../middlewares/not-found.js';
@@ -16,6 +17,7 @@ export interface Controllers {
   readonly auth: AuthController;
   readonly settings: SettingsController;
   readonly proxy: ProxyController;
+  readonly tools: ToolsController;
 }
 
 interface RouteSpec extends RouteMeta {
@@ -69,6 +71,14 @@ function routeTable(c: Controllers): RouteSpec[] {
     { method: 'GET', path: '/settings', handler: c.settings.list },
     { method: 'PUT', path: '/settings/:key', handler: c.settings.update },
     { method: 'GET', path: '/proxy', handler: c.proxy.stream },
+
+    // AI subtitle setup
+    { method: 'GET', path: '/tools', handler: c.tools.status },
+    { method: 'POST', path: '/tools/setup', handler: c.tools.setup },
+    { method: 'POST', path: '/tools/models/:id/download', handler: c.tools.downloadModel },
+    { method: 'POST', path: '/tools/download/cancel', handler: c.tools.cancelDownload },
+    { method: 'PUT', path: '/tools/model', handler: c.tools.selectModel },
+    { method: 'POST', path: '/tools/models/:id/delete', handler: c.tools.deleteModel },
   ];
 }
 
