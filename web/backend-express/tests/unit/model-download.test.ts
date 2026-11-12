@@ -42,13 +42,21 @@ interface Call {
 function reply(
   status: number,
   parts: Buffer[],
-  options: { error?: string; hold?: boolean } = {},
+  options: { error?: string; hold?: boolean; signal?: AbortSignal } = {},
 ): Response {
   // Pull-based with no read-ahead: each part is delivered before the error or end. (An errored
   // stream drops chunks it has queued, which would not model a connection that sent some bytes.)
   const queue = [...parts];
+  let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
+  // A real fetch body fails when its request is aborted; a held body must do the same.
+  options.signal?.addEventListener('abort', () => {
+    stream?.error(new DOMException('aborted', 'AbortError'));
+  });
   const body = new ReadableStream<Uint8Array>(
     {
+      start(controller) {
+        stream = controller;
+      },
       pull(controller) {
         const next = queue.shift();
         if (next) controller.enqueue(new Uint8Array(next));
@@ -68,6 +76,8 @@ let service: ModelDownloadService | null;
 let script: (call: number, init: RequestInit) => Response | Promise<Response>;
 
 function fakeFetch(url: string | URL | Request, init?: RequestInit): Promise<Response> {
+  // Like a real fetch: a request whose signal is already aborted never starts.
+  if (init?.signal?.aborted) return Promise.reject(new DOMException('aborted', 'AbortError'));
   const href = urlOf(url);
   const call = calls.length;
   calls.push({ url: href, range: new Headers(init?.headers).get('Range') ?? undefined });
@@ -183,7 +193,8 @@ describe('ModelDownloadService', () => {
   });
 
   it('cancel keeps the partial file so the next start can resume it', async () => {
-    script = () => reply(200, [BYTES.subarray(0, HALF)], { hold: true });
+    script = (_call, init) =>
+      reply(200, [BYTES.subarray(0, HALF)], { hold: true, signal: init.signal ?? undefined });
     const svc = makeService();
     await svc.start(MODEL.id);
     await waitUntil(
@@ -192,7 +203,7 @@ describe('ModelDownloadService', () => {
         (svc.state() as { received: number }).received === HALF,
     );
 
-    svc.cancel();
+    await svc.cancel();
     expect(svc.state()).toEqual({ status: 'idle' });
     await new Promise((resolve) => setTimeout(resolve, 20));
     expect((await stat(partPath())).size).toBe(HALF);
@@ -230,13 +241,14 @@ describe('ModelDownloadService', () => {
   });
 
   it('rejects an unknown model and a second download while one is running', async () => {
-    script = () => reply(200, [BYTES.subarray(0, HALF)], { hold: true });
+    script = (_call, init) =>
+      reply(200, [BYTES.subarray(0, HALF)], { hold: true, signal: init.signal ?? undefined });
     const svc = makeService();
     await expect(svc.start('nope')).rejects.toMatchObject({ status: 400 });
 
     await svc.start(MODEL.id);
     await expect(svc.start(MODEL.id)).rejects.toMatchObject({ status: 400 });
-    svc.cancel();
+    await svc.cancel();
     expect(await stat(modelPath()).catch(() => null)).toBeNull();
   });
 });

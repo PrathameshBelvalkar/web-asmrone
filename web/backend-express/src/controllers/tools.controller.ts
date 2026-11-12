@@ -11,8 +11,9 @@ export class ToolsController {
     res.json(await this.tools.status());
   };
 
-  setup = (_req: Request, res: Response): void => {
-    this.tools.startSetup();
+  /** Starts the setup, or resumes a paused download. */
+  setup = async (_req: Request, res: Response): Promise<void> => {
+    await this.tools.resume();
     res.status(202).end();
   };
 
@@ -21,8 +22,14 @@ export class ToolsController {
     res.status(202).end();
   };
 
-  cancelDownload = (_req: Request, res: Response): void => {
-    this.tools.stopSetup();
+  pauseDownload = async (_req: Request, res: Response): Promise<void> => {
+    await this.tools.pauseDownload();
+    res.status(204).end();
+  };
+
+  /** Cancel: stops the download and deletes its partial file. */
+  cancelDownload = async (_req: Request, res: Response): Promise<void> => {
+    await this.tools.cancelDownload();
     res.status(204).end();
   };
 

@@ -80,6 +80,10 @@ export interface ToolsStatus {
   readonly freeDiskBytes: number;
   /** The `aiSubtitles` setting. */
   readonly enabled: boolean;
+  /** The user paused the download; it resumes only when they resume it. */
+  readonly paused: boolean;
+  /** The model whose download is paused, or null. */
+  readonly pausedModelId: string | null;
   /** Why automatic setup cannot continue, or null. */
   readonly problem: string | null;
   /** FFmpeg found, an engine variant exists and the selected model is installed. */
@@ -125,7 +129,15 @@ export class ToolsService {
       await settings.setRaw('aiSubtitles', false);
     }
     await this.applySavedChoices();
-    if (desktop && this.deps.aiSubtitles !== null && this.enabled() && !(await this.isReady())) {
+    // A paused download stays paused until the user resumes it.
+    const paused = this.deps.repository.get().paused === true;
+    if (
+      desktop &&
+      !paused &&
+      this.deps.aiSubtitles !== null &&
+      this.enabled() &&
+      !(await this.isReady())
+    ) {
       this.startSetup();
     }
   }
@@ -163,12 +175,20 @@ export class ToolsService {
       benchmark: this.benchmarkView(saved.speedFactor),
       freeDiskBytes: await this.freeDisk(),
       enabled: settings.getBoolean('aiSubtitles') ?? true,
+      paused: saved.paused === true,
+      pausedModelId: saved.pausedModelId ?? null,
       problem: this.problem,
       ready: ffmpegFound && variants.length > 0 && selectedInstalled,
     };
   }
 
-  /** Starts the automatic setup in the background. Used by `POST /api/tools/setup`. */
+  /** Resume after a pause (or the switch being turned on): clears the pause and runs the setup. */
+  async resume(): Promise<void> {
+    await this.deps.repository.update({ paused: false, pausedModelId: undefined });
+    this.startSetup();
+  }
+
+  /** Starts the automatic setup in the background. */
   startSetup(): void {
     this.ensureReady().catch((err: unknown) => {
       appLogger().error({ err }, 'AI subtitle setup failed');
@@ -218,9 +238,22 @@ export class ToolsService {
     this.scheduleSpeedTest();
   }
 
-  /** Stops a running download and keeps the partial file. Used when the switch is turned off. */
-  stopSetup(): void {
-    this.download.cancel();
+  /**
+   * Pause: stops the download and keeps its partial file. It does not restart by itself: the
+   * user resumes it, or it resumes when the switch is turned on again.
+   */
+  async pauseDownload(): Promise<void> {
+    const modelId = this.download.activeModelId();
+    await this.download.cancel();
+    await this.deps.repository.update({ paused: true, pausedModelId: modelId ?? undefined });
+  }
+
+  /** Cancel: stops the download and deletes the partial file. */
+  async cancelDownload(): Promise<void> {
+    const modelId = this.download.activeModelId() ?? this.deps.repository.get().pausedModelId;
+    await this.download.cancel();
+    if (modelId) await this.download.removePartial(modelId);
+    await this.deps.repository.update({ paused: false, pausedModelId: undefined });
   }
 
   async downloadModel(id: string): Promise<void> {
@@ -238,15 +271,20 @@ export class ToolsService {
     await this.afterModelChange();
   }
 
+  /**
+   * Deletes a downloaded model. Deleting the model in use switches to another installed model. If
+   * it was the last one, AI subtitles are turned off, so nothing downloads it again by itself.
+   */
   async deleteModel(id: string): Promise<void> {
     const entry = findModel(id);
-    const { config, repository } = this.deps;
+    const { config, repository, settings } = this.deps;
     if (repository.get().modelId === id) {
       const other = await this.firstInstalledOther(id);
-      if (!other) {
-        throw HttpError.badRequest('This is the only installed model. Install another one first.');
+      if (other) {
+        await this.useModel(other);
+      } else {
+        await settings.setRaw('aiSubtitles', false);
       }
-      await this.useModel(other);
       await this.afterModelChange();
     }
     await unlink(join(config.modelsDir, entry.file)).catch((err: unknown) => {

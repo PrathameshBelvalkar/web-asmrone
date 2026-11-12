@@ -15,6 +15,10 @@ export interface ToolsState {
   readonly steppedDown?: boolean;
   /** A model whose download finished and still needs its speed test (the step-down download). */
   readonly benchmarkPending?: string;
+  /** The user paused a download; it does not resume by itself. */
+  readonly paused?: boolean;
+  /** The model whose download was paused (its partial file is kept). */
+  readonly pausedModelId?: string;
 }
 
 const stateSchema = z.object({
@@ -25,6 +29,8 @@ const stateSchema = z.object({
   modelPickedByUser: z.boolean().optional(),
   steppedDown: z.boolean().optional(),
   benchmarkPending: z.string().optional(),
+  paused: z.boolean().optional(),
+  pausedModelId: z.string().optional(),
 });
 
 /** `tools.json` in the data folder. Writes are atomic and one at a time. */

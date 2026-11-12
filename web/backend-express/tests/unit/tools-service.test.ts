@@ -190,11 +190,24 @@ describe('selectModel and deleteModel', () => {
     expect(resets).toBe(1);
   });
 
-  it('refuses to delete the selected model when no other model is installed', async () => {
+  it('deleting the last model removes it and turns AI subtitles off', async () => {
     await fakeInstall(SMALL);
-    const { svc } = makeService();
+    const { svc, settings } = makeService();
     await svc.selectModel(SMALL.id);
-    await expect(svc.deleteModel(SMALL.id)).rejects.toMatchObject({ status: 400 });
+    await svc.deleteModel(SMALL.id);
+
+    await expect(stat(join(t.dir, 'models', SMALL.file))).rejects.toThrow();
+    expect(settings.getBoolean('aiSubtitles')).toBe(false);
+  });
+
+  it('deleting the model in use switches to another installed model', async () => {
+    await fakeInstall(SMALL);
+    await fakeInstall(LARGE);
+    const { svc, repo } = makeService();
+    await svc.selectModel(LARGE.id);
+    await svc.deleteModel(LARGE.id);
+
+    expect(repo.get().modelId).toBe(SMALL.id);
     expect((await stat(join(t.dir, 'models', SMALL.file))).size).toBe(SMALL.size);
   });
 
@@ -206,6 +219,59 @@ describe('selectModel and deleteModel', () => {
     await svc.deleteModel(SMALL.id);
     await expect(stat(join(t.dir, 'models', SMALL.file))).rejects.toThrow();
     expect(repo.get().modelId).toBe(LARGE.id);
+  });
+});
+
+describe('pause, cancel and resume', () => {
+  it('pause keeps the partial file and does not restart by itself', async () => {
+    const config = await withBundledTools();
+    await mkdir(join(t.dir, 'models'), { recursive: true });
+    await writeFile(join(t.dir, 'models', `${LARGE.file}.part`), Buffer.alloc(1000));
+    const { svc, repo, settings } = makeService({ config });
+    await settings.setRaw('aiSubtitles', true);
+    await repo.update({ modelId: LARGE.id });
+    await svc.init(); // starts downloading (the setup is on)
+    await waitForCalls(() => fetchCalls.some((c) => c.url === LARGE.url));
+
+    await svc.pauseDownload();
+    expect(repo.get()).toMatchObject({ paused: true, pausedModelId: LARGE.id });
+    expect((await svc.status()).paused).toBe(true);
+    expect((await stat(join(t.dir, 'models', `${LARGE.file}.part`))).size).toBeGreaterThanOrEqual(
+      1000,
+    );
+  });
+
+  it('cancel deletes the partial file and clears the pause', async () => {
+    const config = await withBundledTools();
+    await mkdir(join(t.dir, 'models'), { recursive: true });
+    const part = join(t.dir, 'models', `${LARGE.file}.part`);
+    await writeFile(part, Buffer.alloc(1000));
+    const { svc, repo } = makeService({ config });
+    await repo.update({ modelId: LARGE.id, paused: true, pausedModelId: LARGE.id });
+
+    await svc.cancelDownload();
+    await expect(stat(part)).rejects.toThrow();
+    expect(repo.get()).toMatchObject({ paused: false, pausedModelId: undefined });
+  });
+
+  it('resume clears the pause and starts the download again', async () => {
+    const config = await withBundledTools();
+    const { svc, repo } = makeService({ config });
+    await repo.update({ modelId: LARGE.id, paused: true, pausedModelId: LARGE.id });
+
+    await svc.resume();
+    expect(repo.get().paused).toBe(false);
+    await waitForCalls(() => fetchCalls.some((c) => c.url === LARGE.url));
+    expect(fetchCalls.some((c) => c.url === LARGE.url)).toBe(true);
+  });
+
+  it('does not restart a paused download at start-up', async () => {
+    const config = await withBundledTools();
+    const { svc, repo, settings } = makeService({ config });
+    await settings.setRaw('aiSubtitles', true);
+    await repo.update({ modelId: LARGE.id, paused: true });
+    await svc.init();
+    expect(fetchCalls).toEqual([]);
   });
 });
 

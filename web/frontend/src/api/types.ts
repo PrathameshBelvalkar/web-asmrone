@@ -1,11 +1,11 @@
 // Shapes returned by the Echo Web server. Discriminators are fully-qualified class names.
 
-export const MODEL_PREFIX = 'dev.brahmkshatriya.echo.common.models.';
+export const MODEL_PREFIX = "dev.brahmkshatriya.echo.common.models.";
 
 /** Music sources: asmr.one (default) and japaneseasmr.com. */
-export type SourceId = 'asmrone' | 'jasmr' | 'jnet' | 'hasmr';
+export type SourceId = "asmrone" | "jasmr" | "jnet" | "hasmr";
 
-export type Kind = 'Track' | 'Album' | 'Artist' | 'Playlist' | 'Radio';
+export type Kind = "Track" | "Album" | "Artist" | "Playlist" | "Radio";
 
 export interface ImageHolder {
   type: string;
@@ -68,7 +68,7 @@ export interface Track extends MediaBase {
 export type MediaItem = Track | Album | Artist | Playlist | Radio;
 
 export interface ShelfDto {
-  kind: 'items' | 'tracks' | 'categories' | 'item' | 'category';
+  kind: "items" | "tracks" | "categories" | "item" | "category";
   id: string;
   title: string;
   subtitle?: string | null;
@@ -149,7 +149,7 @@ export interface Lyrics {
 }
 
 /** Status of AI-generated subtitles (`extras.aiStatus`). */
-export type AiStatus = 'running' | 'done' | 'failed' | 'unavailable';
+export type AiStatus = "running" | "done" | "failed" | "unavailable";
 
 export interface MediaSource {
   sourceType: string;
@@ -171,7 +171,15 @@ export interface SettingOption {
 }
 
 export interface SettingDto {
-  kind: 'category' | 'switch' | 'list' | 'multi' | 'slider' | 'text' | 'info' | 'button';
+  kind:
+    | "category"
+    | "switch"
+    | "list"
+    | "multi"
+    | "slider"
+    | "text"
+    | "info"
+    | "button";
   key: string;
   title: string;
   summary?: string | null;
@@ -205,13 +213,19 @@ export interface User {
 
 /* AI subtitle setup (`GET /api/tools`). Mirrors the server's ToolsStatus. */
 
-export type Variant = 'metal' | 'vulkan' | 'cpu' | 'system';
+export type Variant = "metal" | "vulkan" | "cpu" | "system";
 
 export type DownloadState =
-  | { status: 'idle' }
-  | { status: 'downloading'; modelId: string; received: number; total: number; bytesPerSecond: number }
-  | { status: 'verifying'; modelId: string }
-  | { status: 'failed'; modelId: string; message: string };
+  | { status: "idle" }
+  | {
+      status: "downloading";
+      modelId: string;
+      received: number;
+      total: number;
+      bytesPerSecond: number;
+    }
+  | { status: "verifying"; modelId: string }
+  | { status: "failed"; modelId: string; message: string };
 
 export interface ToolsModel {
   id: string;
@@ -231,9 +245,15 @@ export interface ToolsStatus {
   engine: { variants: Variant[]; selected: Variant | null };
   models: ToolsModel[];
   download: DownloadState;
-  benchmark: { status: 'idle' | 'running' | 'done' | 'failed'; speedFactor: number | null; message: string | null };
+  benchmark: {
+    status: "idle" | "running" | "done" | "failed";
+    speedFactor: number | null;
+    message: string | null;
+  };
   freeDiskBytes: number;
   enabled: boolean;
+  paused: boolean;
+  pausedModelId: string | null;
   problem: string | null;
   ready: boolean;
 }

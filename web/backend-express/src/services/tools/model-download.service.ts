@@ -63,6 +63,7 @@ interface Ctx {
 export class ModelDownloadService {
   private current: DownloadState = { status: 'idle' };
   private controller: AbortController | null = null;
+  private running: Promise<void> = Promise.resolve();
   /** Bumped on every start and cancel, so a stale run never changes the state. */
   private generation = 0;
   private readonly models: readonly ModelEntry[];
@@ -112,20 +113,35 @@ export class ModelDownloadService {
       if (gen === this.generation) this.finish(gen);
       return;
     }
-    void this.run({ entry, gen, signal: controller.signal });
+    this.running = this.run({ entry, gen, signal: controller.signal });
   }
 
-  /** Stops a running download and keeps the partial file so it can be resumed. */
-  cancel(): void {
+  /**
+   * Stops a running download and keeps the partial file (pause). Resolves once the run has stopped,
+   * so the partial file is no longer being written.
+   */
+  async cancel(): Promise<void> {
     if (!this.isBusy()) return;
     this.generation++;
     this.controller?.abort();
     this.controller = null;
     this.current = { status: 'idle' };
+    await this.running;
+  }
+
+  /** The model being downloaded, or null. */
+  activeModelId(): string | null {
+    return this.isBusy() && 'modelId' in this.current ? this.current.modelId : null;
+  }
+
+  /** Deletes the partial file of a model (cancel). Only call after `cancel()`. */
+  async removePartial(modelId: string): Promise<void> {
+    const entry = this.models.find((m) => m.id === modelId);
+    if (entry) await removeFile(this.partPath(entry));
   }
 
   close(): void {
-    this.cancel();
+    void this.cancel();
   }
 
   private async run({ entry, gen, signal }: Run): Promise<void> {
@@ -177,7 +193,7 @@ export class ModelDownloadService {
         if (err instanceof DownloadError) throw err;
         if (attempt >= RETRY_WAITS_MS.length) throw new DownloadError(COULD_NOT_FINISH);
         appLogger().warn({ err, attempt }, 'model download interrupted; retrying');
-        await this.sleep(RETRY_WAITS_MS[attempt] ?? 0);
+        await waitOrAbort(this.sleep(RETRY_WAITS_MS[attempt] ?? 0), ctx.signal);
       }
     }
 
@@ -345,4 +361,21 @@ export async function freeSpaceOf(dir: string): Promise<number> {
 
 function noop(): void {
   // Deliberately ignored: the caller is already handling the real error.
+}
+
+/** Resolves when `signal` aborts, so a wait can be cut short by cancel. */
+function waitOrAbort(wait: Promise<void>, signal: AbortSignal): Promise<void> {
+  if (signal.aborted) return Promise.resolve();
+  return Promise.race([
+    wait,
+    new Promise<void>((resolve) => {
+      signal.addEventListener(
+        'abort',
+        () => {
+          resolve();
+        },
+        { once: true },
+      );
+    }),
+  ]);
 }
