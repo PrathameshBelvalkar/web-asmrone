@@ -14,7 +14,7 @@
     "tools": "node scripts/fetch-tools.mjs",
     "stage": "node scripts/stage.mjs",
     "pack": "npm run stage && npm run build && electron-builder --dir",
-    "dist": "npm run stage && npm run build && electron-builder --publish never",
+    "dist": "npm run stage && npm run build && electron-builder --publish never && bash scripts/fix-dmg.sh release/Echo-0.1.0-mac-arm64.dmg",
     "e2e": "playwright test"
   },
   "keywords": [],
