@@ -14,3 +14,10 @@ apps/desktop/release/
 
 # Scratch space of the desktop tool builds
 apps/desktop/.build/
+
+# Playwright output of the desktop tests
+apps/desktop/test-results/
+apps/desktop/playwright-report/
+
+# The desktop app build resources (icon, entitlements) are source, not output
+!apps/desktop/build/

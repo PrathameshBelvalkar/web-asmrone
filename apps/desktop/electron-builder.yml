@@ -1,0 +1,47 @@
+appId: ai.airrived.echo
+productName: Echo
+directories:
+  output: release
+  buildResources: build
+files:
+  - dist/**
+  - package.json
+asar: true
+extraResources:
+  - from: staging/server
+    to: server
+  - from: staging/ui
+    to: ui
+  - from: resources/bin/${os}-${arch}
+    to: bin
+  - from: licenses
+    to: licenses
+  - from: build/icon.png
+    to: icon.png
+artifactName: "Echo-${version}-${os}-${arch}.${ext}"
+mac:
+  category: public.app-category.music
+  target:
+    - dmg
+    - zip
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+win:
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+linux:
+  category: AudioVideo
+  target:
+    - AppImage
+    - deb
+  maintainer: "Prathamesh <prathamesh.belvalkar@airrived.ai>"
+publish:
+  provider: github
+  owner: PrathameshBelvalkar
+  repo: web-asmrone
+  releaseType: draft
