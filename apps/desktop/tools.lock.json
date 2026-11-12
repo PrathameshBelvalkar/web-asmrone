@@ -1,0 +1,9 @@
+{
+  "release": "tools-1",
+  "sha256": {
+    "mac-arm64": "",
+    "mac-x64": "",
+    "win-x64": "",
+    "linux-x64": ""
+  }
+}

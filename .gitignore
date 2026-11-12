@@ -11,3 +11,6 @@ build/
 apps/desktop/staging/
 apps/desktop/resources/bin/
 apps/desktop/release/
+
+# Scratch space of the desktop tool builds
+apps/desktop/.build/

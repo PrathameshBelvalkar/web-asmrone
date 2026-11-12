@@ -1,0 +1,119 @@
+# Builds FFmpeg and whisper-server for the four targets, self-tests them, and publishes the
+# archives as a GitHub release (tools-N). The app downloads these with apps/desktop/scripts/fetch-tools.mjs.
+# Run it by hand: Actions → tools → Run workflow (pick the branch, then fill in the three inputs).
+name: tools
+
+on:
+  workflow_dispatch:
+    inputs:
+      whisper_ref:
+        description: whisper.cpp tag, for example v1.9.5
+        required: true
+      ffmpeg_ref:
+        description: FFmpeg tag, for example n9.0.2
+        required: true
+      release:
+        description: Release tag to publish, for example tools-1
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: mac-arm64, os: macos-15, variants: 'metal' }
+          - { target: mac-x64, os: macos-15-intel, variants: 'cpu' }
+          - { target: win-x64, os: windows-2022, variants: 'vulkan cpu' }
+          - { target: linux-x64, os: ubuntu-22.04, variants: 'vulkan cpu' }
+    runs-on: ${{ matrix.os }}
+    env:
+      WHISPER_REF: ${{ inputs.whisper_ref }}
+      FFMPEG_REF: ${{ inputs.ffmpeg_ref }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build tools (macOS)
+        if: startsWith(matrix.target, 'mac')
+        run: brew install nasm pkg-config
+
+      - name: Build tools (Linux)
+        if: startsWith(matrix.target, 'linux')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake nasm pkg-config libssl-dev git curl
+
+      - name: Build tools (Windows, MSYS2 for FFmpeg)
+        if: startsWith(matrix.target, 'win')
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: false
+          install: make nasm pkg-config diffutils git curl mingw-w64-x86_64-gcc
+
+      - name: Vulkan SDK
+        if: contains(matrix.variants, 'vulkan')
+        uses: humbletim/install-vulkan-sdk@v1.2
+        with:
+          version: latest
+          cache: true
+
+      - name: whisper-server (each variant)
+        shell: bash
+        run: |
+          for variant in ${{ matrix.variants }}; do
+            bash apps/desktop/scripts/build-whisper.sh "${{ matrix.target }}" "$variant"
+          done
+
+      - name: FFmpeg
+        if: ${{ !startsWith(matrix.target, 'win') }}
+        shell: bash
+        run: bash apps/desktop/scripts/build-ffmpeg.sh "${{ matrix.target }}"
+
+      - name: FFmpeg (Windows, MSYS2 MINGW64)
+        if: startsWith(matrix.target, 'win')
+        shell: msys2 {0}
+        run: bash apps/desktop/scripts/build-ffmpeg.sh "${{ matrix.target }}"
+
+      - name: Self-test
+        shell: bash
+        run: bash apps/desktop/scripts/self-test.sh "${{ matrix.target }}" ${{ matrix.variants }}
+
+      - name: Package
+        shell: bash
+        run: |
+          bin="apps/desktop/resources/bin/${{ matrix.target }}"
+          printf '{"whisper":"%s","ffmpeg":"%s","target":"%s"}\n' \
+            "$WHISPER_REF" "$FFMPEG_REF" "${{ matrix.target }}" > "$bin/VERSIONS.json"
+          tar -czf "echo-tools-${{ matrix.target }}.tar.gz" -C "$bin" .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: echo-tools-${{ matrix.target }}
+          path: echo-tools-${{ matrix.target }}.tar.gz
+
+  publish:
+    needs: build
+    runs-on: ubuntu-22.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      WHISPER_REF: ${{ inputs.whisper_ref }}
+      FFMPEG_REF: ${{ inputs.ffmpeg_ref }}
+      RELEASE: ${{ inputs.release }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: echo-tools-*
+          merge-multiple: true
+
+      - name: Checksums and release
+        shell: bash
+        run: |
+          sha256sum echo-tools-*.tar.gz > SHA256SUMS
+          cat SHA256SUMS
+          gh release create "$RELEASE" --title "$RELEASE" \
+            --notes "whisper.cpp $WHISPER_REF, FFmpeg $FFMPEG_REF" \
+            echo-tools-*.tar.gz SHA256SUMS --repo "$GITHUB_REPOSITORY"

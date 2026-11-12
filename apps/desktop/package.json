@@ -10,7 +10,8 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "dev": "npm run build && electron ."
+    "dev": "npm run build && electron .",
+    "tools": "node scripts/fetch-tools.mjs"
   },
   "keywords": [],
   "license": "ISC",
