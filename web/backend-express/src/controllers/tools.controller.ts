@@ -33,6 +33,11 @@ export class ToolsController {
     res.status(204).end();
   };
 
+  benchmark = async (_req: Request, res: Response): Promise<void> => {
+    await this.tools.startBenchmark();
+    res.status(202).end();
+  };
+
   deleteModel = async (req: Request, res: Response): Promise<void> => {
     await this.tools.deleteModel(paramString(req, 'id'));
     res.status(204).end();

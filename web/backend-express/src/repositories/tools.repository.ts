@@ -9,6 +9,12 @@ export interface ToolsState {
   readonly variant?: 'metal' | 'vulkan' | 'cpu' | 'system';
   readonly speedFactor?: number;
   readonly benchmarkedAt?: string;
+  /** True once the user picked the model in Settings (then the automatic step-down never runs). */
+  readonly modelPickedByUser?: boolean;
+  /** True once the automatic step-down to the small model happened (it happens at most once). */
+  readonly steppedDown?: boolean;
+  /** A model whose download finished and still needs its speed test (the step-down download). */
+  readonly benchmarkPending?: string;
 }
 
 const stateSchema = z.object({
@@ -16,6 +22,9 @@ const stateSchema = z.object({
   variant: z.enum(['metal', 'vulkan', 'cpu', 'system']).optional(),
   speedFactor: z.number().optional(),
   benchmarkedAt: z.string().optional(),
+  modelPickedByUser: z.boolean().optional(),
+  steppedDown: z.boolean().optional(),
+  benchmarkPending: z.string().optional(),
 });
 
 /** `tools.json` in the data folder. Writes are atomic and one at a time. */

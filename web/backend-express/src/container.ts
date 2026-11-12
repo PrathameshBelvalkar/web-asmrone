@@ -195,6 +195,11 @@ export function createContainer(
     engine: whisperEngine,
     aiSubtitles,
     fetch: globalThis.fetch,
+    engineFor: (binary, modelPath) =>
+      new WhisperServerEngine(
+        () => ({ ...config.whisper, whisperServerBin: binary, model: modelPath }),
+        { setupHint: config.desktopVersion === null ? SETUP_HINT : DESKTOP_SETUP_HINT },
+      ),
   });
   const mediaService = new MediaService(extension, feedService, aiSubtitles);
   const playlistService = new PlaylistService(extension);

@@ -79,6 +79,7 @@ function routeTable(c: Controllers): RouteSpec[] {
     { method: 'POST', path: '/tools/download/cancel', handler: c.tools.cancelDownload },
     { method: 'PUT', path: '/tools/model', handler: c.tools.selectModel },
     { method: 'POST', path: '/tools/models/:id/delete', handler: c.tools.deleteModel },
+    { method: 'POST', path: '/tools/benchmark', handler: c.tools.benchmark },
   ];
 }
 

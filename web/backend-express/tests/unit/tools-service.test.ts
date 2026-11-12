@@ -1,8 +1,10 @@
 import { chmod, mkdir, stat, truncate, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { MODELS, VAD_MODEL } from '../../src/config/model-catalog.js';
 import { loadConfig, type AppConfig } from '../../src/config/env.js';
+import type { SpeechEngine } from '../../src/services/ai-subtitles/whisper-server.js';
 import { SettingsRepository } from '../../src/repositories/settings.repository.js';
 import { ToolsRepository } from '../../src/repositories/tools.repository.js';
 import {
@@ -39,9 +41,27 @@ async function fakeInstall(entry: { file: string; size: number }): Promise<void>
 }
 
 /** Desktop-style config: bundled tools under `bin/`, with a bundled ffmpeg. */
+/** The real speed-test sample shipped with the package. */
+const REAL_SAMPLE = fileURLToPath(new URL('../../assets/benchmark.wav', import.meta.url));
+
+/** Milliseconds one fake transcription takes; it moves the fake clock forward. */
+let benchCostMs = 1000;
+let clockMs = 0;
+const fakeClock = { now: () => clockMs };
+
+/** Engines for the speed test: each transcription costs `benchCostMs`. */
+const fakeEngineFor = (): SpeechEngine => ({
+  unavailableReason: () => Promise.resolve(null),
+  transcribe: () => {
+    clockMs += benchCostMs;
+    return Promise.resolve([]);
+  },
+  close: () => Promise.resolve(),
+});
+
 function desktopConfig(overrides: Partial<AppConfig> = {}): AppConfig {
   const base = loadConfig({ ECHO_WEB_DATA: t.dir, LOG_LEVEL: 'silent' });
-  return { ...base, binDir: null, desktopVersion: null, ...overrides };
+  return { ...base, binDir: null, desktopVersion: null, benchSample: REAL_SAMPLE, ...overrides };
 }
 
 /** Fake fetch: records calls and never answers, but stops when the request is aborted. */
@@ -96,6 +116,8 @@ function makeService(options: MakeOptions = {}): {
     sleep: () => Promise.resolve(),
     freeSpace: () => Promise.resolve(50 * GB),
     hardware: options.hardware ?? { totalMemory: () => 16 * GB, cpus: () => 10 },
+    engineFor: fakeEngineFor,
+    clock: fakeClock,
   });
   services.push(svc);
   return { svc, settings, repo, whisper, config };
@@ -270,7 +292,9 @@ describe('ensureReady', () => {
     await svc.ensureReady();
 
     expect(repo.get().modelId).toBe(SMALL.id);
-    expect(engineCloses).toBe(1);
+    // The speed test runs in the background after the selection; wait for it before cleanup.
+    await waitForCalls(() => repo.get().speedFactor !== undefined);
+    expect(engineCloses).toBeGreaterThan(0);
   });
 });
 
@@ -290,6 +314,62 @@ describe('startup in the desktop app', () => {
     const { svc } = makeService({ config });
     await svc.init();
     expect(fetchCalls).toEqual([]);
+  });
+});
+
+describe('speed test and step-down', () => {
+  beforeEach(() => {
+    benchCostMs = 1000;
+    clockMs = 0;
+  });
+
+  it('steps down once to the small model when the model is too slow on first setup', async () => {
+    const config = await withBundledTools();
+    await fakeInstall(LARGE);
+    const { svc, repo } = makeService({ config });
+    await repo.update({ modelId: LARGE.id });
+    // 10 s of processing for the 11 s sample: about 0.9 times real time, above the 0.5 limit.
+    benchCostMs = 10_000;
+    await svc.startBenchmark();
+
+    await waitForCalls(() => repo.get().steppedDown === true);
+    expect(repo.get()).toMatchObject({ steppedDown: true, benchmarkPending: SMALL.id });
+    await waitForCalls(() => fetchCalls.some((c) => c.url === SMALL.url));
+    expect(fetchCalls.some((c) => c.url === SMALL.url)).toBe(true);
+  });
+
+  it('never steps down a model the user picked in Settings', async () => {
+    const config = await withBundledTools();
+    await fakeInstall(LARGE);
+    const { svc, repo } = makeService({ config });
+    await repo.update({ modelId: LARGE.id, modelPickedByUser: true });
+    benchCostMs = 10_000;
+    await svc.startBenchmark();
+
+    await waitForCalls(() => repo.get().speedFactor !== undefined);
+    expect(repo.get().speedFactor).toBeGreaterThan(0.5);
+    expect(repo.get().steppedDown).toBeUndefined();
+    expect(fetchCalls.some((c) => c.url === SMALL.url)).toBe(false);
+  });
+
+  it('keeps the model on a fast computer and records the speed', async () => {
+    const config = await withBundledTools();
+    await fakeInstall(LARGE);
+    const { svc, repo } = makeService({ config });
+    await repo.update({ modelId: LARGE.id });
+    benchCostMs = 1000;
+    await svc.startBenchmark();
+
+    await waitForCalls(() => repo.get().speedFactor !== undefined);
+    expect(repo.get().steppedDown).toBeUndefined();
+    expect(repo.get().variant).toBe('cpu');
+    expect((await svc.status()).benchmark).toMatchObject({ status: 'done' });
+  });
+
+  it('refuses a speed test when no model is installed', async () => {
+    const config = await withBundledTools();
+    const { svc } = makeService({ config });
+    await expect(svc.startBenchmark()).rejects.toMatchObject({ status: 400 });
   });
 });
 
