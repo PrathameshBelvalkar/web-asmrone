@@ -24,9 +24,9 @@ const BROWSE: { title: string; url: string; icon: LucideIcon; end?: boolean }[] 
   { title: 'Library', url: '/library', icon: Library },
 ];
 
-/** Taller nav rows; the active one is bold with its icon in the brand colour. */
+/** Nav rows; the active one gets a surface step and its icon in the brand colour. */
 const NAV_ITEM =
-  'h-10 rounded-lg px-3 text-[15px] text-sidebar-foreground/80 hover:text-sidebar-accent-foreground data-[active=true]:bg-white/10 data-[active=true]:font-semibold data-[active=true]:text-white [&>svg]:size-[18px]! data-[active=true]:[&>svg]:text-primary';
+  'h-9 rounded-lg px-3 text-sm text-sidebar-foreground/80 hover:text-sidebar-accent-foreground data-[active=true]:bg-white/10 data-[active=true]:font-medium data-[active=true]:text-white [&>svg]:size-[18px]! data-[active=true]:[&>svg]:text-primary';
 
 /** App navigation. Collapses to icons on desktop and becomes a sheet on phones. */
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
@@ -43,12 +43,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <NavLink to="/">
-                <span className="flex aspect-square size-8 items-center justify-center rounded-xl bg-gradient-to-br from-rose-400 via-primary to-fuchsia-600 text-white shadow-lg shadow-primary/30">
+                <span className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <Disc3 className="size-4" aria-hidden />
                 </span>
                 <div className="grid flex-1 text-left leading-tight">
-                  <span className="truncate font-display text-lg font-extrabold tracking-tight">Echo</span>
-                  <span className="truncate text-[11px] text-sidebar-foreground/60">asmr.one player</span>
+                  <span className="truncate text-base font-semibold">Echo</span>
+                  <span className="truncate text-xs text-sidebar-foreground/60">asmr.one player</span>
                 </div>
               </NavLink>
             </SidebarMenuButton>

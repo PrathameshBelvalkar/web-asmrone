@@ -34,13 +34,13 @@ export function ShelfBlock({ shelf }: { shelf: ShelfDto }) {
   }
 }
 
-/** Shelf title: a small muted eyebrow (the subtitle), a big bold title, then "More" and the scroll arrows. */
+/** Shelf title: a small muted eyebrow (the subtitle), the title, then "More" and the scroll arrows. */
 export function SectionHeader({ title, subtitle, moreFeedId, actions }: { title: string; subtitle?: string | null; moreFeedId?: string | null; actions?: ReactNode }) {
   return (
     <div className="mb-5 flex items-end justify-between gap-4">
       <div className="min-w-0">
-        {subtitle && <p className="mb-1 truncate text-xs font-semibold uppercase tracking-wider text-muted-foreground">{subtitle}</p>}
-        <h2 className="truncate font-display text-2xl font-extrabold tracking-tight text-foreground md:text-[28px]">{title}</h2>
+        {subtitle && <p className="mb-1 truncate text-sm text-muted-foreground">{subtitle}</p>}
+        <h2 className="truncate text-2xl font-semibold text-foreground md:text-[28px]">{title}</h2>
       </div>
       {(actions || moreFeedId) && (
         <div className="flex shrink-0 items-center gap-2">
@@ -48,7 +48,7 @@ export function SectionHeader({ title, subtitle, moreFeedId, actions }: { title:
             <Link
               to={`/feed/${encodeURIComponent(moreFeedId)}`}
               state={{ title }}
-              className="inline-flex h-8 items-center rounded-full border border-white/15 px-3.5 text-sm font-medium text-foreground/90 transition hover:border-white/30 hover:bg-white/10"
+              className="inline-flex h-8 items-center rounded-full border border-white/15 px-4 text-sm font-medium text-foreground/90 transition-colors hover:border-white/30 hover:bg-white/10"
             >
               More
             </Link>
@@ -87,7 +87,7 @@ function useScrollEdges(ref: React.RefObject<HTMLDivElement | null>) {
 
 function ScrollArrows({ edges, onScroll }: { edges: { left: boolean; right: boolean }; onScroll: (dir: 1 | -1) => void }) {
   if (!edges.left && !edges.right) return null;
-  const cls = 'flex size-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.07] text-foreground transition hover:bg-white/15 disabled:pointer-events-none disabled:opacity-30';
+  const cls = 'flex size-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.07] text-foreground transition-colors hover:bg-white/15 disabled:pointer-events-none disabled:opacity-30';
   return (
     <div className="hidden gap-1.5 md:flex">
       <button type="button" aria-label="Scroll left" className={cls} disabled={!edges.left} onClick={() => onScroll(-1)}>
@@ -150,15 +150,15 @@ function QuickPick({ track, onPlay, style }: { track: Track; onPlay: () => void;
   const current = usePlayer((s) => s.index >= 0 && s.queue[s.index]?.id === track.id);
   const playing = usePlayer((s) => s.playing);
   return (
-    <div style={style} className={cn('group flex snap-start items-center gap-3 rounded-xl px-2 py-1.5 transition', current ? 'bg-white/[0.08]' : 'hover:bg-white/[0.06]', !playable && 'opacity-50')}>
+    <div style={style} className={cn('group flex snap-start items-center gap-3 rounded-xl px-2 py-2 transition-colors', current ? 'bg-white/[0.08]' : 'hover:bg-white/[0.06]', !playable && 'opacity-50')}>
       <button type="button" onClick={onPlay} disabled={!playable} aria-label={`Play ${titleOf(track)}`} className="relative size-12 shrink-0 disabled:cursor-not-allowed">
         <Cover holder={track.cover} className="size-12" rounded="rounded-lg" />
-        <span className={cn('absolute inset-0 flex items-center justify-center rounded-lg bg-black/55 text-white transition', current && playing ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')} aria-hidden>
+        <span className={cn('absolute inset-0 flex items-center justify-center rounded-lg bg-black/55 text-white transition-opacity', current && playing ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')} aria-hidden>
           {current && playing ? <Equaliser /> : <Play size={18} fill="currentColor" />}
         </span>
       </button>
       <button type="button" onClick={onPlay} disabled={!playable} className="min-w-0 flex-1 text-left disabled:cursor-not-allowed">
-        <span className={cn('block truncate text-[15px] font-medium', current ? 'text-primary' : 'text-foreground')}>{titleOf(track)}</span>
+        <span className={cn('block truncate text-sm font-medium', current ? 'text-primary' : 'text-foreground')}>{titleOf(track)}</span>
         <span className="block truncate text-[13px] text-muted-foreground">{artistsOf(track)}</span>
       </button>
       <TrackMenu track={track} label={`More options for ${titleOf(track)}`} />
@@ -166,14 +166,7 @@ function QuickPick({ track, onPlay, style }: { track: Track; onPlay: () => void;
   );
 }
 
-/** A stable hue from a name, for categories the server gives no colour. */
-function hueOf(text: string): number {
-  let h = 0;
-  for (let i = 0; i < text.length; i++) h = (h * 31 + text.charCodeAt(i)) >>> 0;
-  return h % 360;
-}
-
-/** Categories as coloured "Moods & genres" tiles; their art, if any, peeks from the corner. */
+/** Categories as "Moods & genres" tiles; their art, if any, sits in the corner. */
 function CategoryGrid({ title, subtitle, categories }: { title: string; subtitle?: string | null; categories: CategoryDto[] }) {
   const [expanded, setExpanded] = useState(false);
   const shown = expanded ? categories : categories.slice(0, TILE_LIMIT);
@@ -186,7 +179,7 @@ function CategoryGrid({ title, subtitle, categories }: { title: string; subtitle
         ))}
       </div>
       {categories.length > TILE_LIMIT && (
-        <button type="button" onClick={() => setExpanded((v) => !v)} className="mt-5 inline-flex h-8 items-center gap-1.5 rounded-full border border-white/15 px-3.5 text-sm font-medium text-foreground/90 transition hover:bg-white/10">
+        <button type="button" onClick={() => setExpanded((v) => !v)} className="mt-5 inline-flex h-8 items-center gap-2 rounded-full border border-white/15 px-4 text-sm font-medium text-foreground/90 transition-colors hover:bg-white/10">
           {expanded ? <ChevronsDownUp size={15} aria-hidden /> : <ChevronsUpDown size={15} aria-hidden />}
           {expanded ? 'Show fewer' : `Show all ${categories.length}`}
         </button>
@@ -196,17 +189,17 @@ function CategoryGrid({ title, subtitle, categories }: { title: string; subtitle
 }
 
 function CategoryTile({ category: c, index }: { category: CategoryDto; index: number }) {
-  const hue = hueOf(c.title);
-  const background = c.backgroundColor || `linear-gradient(135deg, hsl(${hue} 55% 34%), hsl(${(hue + 40) % 360} 60% 22%))`;
+  // The server's colour when it sends one; otherwise a plain raised surface, so the art carries the colour.
+  const background = c.backgroundColor || undefined;
   const art = imageUrl(c.image);
   const body = (
     <>
-      <span className="relative z-10 line-clamp-2 font-display text-[15px] font-bold leading-tight text-white drop-shadow">{c.title}</span>
+      <span className="relative z-10 line-clamp-2 text-sm font-medium leading-tight text-white">{c.title}</span>
       {c.subtitle && <span className="relative z-10 mt-0.5 block text-xs tabular-nums text-white/70">{c.subtitle}</span>}
-      {art && <Cover holder={c.image} className="absolute -bottom-2 -right-3 size-16 rotate-[20deg] shadow-lg shadow-black/40 transition duration-300 group-hover:rotate-[12deg] group-hover:scale-105" rounded="rounded-md" />}
+      {art && <Cover holder={c.image} className="absolute bottom-2 right-2 size-16 shadow-md shadow-black/40" rounded="rounded-md" />}
     </>
   );
-  const cls = 'group relative block h-20 overflow-hidden rounded-xl p-3.5 text-left shadow-md shadow-black/30 ring-1 ring-white/5 transition duration-200 hover:-translate-y-0.5 hover:brightness-110';
+  const cls = 'group relative block h-20 overflow-hidden rounded-xl bg-white/[0.06] p-4 pr-20 text-left ring-1 ring-white/[0.08] transition-[filter,background-color] duration-150 hover:bg-white/10 hover:brightness-110';
   const style = { background, '--i': index } as React.CSSProperties;
   return c.feedId ? (
     <Link to={`/feed/${encodeURIComponent(c.feedId)}`} state={{ title: c.title }} className={cls} style={style}>
@@ -236,14 +229,14 @@ export function FolderList({ folders }: { folders: CategoryDto[] }) {
               <Link
                 to={`/feed/${encodeURIComponent(f.feedId)}`}
                 state={{ title: f.title }}
-                className="group flex items-center gap-3 px-4 py-3.5 transition duration-150 hover:bg-white/[0.06]"
+                className="group flex items-center gap-3 px-4 py-3 transition-colors duration-150 hover:bg-white/[0.06]"
               >
                 <Folder size={16} className="shrink-0 text-muted-foreground" aria-hidden />
                 <span className="min-w-0 flex-1 truncate text-sm text-foreground">{f.title}</span>
-                <ChevronRight size={16} className="shrink-0 text-muted-foreground transition duration-150 group-hover:translate-x-0.5 group-hover:text-primary" aria-hidden />
+                <ChevronRight size={16} className="shrink-0 text-muted-foreground transition-colors duration-150 group-hover:text-foreground" aria-hidden />
               </Link>
             ) : (
-              <div className="flex items-center gap-3 px-4 py-3.5">
+              <div className="flex items-center gap-3 px-4 py-3">
                 <Folder size={16} className="shrink-0 text-muted-foreground" aria-hidden />
                 <span className="min-w-0 flex-1 truncate text-sm text-foreground/80">{f.title}</span>
               </div>

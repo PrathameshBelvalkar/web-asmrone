@@ -30,11 +30,11 @@ export function MediaCard({ item, onClick, fluid = false, style }: { item: Media
         <button type="button" onClick={open} title={title} aria-label={title} className="block w-full rounded-xl">
           <Cover
             holder={item.cover}
-            className="aspect-square w-full shadow-lg shadow-black/40 transition duration-300 ease-out group-hover:shadow-2xl group-hover:shadow-black/60"
+            className="aspect-square w-full shadow-lg shadow-black/40"
             rounded={artist ? 'rounded-full' : 'rounded-xl'}
           />
           {!artist && (
-            <span className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 transition duration-300 group-hover:opacity-100" aria-hidden />
+            <span className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" aria-hidden />
           )}
         </button>
         {!artist && (
@@ -43,19 +43,19 @@ export function MediaCard({ item, onClick, fluid = false, style }: { item: Media
             onClick={() => void playItem(item)}
             aria-label={`Play ${title}`}
             title={`Play ${title}`}
-            className="absolute bottom-2.5 right-2.5 flex size-11 translate-y-2 items-center justify-center rounded-full bg-primary text-primary-foreground opacity-0 shadow-xl shadow-black/50 transition duration-300 ease-out hover:scale-110 focus-visible:translate-y-0 focus-visible:opacity-100 group-hover:translate-y-0 group-hover:opacity-100 active:scale-95"
+            className="absolute bottom-3 right-3 flex size-11 translate-y-2 items-center justify-center rounded-full bg-primary text-primary-foreground opacity-0 shadow-md shadow-black/40 transition-[transform,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:translate-y-0 focus-visible:opacity-100 group-hover:translate-y-0 group-hover:opacity-100 active:scale-[0.97]"
           >
             <Play size={18} fill="currentColor" className="ml-0.5" aria-hidden />
           </button>
         )}
         {playingHere && (
-          <span className="absolute left-2.5 top-2.5 flex size-8 items-center justify-center rounded-full bg-black/60 text-primary backdrop-blur" aria-label="Playing">
+          <span className="absolute left-3 top-3 flex size-8 items-center justify-center rounded-full bg-black/60 text-primary backdrop-blur" aria-label="Playing">
             <Equaliser />
           </span>
         )}
       </div>
       <button type="button" onClick={open} className={`mt-3 text-left ${artist ? 'text-center' : ''}`} tabIndex={-1}>
-        <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-foreground">{title}</span>
+        <span className="line-clamp-2 text-sm font-medium leading-snug text-foreground">{title}</span>
         {sub && <span className="mt-0.5 line-clamp-1 text-[13px] text-muted-foreground">{sub}</span>}
       </button>
     </div>

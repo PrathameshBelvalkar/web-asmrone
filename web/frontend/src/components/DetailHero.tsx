@@ -14,7 +14,7 @@ function titleSize(title: string): string {
 
 /**
  * Header for a work, artist or playlist (Apple Music / YouTube Music style): the page's colour wash
- * comes from the cover, which sits large beside an eyebrow, a big bold title, details and actions.
+ * comes from the cover, which sits large beside an eyebrow, a big title, details and actions.
  */
 export function DetailHero({
   cover, eyebrow, title, shape = 'square', meta, actions, children,
@@ -31,7 +31,7 @@ export function DetailHero({
   useHeaderWash(cover);
   return (
     // @container: the layout follows the hero's own width, which the sidebar narrows on tablets.
-    <section className="@container mb-12 pt-2 sm:pt-4" style={{ animation: 'rise 400ms ease-out both' }}>
+    <section className="@container mb-12 pt-2 sm:pt-4" style={{ animation: 'rise 400ms cubic-bezier(0.22, 1, 0.36, 1) both' }}>
       <div className={cn('flex flex-col gap-6 @2xl:flex-row @2xl:items-end @2xl:gap-9', shape === 'round' && 'items-center @2xl:items-end')}>
         <Cover
           holder={cover}
@@ -45,8 +45,8 @@ export function DetailHero({
           rounded={shape === 'round' ? 'rounded-full' : 'rounded-2xl'}
         />
         <div className={cn('flex min-w-0 flex-1 flex-col justify-end', shape === 'round' && 'text-center @2xl:text-left')}>
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-foreground/70">{eyebrow}</p>
-          <h1 className={cn('mt-2 text-balance break-words font-display font-extrabold leading-[1.05] tracking-tight [overflow-wrap:anywhere]', titleSize(title))}>
+          <p className="text-sm font-medium text-foreground/70">{eyebrow}</p>
+          <h1 className={cn('mt-2 text-balance break-words font-semibold leading-[1.08] tracking-[-0.02em] [overflow-wrap:anywhere]', titleSize(title))}>
             {title}
           </h1>
           {meta && <div className="mt-4 text-sm text-foreground/70">{meta}</div>}
@@ -66,7 +66,7 @@ export function HeroPlayButton({ onClick, label = 'Play' }: { onClick: () => voi
       onClick={onClick}
       aria-label={label}
       title={label}
-      className="flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/30 transition duration-200 hover:scale-105 hover:brightness-110 active:scale-95"
+      className="flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground transition-[filter,transform] duration-150 hover:brightness-110 active:scale-[0.97]"
     >
       <Play size={24} fill="currentColor" className="ml-1" aria-hidden />
     </button>

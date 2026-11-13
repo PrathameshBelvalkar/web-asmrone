@@ -15,7 +15,7 @@ export function TrackRow({ track, index, onPlay }: { track: Track; index?: numbe
 
   return (
     <div
-      className={`group grid grid-cols-[2rem_minmax(0,1fr)_auto_2rem] items-center gap-3 rounded-xl px-2 py-2 transition duration-150 sm:grid-cols-[2.5rem_3rem_minmax(0,1fr)_auto_2rem] ${current ? 'bg-white/[0.08]' : 'hover:bg-white/[0.05]'} ${playable ? '' : 'opacity-50'}`}
+      className={`group grid grid-cols-[2rem_minmax(0,1fr)_auto_2rem] items-center gap-3 rounded-xl px-2 py-2 transition-colors duration-150 sm:grid-cols-[2.5rem_3rem_minmax(0,1fr)_auto_2rem] ${current ? 'bg-white/[0.08]' : 'hover:bg-white/[0.05]'} ${playable ? '' : 'opacity-50'}`}
       onDoubleClick={playable ? onPlay : undefined}
     >
       <div className="flex justify-center text-sm tnum text-muted-foreground">
@@ -39,10 +39,10 @@ export function TrackRow({ track, index, onPlay }: { track: Track; index?: numbe
         onClick={onPlay}
         className="min-w-0 text-left disabled:cursor-not-allowed"
       >
-        <span className={`block truncate text-[15px] ${current ? 'font-semibold text-primary' : 'font-medium text-foreground'}`}>{titleOf(track)}</span>
+        <span className={`block truncate text-sm ${current ? 'font-medium text-primary' : 'font-medium text-foreground'}`}>{titleOf(track)}</span>
         <span className="block truncate text-[13px] text-muted-foreground">{playable ? artistsOf(track) : 'Open the work to listen to this'}</span>
       </button>
-      <span className="hidden text-xs tnum text-muted-foreground sm:block">{formatDuration(track.duration)}</span>
+      <span className="hidden font-mono text-xs tnum text-muted-foreground sm:block">{formatDuration(track.duration)}</span>
       <div className="flex justify-end">
         <TrackMenu track={track} label={`More options for ${titleOf(track)}`} />
       </div>

@@ -106,7 +106,7 @@ export function FeedView({
                     role="tab"
                     aria-selected={active}
                     onClick={() => onTab?.(tab.id)}
-                    className={`h-9 shrink-0 rounded-lg border px-4 text-sm font-medium transition duration-150 ${active ? 'border-transparent bg-white text-black' : 'border-white/10 bg-white/[0.08] text-foreground hover:bg-white/[0.14]'}`}
+                    className={`h-9 shrink-0 rounded-lg border px-4 text-sm font-medium transition-colors duration-150 ${active ? 'border-transparent bg-white text-black' : 'border-white/10 bg-white/[0.08] text-foreground hover:bg-white/[0.14]'}`}
                   >
                     {tab.title}
                   </button>

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "@fontsource-variable/geist";
-@import "@fontsource-variable/plus-jakarta-sans";
+@import "@fontsource-variable/geist-mono";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -96,9 +96,9 @@
 
 @theme inline {
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-display: "Plus Jakarta Sans Variable", "Geist Variable", ui-sans-serif, system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
+  --font-display: var(--font-sans);
   --color-brand: var(--brand);
   --color-player-accent: var(--player-accent);
   --radius: 0.75rem;
@@ -168,7 +168,6 @@
 :root {
   --brand: oklch(0.6 0.21 15);
   --player-accent: var(--brand);
-  --font-display: "Plus Jakarta Sans Variable", "Geist Variable", ui-sans-serif, system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
   --background: oklch(0.9818 0.0054 95.0986);
   --foreground: oklch(0.1450 0 0);
   --card: oklch(0.9818 0.0054 95.0986);
@@ -224,7 +223,7 @@
   --tracking-normal: 0em;
 }
 
-/* Dark music-player theme: near-black canvas, white-alpha hairlines, one rose accent. */
+/* Dark theme: near-black canvas, white-alpha hairlines, one rose accent. */
 .dark {
   --background: oklch(0.155 0 0);
   --foreground: oklch(0.97 0 0);
@@ -285,29 +284,8 @@
 
 /* Shelf/card entrance: children set --i for a small stagger. */
 .stagger > * {
-  animation: rise 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  animation-delay: calc(min(var(--i, 0), 12) * 35ms);
-}
-
-/* Now Playing ambient background: slow drifting colour blobs behind the artwork. */
-@keyframes drift {
-  0%,
-  100% {
-    transform: translate3d(-4%, -3%, 0) scale(1.05) rotate(0deg);
-  }
-  50% {
-    transform: translate3d(5%, 4%, 0) scale(1.18) rotate(6deg);
-  }
-}
-
-@keyframes drift-alt {
-  0%,
-  100% {
-    transform: translate3d(6%, 5%, 0) scale(1.1) rotate(-4deg);
-  }
-  50% {
-    transform: translate3d(-5%, -6%, 0) scale(1.2) rotate(4deg);
-  }
+  animation: rise 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(min(var(--i, 0), 6) * 50ms);
 }
 
 /* Player bar sliders: thin line, handle shows on hover or focus.
@@ -326,7 +304,6 @@
 
   .seek-bar [data-slot="slider-range"] {
     background: var(--player-accent);
-    box-shadow: 0 0 10px color-mix(in oklab, var(--player-accent) 60%, transparent);
     transition: background-color 1s ease;
   }
 

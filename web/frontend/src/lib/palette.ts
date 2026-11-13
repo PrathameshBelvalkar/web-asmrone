@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { proxyUrl } from '../api/client';
 
-export const DEFAULT_PALETTE: [string, string] = ['#3b3f4a', '#1c1e24'];
-
 /**
  * Colours taken from a cover.
  * - `top` / `bottom`: averages of the top and bottom halves, slightly darkened (backdrops).
@@ -137,10 +135,4 @@ export function useArtworkPalette(src: string | undefined): Palette | null {
   }, [src]);
 
   return palette;
-}
-
-/** Two backdrop colours from a cover: the average of its top and bottom halves. */
-export function usePalette(src: string | undefined): [string, string] {
-  const palette = useArtworkPalette(src);
-  return palette ? [palette.top, palette.bottom] : DEFAULT_PALETTE;
 }

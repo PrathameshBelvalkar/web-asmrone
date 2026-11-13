@@ -96,7 +96,7 @@ function ShellInner() {
   );
 }
 
-/** Pill search field in the top bar (YouTube Music style). Submitting opens the search page. */
+/** Search field in the top bar. Submitting opens the search page. */
 function TopSearch() {
   const navigate = useNavigate();
   const [text, setText] = useState('');
@@ -108,12 +108,12 @@ function TopSearch() {
   };
   return (
     <form role="search" onSubmit={submit} className="w-full max-w-[22rem] shrink">
-      <label className="group flex h-10 items-center gap-2.5 rounded-full border border-white/10 bg-white/[0.07] px-4 text-sm text-muted-foreground transition focus-within:border-white/25 focus-within:bg-white/[0.12] hover:bg-white/10">
-        <Search size={16} className="shrink-0 transition group-focus-within:text-foreground" aria-hidden />
+      <label className="group flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.07] px-3 text-sm text-muted-foreground transition-colors focus-within:border-white/25 focus-within:bg-white/[0.12] hover:bg-white/10">
+        <Search size={16} className="shrink-0 transition-colors group-focus-within:text-foreground" aria-hidden />
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Search works, artists, playlists"
+          placeholder="Search"
           aria-label="Search"
           className="min-w-0 flex-1 bg-transparent text-foreground outline-none placeholder:text-muted-foreground"
         />

@@ -96,7 +96,7 @@ export function PageHeader({ title, meta, actions }: { title: string; meta?: Rea
   return (
     <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
-        <h1 className="text-balance font-display text-3xl font-extrabold tracking-tight sm:text-4xl">{title}</h1>
+        <h1 className="text-balance text-3xl font-semibold tracking-[-0.01em] sm:text-4xl">{title}</h1>
         {meta && <div className="mt-1 text-sm text-muted-foreground">{meta}</div>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}

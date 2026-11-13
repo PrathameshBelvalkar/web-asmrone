@@ -40,8 +40,8 @@ export function HomePage() {
   return (
     <>
       <header className="mb-8 pt-2 sm:pt-6">
-        <p className="text-sm font-semibold uppercase tracking-wider text-foreground/60">Home</p>
-        <h1 className="mt-1 font-display text-4xl font-extrabold tracking-tight sm:text-5xl">{greeting()}</h1>
+        <p className="text-sm font-medium text-muted-foreground">Home</p>
+        <h1 className="mt-1 text-4xl font-semibold tracking-[-0.02em] sm:text-5xl">{greeting()}</h1>
       </header>
       {home.isPending && <CardSkeletons count={6} />}
       {home.error && <ErrorState error={home.error} onRetry={() => void home.refetch()} />}

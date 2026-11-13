@@ -44,7 +44,7 @@ export function PlayerBar() {
         disabled={!track}
         aria-label={playing ? 'Pause' : 'Play'}
         className={cn(
-          'flex shrink-0 items-center justify-center rounded-full bg-foreground text-background shadow-lg shadow-black/30 transition duration-150 hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-40',
+          'flex shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-[background-color,transform] duration-150 hover:bg-foreground/90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40',
           size === 'md' ? 'size-10' : 'size-9',
         )}
       >
@@ -82,10 +82,10 @@ export function PlayerBar() {
         <div className="hidden grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] items-center gap-6 px-5 py-3.5 md:grid">
           <div className="flex min-w-0 items-center gap-3">
             <button type="button" onClick={open} disabled={!track} className="shrink-0 disabled:pointer-events-none" aria-label="Open now playing">
-              <Cover holder={track?.cover} className="size-14 shadow-lg shadow-black/50 transition duration-200 hover:scale-105 hover:brightness-110" rounded="rounded-xl" />
+              <Cover holder={track?.cover} className="size-14 transition-[filter] duration-150 hover:brightness-110" rounded="rounded-xl" />
             </button>
             <div className="min-w-0">
-              <button type="button" disabled={!route} onClick={() => route && navigate(route)} className="block max-w-full truncate text-left text-[15px] font-semibold hover:underline disabled:no-underline">
+              <button type="button" disabled={!route} onClick={() => route && navigate(route)} className="block max-w-full truncate text-left text-sm font-medium hover:underline disabled:no-underline">
                 {track ? titleOf(track) : 'Nothing playing'}
               </button>
               <div className="truncate text-xs text-muted-foreground">{track ? artistsOf(track) : 'Pick a work to start listening'}</div>
@@ -100,7 +100,7 @@ export function PlayerBar() {
               <IconButton icon={SkipForward} label="Next" size="md" onClick={nextTrack} disabled={!track} />
               <IconButton icon={RepeatIcon} label={`Repeat: ${repeat}`} active={repeat !== 'off'} size="sm" onClick={() => setState({ repeat: REPEAT_NEXT[repeat] })} />
             </div>
-            <div className="flex w-full max-w-xl items-center gap-3 text-[11px] tnum text-muted-foreground">
+            <div className="flex w-full max-w-xl items-center gap-3 font-mono text-xs tnum text-muted-foreground">
               <span className="w-10 text-right">{formatTime(position)}</span>
               <Slider
                 aria-label="Seek"

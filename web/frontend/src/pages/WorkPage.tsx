@@ -115,7 +115,7 @@ export function WorkPage() {
         {description && (
           <div className="mt-6 max-w-2xl">
             <p className={`whitespace-pre-line text-sm leading-relaxed text-foreground/75 ${descOpen ? '' : 'line-clamp-3'}`}>{description}</p>
-            <button type="button" onClick={() => setDescOpen((v) => !v)} className="mt-2 text-xs font-semibold text-foreground/70 transition hover:text-foreground">
+            <button type="button" onClick={() => setDescOpen((v) => !v)} className="mt-2 text-xs font-medium text-foreground/70 transition-colors hover:text-foreground">
               {descOpen ? 'Show less' : 'Show more'}
             </button>
           </div>
@@ -132,7 +132,7 @@ export function WorkPage() {
                 key={`${f.id}-${i}`}
                 type="button"
                 onClick={() => setFolderId(f.id)}
-                className={`h-9 shrink-0 rounded-lg border px-4 text-sm font-medium transition ${active ? 'border-transparent bg-white text-black' : 'border-white/10 bg-white/[0.08] text-foreground hover:bg-white/[0.14]'}`}
+                className={`h-9 shrink-0 rounded-lg border px-4 text-sm font-medium transition-colors ${active ? 'border-transparent bg-white text-black' : 'border-white/10 bg-white/[0.08] text-foreground hover:bg-white/[0.14]'}`}
               >
                 {f.title}
               </button>
@@ -140,7 +140,7 @@ export function WorkPage() {
           })}
         </div>
         )}
-        <h2 className="mb-4 font-display text-2xl font-extrabold tracking-tight">{currentTitle}</h2>
+        <h2 className="mb-4 text-2xl font-semibold">{currentTitle}</h2>
 
         {currentQuery.isPending && <RowSkeletons />}
         {currentQuery.error && <ErrorState error={currentQuery.error} onRetry={() => void currentQuery.refetch()} />}
