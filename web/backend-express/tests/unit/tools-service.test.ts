@@ -12,6 +12,7 @@ import {
   type Hardware,
   type MutableWhisper,
 } from '../../src/services/tools/tools.service.js';
+import { ffmpegBin } from '../../src/services/tools/tool-paths.js';
 import { tempDir } from '../helpers/tmp.js';
 
 const GB = 1024 * 1024 * 1024;
@@ -91,7 +92,12 @@ function makeService(options: MakeOptions = {}): {
   const config = options.config ?? desktopConfig();
   const settings = new SettingsRepository(join(t.dir, 'settings.json'));
   const repo = new ToolsRepository(join(t.dir, 'tools.json'));
-  const whisper: MutableWhisper = { ...config.whisper, ...options.whisperOverrides };
+  // As in container.ts: the desktop app uses its bundled ffmpeg, not one found on PATH.
+  const whisper: MutableWhisper = {
+    ...config.whisper,
+    ffmpegBin: ffmpegBin(config.binDir, config.whisper.ffmpegBin),
+    ...options.whisperOverrides,
+  };
   const svc = new ToolsService({
     config,
     settings,
