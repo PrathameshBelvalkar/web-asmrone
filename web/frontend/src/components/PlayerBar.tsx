@@ -55,7 +55,11 @@ export function PlayerBar() {
 
   return (
     <footer className="px-2 pb-2 md:px-4 md:pb-4">
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-card/75 shadow-2xl shadow-black/50 backdrop-blur-xl">
+      {/* Frosted glass tinted with the playing artwork's colour (--player-accent). */}
+      <div
+        className="relative overflow-hidden rounded-2xl border border-white/10 shadow-2xl shadow-black/60 backdrop-blur-2xl backdrop-saturate-150 transition-[background-color] duration-1000"
+        style={{ backgroundColor: 'color-mix(in oklab, var(--player-accent) 13%, oklch(0.17 0 0 / 0.82))' }}
+      >
         {error && <div role="status" className="bg-destructive/15 px-4 py-1.5 text-center text-xs text-destructive">{error}</div>}
 
         {/* Phone: compact row, progress line along the bottom edge */}
@@ -71,17 +75,17 @@ export function PlayerBar() {
           <IconButton icon={SkipForward} label="Next" size="sm" onClick={nextTrack} disabled={!track} />
         </div>
         <div className="absolute inset-x-0 bottom-0 h-0.5 bg-foreground/10 md:hidden" aria-hidden>
-          <div className="h-full bg-primary transition-[width] duration-300" style={{ width: `${progress}%` }} />
+          <div className="h-full bg-player-accent transition-[width] duration-300" style={{ width: `${progress}%` }} />
         </div>
 
         {/* Desktop: info | transport + progress | volume */}
         <div className="hidden grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] items-center gap-6 px-5 py-3.5 md:grid">
           <div className="flex min-w-0 items-center gap-3">
             <button type="button" onClick={open} disabled={!track} className="shrink-0 disabled:pointer-events-none" aria-label="Open now playing">
-              <Cover holder={track?.cover} className="size-12 transition hover:brightness-110" rounded="rounded-xl" />
+              <Cover holder={track?.cover} className="size-14 shadow-lg shadow-black/50 transition duration-200 hover:scale-105 hover:brightness-110" rounded="rounded-xl" />
             </button>
             <div className="min-w-0">
-              <button type="button" disabled={!route} onClick={() => route && navigate(route)} className="block max-w-full truncate text-left text-sm font-medium hover:underline disabled:no-underline">
+              <button type="button" disabled={!route} onClick={() => route && navigate(route)} className="block max-w-full truncate text-left text-[15px] font-semibold hover:underline disabled:no-underline">
                 {track ? titleOf(track) : 'Nothing playing'}
               </button>
               <div className="truncate text-xs text-muted-foreground">{track ? artistsOf(track) : 'Pick a work to start listening'}</div>

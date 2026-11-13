@@ -1,18 +1,23 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ChevronsDownUp, ChevronsUpDown, ChevronRight as Arrow, Folder } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsDownUp, ChevronsUpDown, Folder, Play } from 'lucide-react';
 import type { CategoryDto, FeedEntry, MediaItem, ShelfDto, Track } from '../api/types';
-import { kindOf, titleOf } from '../lib/media';
+import { artistsOf, imageUrl, isPlayable, kindOf, titleOf } from '../lib/media';
 import { isTrackEntry, openMedia } from '../lib/actions';
 import { playQueue } from '../player/engine';
+import { usePlayer } from '../player/store';
 import { Cover } from './Cover';
+import { Equaliser } from './Equaliser';
 import { MediaCard } from './MediaCard';
+import { TrackMenu } from './TrackMenu';
 import { TrackRow } from './TrackRow';
-import { Chip, IconButton } from './ui';
+import { cn } from '@/lib/utils';
 
-const CHIP_LIMIT = 40;
+const TILE_LIMIT = 24;
+/** Rows in the "Quick picks" grid of a track shelf. */
+const QUICK_ROWS = 4;
 
-/** One shelf from the server: a row of items, a track list, or category chips. */
+/** One shelf from the server: a row of items, a track grid, or category tiles. */
 export function ShelfBlock({ shelf }: { shelf: ShelfDto }) {
   switch (shelf.kind) {
     case 'items':
@@ -29,18 +34,23 @@ export function ShelfBlock({ shelf }: { shelf: ShelfDto }) {
   }
 }
 
+/** Shelf title: a small muted eyebrow (the subtitle), a big bold title, then "More" and the scroll arrows. */
 export function SectionHeader({ title, subtitle, moreFeedId, actions }: { title: string; subtitle?: string | null; moreFeedId?: string | null; actions?: ReactNode }) {
   return (
-    <div className="mb-4 flex items-end justify-between gap-4">
+    <div className="mb-5 flex items-end justify-between gap-4">
       <div className="min-w-0">
-        <h2 className="truncate text-lg font-semibold tracking-tight text-foreground">{title}</h2>
-        {subtitle && <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>}
+        {subtitle && <p className="mb-1 truncate text-xs font-semibold uppercase tracking-wider text-muted-foreground">{subtitle}</p>}
+        <h2 className="truncate font-display text-2xl font-extrabold tracking-tight text-foreground md:text-[28px]">{title}</h2>
       </div>
       {(actions || moreFeedId) && (
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2">
           {moreFeedId && (
-            <Link to={`/feed/${encodeURIComponent(moreFeedId)}`} state={{ title }} className="inline-flex items-center gap-0.5 text-sm text-foreground/80 transition hover:text-primary">
-              See all <Arrow size={15} aria-hidden />
+            <Link
+              to={`/feed/${encodeURIComponent(moreFeedId)}`}
+              state={{ title }}
+              className="inline-flex h-8 items-center rounded-full border border-white/15 px-3.5 text-sm font-medium text-foreground/90 transition hover:border-white/30 hover:bg-white/10"
+            >
+              More
             </Link>
           )}
           {actions}
@@ -75,6 +85,21 @@ function useScrollEdges(ref: React.RefObject<HTMLDivElement | null>) {
   return edges;
 }
 
+function ScrollArrows({ edges, onScroll }: { edges: { left: boolean; right: boolean }; onScroll: (dir: 1 | -1) => void }) {
+  if (!edges.left && !edges.right) return null;
+  const cls = 'flex size-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.07] text-foreground transition hover:bg-white/15 disabled:pointer-events-none disabled:opacity-30';
+  return (
+    <div className="hidden gap-1.5 md:flex">
+      <button type="button" aria-label="Scroll left" className={cls} disabled={!edges.left} onClick={() => onScroll(-1)}>
+        <ChevronLeft size={18} aria-hidden />
+      </button>
+      <button type="button" aria-label="Scroll right" className={cls} disabled={!edges.right} onClick={() => onScroll(1)}>
+        <ChevronRight size={18} aria-hidden />
+      </button>
+    </div>
+  );
+}
+
 function MediaRow({ title, subtitle, items, moreFeedId }: { title: string; subtitle?: string | null; items: MediaItem[]; moreFeedId?: string | null }) {
   const navigate = useNavigate();
   const scroller = useRef<HTMLDivElement>(null);
@@ -83,77 +108,85 @@ function MediaRow({ title, subtitle, items, moreFeedId }: { title: string; subti
   const tracks = items.filter((i): i is Track => kindOf(i) === 'Track');
   const allTracks = tracks.length === items.length;
 
-  const scrollBy = (dir: 1 | -1) => scroller.current?.scrollBy({ left: dir * 480, behavior: 'smooth' });
+  const scrollBy = (dir: 1 | -1) => {
+    const el = scroller.current;
+    el?.scrollBy({ left: dir * Math.max(320, el.clientWidth * 0.8), behavior: 'smooth' });
+  };
 
   return (
     <section className="mb-12">
-      <SectionHeader
-        title={title}
-        subtitle={subtitle}
-        moreFeedId={moreFeedId}
-        actions={
-          // In the header, not over the covers. Only when the row is wider than the screen.
-          !allTracks && (edges.left || edges.right) ? (
-            <div className="hidden gap-1.5 md:flex">
-              <IconButton icon={ChevronLeft} label="Scroll left" size="sm" className="bg-muted hover:bg-accent disabled:pointer-events-none disabled:opacity-35" disabled={!edges.left} onClick={() => scrollBy(-1)} />
-              <IconButton icon={ChevronRight} label="Scroll right" size="sm" className="bg-muted hover:bg-accent disabled:pointer-events-none disabled:opacity-35" disabled={!edges.right} onClick={() => scrollBy(1)} />
-            </div>
-          ) : null
-        }
-      />
+      <SectionHeader title={title} subtitle={subtitle} moreFeedId={moreFeedId} actions={<ScrollArrows edges={edges} onScroll={scrollBy} />} />
       {allTracks ? (
-        <div className="-mx-2">
+        // "Quick picks": compact rows in columns of four that scroll sideways.
+        <div
+          ref={scroller}
+          className={cn(
+            'no-scrollbar stagger -mx-2 grid snap-x snap-mandatory gap-x-4 overflow-x-auto',
+            tracks.length > QUICK_ROWS ? 'grid-flow-col grid-rows-4 auto-cols-[minmax(17rem,85%)] sm:auto-cols-[minmax(19rem,24rem)]' : 'grid-cols-1',
+          )}
+        >
           {tracks.map((t, i) => (
-            <TrackRow key={`${t.id}-${i}`} track={t} index={i} onPlay={() => playQueue(tracks, i)} />
+            <QuickPick key={`${t.id}-${i}`} track={t} style={{ '--i': Math.floor(i / QUICK_ROWS) } as React.CSSProperties} onPlay={() => playQueue(tracks, i)} />
           ))}
         </div>
       ) : (
-        <div>
-          <div ref={scroller} className="no-scrollbar flex snap-x snap-mandatory gap-5 overflow-x-auto pb-2">
-            {items.map((item, i) =>
-              kindOf(item) === 'Track' ? (
-                <TrackCard key={`${item.id}-${i}`} track={item as Track} onPlay={() => playQueue(tracks, tracks.indexOf(item as Track))} />
-              ) : (
-                <MediaCard key={`${item.id}-${i}`} item={item} onClick={() => openMedia(item, navigate)} />
-              ),
-            )}
-          </div>
+        <div ref={scroller} className="no-scrollbar stagger -mx-1 flex snap-x snap-mandatory gap-5 overflow-x-auto px-1 pb-2">
+          {items.map((item, i) =>
+            kindOf(item) === 'Track' ? (
+              <MediaCard key={`${item.id}-${i}`} item={item} style={{ '--i': i } as React.CSSProperties} onClick={() => playQueue(tracks, tracks.indexOf(item as Track))} />
+            ) : (
+              <MediaCard key={`${item.id}-${i}`} item={item} style={{ '--i': i } as React.CSSProperties} onClick={() => openMedia(item, navigate)} />
+            ),
+          )}
         </div>
       )}
     </section>
   );
 }
 
-function TrackCard({ track, onPlay }: { track: Track; onPlay: () => void }) {
+/** A compact track row for the Quick picks grid: small cover with a play overlay, title and artist. */
+function QuickPick({ track, onPlay, style }: { track: Track; onPlay: () => void; style?: React.CSSProperties }) {
+  const playable = isPlayable(track);
+  const current = usePlayer((s) => s.index >= 0 && s.queue[s.index]?.id === track.id);
+  const playing = usePlayer((s) => s.playing);
   return (
-    <button type="button" onClick={onPlay} className="group flex w-36 shrink-0 snap-start flex-col text-left sm:w-44">
-      <Cover holder={track.cover} className="aspect-square w-full shadow-md shadow-black/30 transition duration-200 group-hover:-translate-y-0.5 group-hover:shadow-xl" rounded="rounded-lg" />
-      <span className="mt-3 line-clamp-2 text-sm font-medium leading-snug text-foreground">{titleOf(track)}</span>
-    </button>
+    <div style={style} className={cn('group flex snap-start items-center gap-3 rounded-xl px-2 py-1.5 transition', current ? 'bg-white/[0.08]' : 'hover:bg-white/[0.06]', !playable && 'opacity-50')}>
+      <button type="button" onClick={onPlay} disabled={!playable} aria-label={`Play ${titleOf(track)}`} className="relative size-12 shrink-0 disabled:cursor-not-allowed">
+        <Cover holder={track.cover} className="size-12" rounded="rounded-lg" />
+        <span className={cn('absolute inset-0 flex items-center justify-center rounded-lg bg-black/55 text-white transition', current && playing ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')} aria-hidden>
+          {current && playing ? <Equaliser /> : <Play size={18} fill="currentColor" />}
+        </span>
+      </button>
+      <button type="button" onClick={onPlay} disabled={!playable} className="min-w-0 flex-1 text-left disabled:cursor-not-allowed">
+        <span className={cn('block truncate text-[15px] font-medium', current ? 'text-primary' : 'text-foreground')}>{titleOf(track)}</span>
+        <span className="block truncate text-[13px] text-muted-foreground">{artistsOf(track)}</span>
+      </button>
+      <TrackMenu track={track} label={`More options for ${titleOf(track)}`} />
+    </div>
   );
 }
 
+/** A stable hue from a name, for categories the server gives no colour. */
+function hueOf(text: string): number {
+  let h = 0;
+  for (let i = 0; i < text.length; i++) h = (h * 31 + text.charCodeAt(i)) >>> 0;
+  return h % 360;
+}
+
+/** Categories as coloured "Moods & genres" tiles; their art, if any, peeks from the corner. */
 function CategoryGrid({ title, subtitle, categories }: { title: string; subtitle?: string | null; categories: CategoryDto[] }) {
   const [expanded, setExpanded] = useState(false);
-  const shown = expanded ? categories : categories.slice(0, CHIP_LIMIT);
+  const shown = expanded ? categories : categories.slice(0, TILE_LIMIT);
   return (
     <section className="mb-12">
       <SectionHeader title={title} subtitle={subtitle} />
-      <div className="flex flex-wrap gap-2">
-        {shown.map((c, i) =>
-          c.feedId ? (
-            <Chip key={`${c.id}-${i}`} to={`/feed/${encodeURIComponent(c.feedId)}`} state={{ title: c.title }}>
-              <ChipLabel category={c} />
-            </Chip>
-          ) : (
-            <Chip key={`${c.id}-${i}`}>
-              <ChipLabel category={c} />
-            </Chip>
-          ),
-        )}
+      <div className="stagger grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-3">
+        {shown.map((c, i) => (
+          <CategoryTile key={`${c.id}-${i}`} category={c} index={i} />
+        ))}
       </div>
-      {categories.length > CHIP_LIMIT && (
-        <button type="button" onClick={() => setExpanded((v) => !v)} className="mt-4 inline-flex items-center gap-1.5 text-sm text-foreground/80 transition hover:text-primary">
+      {categories.length > TILE_LIMIT && (
+        <button type="button" onClick={() => setExpanded((v) => !v)} className="mt-5 inline-flex h-8 items-center gap-1.5 rounded-full border border-white/15 px-3.5 text-sm font-medium text-foreground/90 transition hover:bg-white/10">
           {expanded ? <ChevronsDownUp size={15} aria-hidden /> : <ChevronsUpDown size={15} aria-hidden />}
           {expanded ? 'Show fewer' : `Show all ${categories.length}`}
         </button>
@@ -162,13 +195,25 @@ function CategoryGrid({ title, subtitle, categories }: { title: string; subtitle
   );
 }
 
-/** A category's name, with its subtitle (e.g. a work count) in a quieter tone. */
-function ChipLabel({ category }: { category: CategoryDto }) {
-  return (
+function CategoryTile({ category: c, index }: { category: CategoryDto; index: number }) {
+  const hue = hueOf(c.title);
+  const background = c.backgroundColor || `linear-gradient(135deg, hsl(${hue} 55% 34%), hsl(${(hue + 40) % 360} 60% 22%))`;
+  const art = imageUrl(c.image);
+  const body = (
     <>
-      {category.title}
-      {category.subtitle && <span className="ml-1.5 text-xs tabular-nums text-muted-foreground">{category.subtitle}</span>}
+      <span className="relative z-10 line-clamp-2 font-display text-[15px] font-bold leading-tight text-white drop-shadow">{c.title}</span>
+      {c.subtitle && <span className="relative z-10 mt-0.5 block text-xs tabular-nums text-white/70">{c.subtitle}</span>}
+      {art && <Cover holder={c.image} className="absolute -bottom-2 -right-3 size-16 rotate-[20deg] shadow-lg shadow-black/40 transition duration-300 group-hover:rotate-[12deg] group-hover:scale-105" rounded="rounded-md" />}
     </>
+  );
+  const cls = 'group relative block h-20 overflow-hidden rounded-xl p-3.5 text-left shadow-md shadow-black/30 ring-1 ring-white/5 transition duration-200 hover:-translate-y-0.5 hover:brightness-110';
+  const style = { background, '--i': index } as React.CSSProperties;
+  return c.feedId ? (
+    <Link to={`/feed/${encodeURIComponent(c.feedId)}`} state={{ title: c.title }} className={cls} style={style}>
+      {body}
+    </Link>
+  ) : (
+    <div className={cls} style={style}>{body}</div>
   );
 }
 
@@ -184,21 +229,21 @@ export function FolderList({ folders }: { folders: CategoryDto[] }) {
   return (
     <section className="mb-12">
       <SectionHeader title="Folders" subtitle={`${folders.length} ${folders.length === 1 ? 'folder' : 'folders'}`} />
-      <ul className="divide-y divide-line overflow-hidden rounded-xl border border-border">
+      <ul className="divide-y divide-white/[0.06] overflow-hidden rounded-2xl border border-border bg-white/[0.03]">
         {folders.map((f, i) => (
           <li key={`${f.id}-${i}`}>
             {f.feedId ? (
               <Link
                 to={`/feed/${encodeURIComponent(f.feedId)}`}
                 state={{ title: f.title }}
-                className="group flex items-center gap-3 px-4 py-3 transition duration-150 hover:bg-accent"
+                className="group flex items-center gap-3 px-4 py-3.5 transition duration-150 hover:bg-white/[0.06]"
               >
                 <Folder size={16} className="shrink-0 text-muted-foreground" aria-hidden />
                 <span className="min-w-0 flex-1 truncate text-sm text-foreground">{f.title}</span>
                 <ChevronRight size={16} className="shrink-0 text-muted-foreground transition duration-150 group-hover:translate-x-0.5 group-hover:text-primary" aria-hidden />
               </Link>
             ) : (
-              <div className="flex items-center gap-3 px-4 py-3">
+              <div className="flex items-center gap-3 px-4 py-3.5">
                 <Folder size={16} className="shrink-0 text-muted-foreground" aria-hidden />
                 <span className="min-w-0 flex-1 truncate text-sm text-foreground/80">{f.title}</span>
               </div>

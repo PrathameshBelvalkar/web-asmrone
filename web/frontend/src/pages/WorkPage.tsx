@@ -1,15 +1,16 @@
 import { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { Heart, Link2, Play, Radio } from 'lucide-react';
+import { Heart, Link2, Radio } from 'lucide-react';
 import type { Album, Artist, CategoryDto, FeedEntry, ShelfDto } from '../api/types';
 import { useLike } from '../api/mutations';
 import { albumFeedOptions, albumOptions, albumTracksOptions, feedOptions, likeOptions, pagesOptions } from '../api/queries';
-import { Cover } from '../components/Cover';
+import { DetailHero, HeroPlayButton } from '../components/DetailHero';
 import { FeedView } from '../components/FeedView';
 import { ShelfBlock } from '../components/ShelfBlock';
 import { ErrorState } from '../components/States';
-import { Button, Chip, IconButton, Skeleton } from '../components/ui';
+import { Button, IconButton, Skeleton } from '../components/ui';
+import { useHeaderWash } from '../lib/wash';
 import { useCrumbs } from '../lib/crumbs';
 import { artistLinkFor, playFeed, shareItem, startRadio } from '../lib/actions';
 import { isExternal } from '../lib/media';
@@ -73,77 +74,73 @@ export function WorkPage() {
 
   return (
     <>
-      {/* @container: the layout follows the hero's own width, which the sidebar narrows on tablets. */}
-      <section className="@container relative mb-12 overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="absolute inset-0 -z-0 opacity-30 blur-3xl" aria-hidden>
-          <Cover holder={album.cover} className="h-full w-full scale-125" rounded="" />
-        </div>
-        <div className="relative flex flex-col gap-6 p-5 @2xl:flex-row @2xl:gap-8 @2xl:p-8">
-          {/* 4:3 like the covers themselves, the whole image shown, and never stretched by a long description. */}
-          <Cover
-            holder={album.cover}
-            fit="contain"
-            className="aspect-[4/3] w-full max-w-[360px] shrink-0 self-start bg-black/30 shadow-2xl shadow-black/60 @2xl:w-72"
-            rounded="rounded-xl"
-          />
-          <div className="flex min-w-0 flex-1 flex-col justify-end">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Work</p>
-            <h1 className="mt-2 text-balance break-words text-2xl font-semibold leading-tight tracking-tight [overflow-wrap:anywhere] @2xl:text-3xl">
-              {album.title || 'Untitled work'}
-            </h1>
+      {/* 4:3 cover like the covers themselves, the whole image shown, and never stretched by a long description. */}
+      <DetailHero
+        cover={album.cover}
+        shape="wide"
+        eyebrow="Work"
+        title={album.title || 'Untitled work'}
+        meta={
+          <>
             {album.artists?.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {album.artists.map((a: Artist) => (
-                  <Chip key={a.id} to={artistLinkFor(a)}>{a.name}</Chip>
+              <div className="mb-2 flex flex-wrap gap-x-1 text-base font-semibold text-foreground">
+                {album.artists.map((a: Artist, i: number) => (
+                  <span key={a.id}>
+                    <Link to={artistLinkFor(a)} className="hover:underline">{a.name}</Link>
+                    {i < album.artists.length - 1 && <span className="text-foreground/50">,</span>}
+                  </span>
                 ))}
               </div>
             )}
-            <p className="mt-3 text-sm tnum text-muted-foreground">
+            <span className="tnum">
               {album.trackCount ? `${album.trackCount} tracks` : ''}
               {album.trackCount && album.duration ? ' · ' : ''}
               {album.duration ? formatDuration(album.duration) : ''}
-            </p>
-
-            <div className="mt-6 flex flex-wrap items-center gap-2">
-              <Button variant="primary" icon={Play} onClick={playAll}>Play</Button>
-              {!jasmr && (
-                <>
-                  <Button variant="secondary" icon={Radio} onClick={() => startRadio(album)}>Radio</Button>
-                  <IconButton icon={Heart} label={liked ? 'Remove from favourites' : 'Add to favourites'} active={liked} size="lg" onClick={toggleFavourite} disabled={!like.data} className="border border-input" />
-                </>
-              )}
-              <IconButton icon={Link2} label="Copy link" size="lg" onClick={() => shareItem(album)} className="border border-input" />
-            </div>
-
-            {description && (
-              <div className="mt-6 max-w-2xl">
-                <p className={`whitespace-pre-line text-sm leading-relaxed text-foreground/80 ${descOpen ? '' : 'line-clamp-3'}`}>{description}</p>
-                <button type="button" onClick={() => setDescOpen((v) => !v)} className="mt-2 text-xs font-medium text-muted-foreground transition hover:text-primary">
-                  {descOpen ? 'Show less' : 'Show more'}
-                </button>
-              </div>
+            </span>
+          </>
+        }
+        actions={
+          <>
+            <HeroPlayButton onClick={() => void playAll()} />
+            {!jasmr && (
+              <>
+                <Button variant="secondary" icon={Radio} className="h-11 border-white/15 bg-white/[0.07] px-5 hover:bg-white/15" onClick={() => startRadio(album)}>Radio</Button>
+                <IconButton icon={Heart} label={liked ? 'Remove from favourites' : 'Add to favourites'} active={liked} size="lg" onClick={toggleFavourite} disabled={!like.data} className="border border-white/15 bg-white/[0.07]" />
+              </>
             )}
+            <IconButton icon={Link2} label="Copy link" size="lg" onClick={() => shareItem(album)} className="border border-white/15 bg-white/[0.07]" />
+          </>
+        }
+      >
+        {description && (
+          <div className="mt-6 max-w-2xl">
+            <p className={`whitespace-pre-line text-sm leading-relaxed text-foreground/75 ${descOpen ? '' : 'line-clamp-3'}`}>{description}</p>
+            <button type="button" onClick={() => setDescOpen((v) => !v)} className="mt-2 text-xs font-semibold text-foreground/70 transition hover:text-foreground">
+              {descOpen ? 'Show less' : 'Show more'}
+            </button>
           </div>
-        </div>
-      </section>
+        )}
+      </DetailHero>
 
       <section className="mb-12">
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <Button variant={folderId ? 'secondary' : 'primary'} className="h-8 px-3 text-xs" onClick={() => setFolderId(null)}>
-            Episodes
-          </Button>
-          {folders.map((f) => (
-            <Button
-              key={f.id}
-              variant={folderId === f.feedId ? 'primary' : 'secondary'}
-              className="h-8 px-3 text-xs"
-              onClick={() => setFolderId(f.feedId ?? null)}
-            >
-              {f.title}
-            </Button>
-          ))}
+        {folders.length > 0 && (
+        <div className="no-scrollbar -mx-1 mb-5 flex gap-2 overflow-x-auto px-1">
+          {[{ id: null as string | null, title: 'Episodes' }, ...folders.map((f) => ({ id: f.feedId ?? null, title: f.title }))].map((f, i) => {
+            const active = i === 0 ? !folderId : folderId === f.id;
+            return (
+              <button
+                key={`${f.id}-${i}`}
+                type="button"
+                onClick={() => setFolderId(f.id)}
+                className={`h-9 shrink-0 rounded-lg border px-4 text-sm font-medium transition ${active ? 'border-transparent bg-white text-black' : 'border-white/10 bg-white/[0.08] text-foreground hover:bg-white/[0.14]'}`}
+              >
+                {f.title}
+              </button>
+            );
+          })}
         </div>
-        <h2 className="mb-4 text-lg font-semibold tracking-tight">{currentTitle}</h2>
+        )}
+        <h2 className="mb-4 font-display text-2xl font-extrabold tracking-tight">{currentTitle}</h2>
 
         {currentQuery.isPending && <RowSkeletons />}
         {currentQuery.error && <ErrorState error={currentQuery.error} onRetry={() => void currentQuery.refetch()} />}
@@ -175,16 +172,18 @@ function RowSkeletons() {
 }
 
 function HeroSkeleton() {
+  // The stub's cover isn't known yet: keep the previous wash from flashing over the skeleton.
+  useHeaderWash(null);
   return (
-    <div className="@container mb-12 rounded-2xl border border-border bg-card" aria-hidden>
-      <div className="flex flex-col gap-6 p-5 @2xl:flex-row @2xl:gap-8 @2xl:p-8">
-      <Skeleton className="aspect-[4/3] w-full max-w-[360px] shrink-0 self-start @2xl:w-72" />
-      <div className="flex-1 space-y-4 pt-2">
-        <Skeleton className="h-3 w-16" />
-        <Skeleton className="h-8 w-3/4" />
-        <Skeleton className="h-8 w-1/2" />
-        <Skeleton className="mt-6 h-10 w-48 rounded-full" />
-      </div>
+    <div className="@container mb-12 pt-2 sm:pt-4" aria-hidden>
+      <div className="flex flex-col gap-6 @2xl:flex-row @2xl:items-end @2xl:gap-9">
+        <Skeleton className="aspect-[4/3] w-full max-w-[380px] shrink-0 self-start rounded-2xl @2xl:w-80" />
+        <div className="flex-1 space-y-4 pt-2">
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-10 w-3/4" />
+          <Skeleton className="h-10 w-1/2" />
+          <Skeleton className="mt-6 size-14 rounded-full" />
+        </div>
       </div>
     </div>
   );

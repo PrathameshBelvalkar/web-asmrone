@@ -97,7 +97,7 @@ export function FeedView({
       {(tabs.length > 0 || (playable && hasTracks)) && (
         <div className="mb-8 flex flex-wrap items-center gap-3">
           {tabs.length > 0 && (
-            <div role="tablist" className="inline-flex flex-wrap gap-1 rounded-full border border-border bg-card p-1">
+            <div role="tablist" className="no-scrollbar -mx-1 flex max-w-full gap-2 overflow-x-auto px-1">
               {tabs.map((tab) => {
                 const active = feed?.selectedTab === tab.id;
                 return (
@@ -106,7 +106,7 @@ export function FeedView({
                     role="tab"
                     aria-selected={active}
                     onClick={() => onTab?.(tab.id)}
-                    className={`rounded-full px-3.5 py-1.5 text-sm transition duration-150 ${active ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground/80'}`}
+                    className={`h-9 shrink-0 rounded-lg border px-4 text-sm font-medium transition duration-150 ${active ? 'border-transparent bg-white text-black' : 'border-white/10 bg-white/[0.08] text-foreground hover:bg-white/[0.14]'}`}
                   >
                     {tab.title}
                   </button>
@@ -139,9 +139,9 @@ export function FeedView({
           );
         }
         return (
-          <div key={`m-${bi}`} className="mb-10 grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-x-5 gap-y-8 sm:grid-cols-[repeat(auto-fill,minmax(11rem,1fr))]">
+          <div key={`m-${bi}`} className="stagger mb-10 grid grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-x-5 gap-y-9 sm:grid-cols-[repeat(auto-fill,minmax(11.5rem,1fr))]">
             {block.items.map((item, i) => (
-              <MediaCard key={`${item.id}-${i}`} item={item} fluid onClick={() => openMedia(item, navigate)} />
+              <MediaCard key={`${item.id}-${i}`} item={item} fluid style={{ '--i': i % 24 } as React.CSSProperties} onClick={() => openMedia(item, navigate)} />
             ))}
           </div>
         );

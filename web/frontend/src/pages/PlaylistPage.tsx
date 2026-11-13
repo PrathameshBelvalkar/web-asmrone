@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ListMusic, Lock, Pencil, Play, Trash2, Globe } from 'lucide-react';
+import { ListMusic, Lock, Pencil, Trash2, Globe } from 'lucide-react';
 import { usePlaylistDelete, usePlaylistEdit } from '../api/mutations';
 import { playlistTracksOptions } from '../api/queries';
 import { queryClient } from '../lib/queryClient';
 import { playFeed } from '../lib/actions';
 import type { Playlist } from '../api/types';
-import { Cover } from '../components/Cover';
+import { DetailHero, HeroPlayButton } from '../components/DetailHero';
 import { FeedView } from '../components/FeedView';
 import { CardSkeletons, ErrorState } from '../components/States';
 import { Button } from '../components/ui';
@@ -38,23 +38,31 @@ export function PlaylistPage() {
 
   return (
     <>
-      <section className="mb-10 flex flex-col gap-6 sm:flex-row sm:gap-8">
-        <Cover holder={playlist.cover} className="aspect-square w-full max-w-[220px] shrink-0 shadow-2xl shadow-black/50 sm:w-52" rounded="rounded-xl" />
-        <div className="flex min-w-0 flex-1 flex-col justify-end">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Playlist</p>
-          <h1 className="mt-2 text-balance text-2xl font-semibold tracking-tight sm:text-3xl">{playlist.title}</h1>
-          {playlist.description && <p className="mt-2 max-w-2xl text-sm leading-relaxed text-foreground/80">{playlist.description}</p>}
-          <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-            {playlist.isPrivate ? <Lock size={13} aria-hidden /> : <Globe size={13} aria-hidden />}
-            {playlist.isPrivate ? 'Private' : 'Public'}
-            {playlist.trackCount ? ` · ${playlist.trackCount} works` : ''}
-          </p>
-          <div className="mt-6 flex flex-wrap gap-2">
-            <Button variant="primary" icon={Play} onClick={playAll}>Play</Button>
-            {playlist.isEditable && <Button variant="secondary" icon={Pencil} onClick={() => setEditing((v) => !v)}>{editing ? 'Close editor' : 'Edit'}</Button>}
-          </div>
-        </div>
-      </section>
+      <DetailHero
+        cover={playlist.cover}
+        eyebrow="Playlist"
+        title={playlist.title}
+        meta={
+          <>
+            {playlist.description && <p className="mb-2 max-w-2xl leading-relaxed text-foreground/80">{playlist.description}</p>}
+            <span className="inline-flex items-center gap-1.5">
+              {playlist.isPrivate ? <Lock size={13} aria-hidden /> : <Globe size={13} aria-hidden />}
+              {playlist.isPrivate ? 'Private' : 'Public'}
+              {playlist.trackCount ? ` · ${playlist.trackCount} works` : ''}
+            </span>
+          </>
+        }
+        actions={
+          <>
+            <HeroPlayButton onClick={() => void playAll()} />
+            {playlist.isEditable && (
+              <Button variant="secondary" icon={Pencil} className="h-11 border-white/15 bg-white/[0.07] px-5 hover:bg-white/15" onClick={() => setEditing((v) => !v)}>
+                {editing ? 'Close editor' : 'Edit'}
+              </Button>
+            )}
+          </>
+        }
+      />
 
       {editing && (
         <EditPlaylist

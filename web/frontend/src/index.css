@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "@fontsource-variable/geist";
+@import "@fontsource-variable/plus-jakarta-sans";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -97,7 +98,10 @@
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  --radius: 0.5rem;
+  --font-display: "Plus Jakarta Sans Variable", "Geist Variable", ui-sans-serif, system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
+  --color-brand: var(--brand);
+  --color-player-accent: var(--player-accent);
+  --radius: 0.75rem;
   --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
   --tracking-tight: calc(var(--tracking-normal) - 0.025em);
   --tracking-wide: calc(var(--tracking-normal) + 0.025em);
@@ -162,10 +166,13 @@
 }
 
 :root {
+  --brand: oklch(0.6 0.21 15);
+  --player-accent: var(--brand);
+  --font-display: "Plus Jakarta Sans Variable", "Geist Variable", ui-sans-serif, system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
   --background: oklch(0.9818 0.0054 95.0986);
   --foreground: oklch(0.1450 0 0);
   --card: oklch(0.9818 0.0054 95.0986);
-  --card-foreground: #oklch(0.145 0 0);
+  --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1.0000 0 0);
   --popover-foreground: oklch(0.2671 0.0196 98.9390);
   --primary: oklch(0.7040 0.0400 256.7880);
@@ -217,40 +224,44 @@
   --tracking-normal: 0em;
 }
 
+/* Dark music-player theme: near-black canvas, white-alpha hairlines, one rose accent. */
 .dark {
-  --background: oklch(0.2679 0.0036 106.6427);
-  --foreground: oklch(0.8074 0.0142 93.0137);
-  --card: oklch(0.2679 0.0036 106.6427);
-  --card-foreground: oklch(0.9818 0.0054 95.0986);
-  --popover: oklch(0.3085 0.0035 106.6039);
-  --popover-foreground: oklch(0.9211 0.0040 106.4781);
-  --primary: oklch(0.9010 0.0580 230.9020);
-  --primary-foreground: oklch(0.1450 0 0);
-  --secondary: oklch(0.9818 0.0054 95.0986);
-  --secondary-foreground: oklch(0.3085 0.0035 106.6039);
-  --muted: oklch(0.2213 0.0038 106.7070);
-  --muted-foreground: oklch(0.7713 0.0169 99.0657);
-  --accent: oklch(0.2130 0.0078 95.4245);
-  --accent-foreground: oklch(0.9663 0.0080 98.8792);
+  --background: oklch(0.155 0 0);
+  --foreground: oklch(0.97 0 0);
+  --card: oklch(0.2 0 0);
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.22 0 0);
+  --popover-foreground: oklch(0.97 0 0);
+  --brand: oklch(0.66 0.21 15);
+  --primary: var(--brand);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(1 0 0 / 0.1);
+  --secondary-foreground: oklch(0.97 0 0);
+  --muted: oklch(1 0 0 / 0.06);
+  --muted-foreground: oklch(0.72 0 0);
+  --accent: oklch(1 0 0 / 0.08);
+  --accent-foreground: oklch(0.97 0 0);
   --destructive: oklch(0.6368 0.2078 25.3313);
   --destructive-foreground: oklch(1.0000 0 0);
-  --border: oklch(0.3618 0.0101 106.8928);
-  --input: oklch(0.4336 0.0113 100.2195);
-  --ring: oklch(0.8690 0.0220 252.8940);
+  --border: oklch(1 0 0 / 0.08);
+  --input: oklch(1 0 0 / 0.12);
+  --ring: oklch(0.66 0.21 15 / 0.7);
   --chart-1: oklch(0.7460 0.1600 232.6610);
   --chart-2: oklch(0.8110 0.1110 293.5710);
   --chart-3: oklch(0.9230 0.0030 48.7170);
   --chart-4: oklch(0.5540 0.0460 257.4170);
   --chart-5: oklch(0.9560 0.0450 203.3880);
-  --radius: 0.5rem;
-  --sidebar: oklch(0.2357 0.0024 67.7077);
-  --sidebar-foreground: oklch(0.8074 0.0142 93.0137);
-  --sidebar-primary: oklch(0.3250 0 0);
-  --sidebar-primary-foreground: oklch(0.9881 0 0);
-  --sidebar-accent: oklch(0.1680 0.0020 106.6177);
-  --sidebar-accent-foreground: oklch(0.8074 0.0142 93.0137);
-  --sidebar-border: oklch(0.9401 0 0);
-  --sidebar-ring: oklch(0.7731 0 0);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.12 0 0 / 0.72);
+  --sidebar-foreground: oklch(0.86 0 0);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(1 0 0 / 0.08);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(1 0 0 / 0.06);
+  --sidebar-ring: oklch(0.66 0.21 15 / 0.7);
+  /* Set at runtime from the playing track's artwork (see lib/palette.ts). */
+  --player-accent: var(--brand);
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -261,16 +272,23 @@
   --shadow-offset-x: 0;
   --shadow-offset-y: 1px;
   --letter-spacing: 0em;
-  --spacing: 0.22rem;
-  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
-  --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
-  --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
-  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+  --spacing: 0.25rem;
+  --shadow-2xs: 0 1px 2px 0px hsl(0 0% 0% / 0.3);
+  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.35);
+  --shadow-sm: 0 2px 6px -1px hsl(0 0% 0% / 0.4);
+  --shadow: 0 4px 10px -2px hsl(0 0% 0% / 0.45);
+  --shadow-md: 0 8px 18px -4px hsl(0 0% 0% / 0.5);
+  --shadow-lg: 0 14px 30px -8px hsl(0 0% 0% / 0.55);
+  --shadow-xl: 0 22px 44px -12px hsl(0 0% 0% / 0.6);
+  --shadow-2xl: 0 32px 64px -16px hsl(0 0% 0% / 0.7);
 }
+
+/* Shelf/card entrance: children set --i for a small stagger. */
+.stagger > * {
+  animation: rise 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(min(var(--i, 0), 12) * 35ms);
+}
+
 /* Now Playing ambient background: slow drifting colour blobs behind the artwork. */
 @keyframes drift {
   0%,
@@ -292,8 +310,9 @@
   }
 }
 
-/* Player bar sliders: thin line, handle shows on hover or focus. */
-@layer components {
+/* Player bar sliders: thin line, handle shows on hover or focus.
+   Unlayered on purpose (a plain @media wrapper, not @layer), so they beat the shadcn slider's utility classes. */
+@media all {
   .seek-bar [data-slot="slider-track"],
   .volume-bar [data-slot="slider-track"] {
     height: 4px;
@@ -305,7 +324,12 @@
     height: 6px;
   }
 
-  .seek-bar [data-slot="slider-range"],
+  .seek-bar [data-slot="slider-range"] {
+    background: var(--player-accent);
+    box-shadow: 0 0 10px color-mix(in oklab, var(--player-accent) 60%, transparent);
+    transition: background-color 1s ease;
+  }
+
   .volume-bar [data-slot="slider-range"] {
     background: var(--foreground);
   }

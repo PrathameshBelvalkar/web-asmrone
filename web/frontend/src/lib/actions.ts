@@ -1,6 +1,6 @@
 import type { NavigateFunction } from 'react-router-dom';
-import { pagesOptions, radioOptions, shareOptions } from '../api/queries';
-import type { FeedDto, FeedEntry, MediaItem, Track } from '../api/types';
+import { albumOptions, albumTracksOptions, pagesOptions, playlistTracksOptions, radioOptions, shareOptions } from '../api/queries';
+import type { Album, FeedDto, FeedEntry, MediaItem, Playlist, Track } from '../api/types';
 import { playQueue, queueNext } from '../player/engine';
 import { queryClient } from './queryClient';
 import { artistStub, kindOf, remember, routeFor } from './media';
@@ -46,6 +46,30 @@ export async function playFeed(feed: FeedDto): Promise<void> {
     const tracks = await collectTracks(feed);
     if (!tracks.length) return toast('No tracks to play here.');
     playQueue(tracks, 0);
+  } catch (e) {
+    toast(messageFor(e));
+  }
+}
+
+/**
+ * Play a card's item straight away (the hover play button): a track plays, a work or playlist
+ * plays from its first track, an artist starts its radio.
+ */
+export async function playItem(item: MediaItem): Promise<void> {
+  try {
+    switch (kindOf(item)) {
+      case 'Track':
+        return playQueue([item as Track], 0);
+      case 'Album': {
+        // Like the work page: load the work first, its tracks need the full object.
+        const album = (await queryClient.fetchQuery(albumOptions(item as Album))) as Album;
+        return playFeed(await queryClient.fetchQuery(albumTracksOptions(album)));
+      }
+      case 'Playlist':
+        return playFeed(await queryClient.fetchQuery(playlistTracksOptions(item as Playlist)));
+      default:
+        return startRadio(item);
+    }
   } catch (e) {
     toast(messageFor(e));
   }
