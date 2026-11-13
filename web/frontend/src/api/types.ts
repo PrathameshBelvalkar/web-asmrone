@@ -213,7 +213,7 @@ export interface User {
 
 /* AI subtitle setup (`GET /api/tools`). Mirrors the server's ToolsStatus. */
 
-export type Variant = "metal" | "vulkan" | "cpu" | "system";
+export type Variant = "metal" | "cpu" | "system";
 
 export type DownloadState =
   | { status: "idle" }

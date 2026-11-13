@@ -38,7 +38,6 @@ function fakeEngines(costs: Record<string, number | 'throw'>) {
 
 const CLOCK = { now: () => clockMs };
 const metal: Candidate = { variant: 'metal', binary: 'metal-bin' };
-const vulkan: Candidate = { variant: 'vulkan', binary: 'vulkan-bin' };
 const cpu: Candidate = { variant: 'cpu', binary: 'cpu-bin' };
 
 function service(costs: Record<string, number | 'throw'>): BenchmarkService {
@@ -72,8 +71,8 @@ describe('BenchmarkService', () => {
   });
 
   it('reports failure with the last error when no build can run', async () => {
-    const bench = service({ 'metal-bin': 'throw', 'vulkan-bin': 'throw', 'cpu-bin': 'throw' });
-    const result = await bench.run('model.bin', [metal, vulkan, cpu]);
+    const bench = service({ 'metal-bin': 'throw', 'cpu-bin': 'throw' });
+    const result = await bench.run('model.bin', [metal, cpu]);
 
     expect(result).toBeNull();
     expect(bench.state()).toEqual({

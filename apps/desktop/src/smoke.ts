@@ -27,13 +27,12 @@ export async function runSmoke(paths: AppPaths, server: ServerHandle): Promise<n
     if (status.engine.variants.length === 0) throw new Error('No subtitle engine was found in the app.');
     if (paths.binDir === undefined) throw new Error('No bundled tools folder.');
 
-    const ffmpeg = join(paths.binDir, 'ffmpeg' + (process.platform === 'win32' ? '.exe' : ''));
+    const ffmpeg = join(paths.binDir, 'ffmpeg');
     if (!existsSync(ffmpeg)) throw new Error(`Missing ${ffmpeg}`);
     runProgram(ffmpeg, ['-version']);
-    const exe = process.platform === 'win32' ? '.exe' : '';
     for (const variant of status.engine.variants) {
       if (variant === 'system') continue;
-      runProgram(join(paths.binDir, 'whisper', variant, 'whisper-server' + exe), ['--help']);
+      runProgram(join(paths.binDir, 'whisper', variant, 'whisper-server'), ['--help']);
     }
     console.log('SMOKE OK');
     return 0;

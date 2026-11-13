@@ -2,7 +2,7 @@
 
 This plan covers turning Echo Web into two apps, built **in order**:
 
-- **Part A: Echo Desktop** (Windows, macOS, Linux). The React UI and Express server we already have, packaged as one installable app. On first run it downloads **FFmpeg** and a **Whisper** model, so it can make subtitles for free on the computer's own CPU or GPU. It ships and is useful by itself before any phone work starts.
+- **Part A: Echo Desktop** (macOS only: Apple chip and Intel). The React UI and Express server we already have, packaged as one installable app. On first run it downloads **FFmpeg** and a **Whisper** model, so it can make subtitles for free on the computer's own CPU or GPU. It ships and is useful by itself before any phone work starts.
 - **Part B: Mobile connectivity.** The desktop app opens a safe door for phones. Then **Echo for Android** browses and plays the same sources on a phone, and gets subtitles in one of two ways:
   1. **On the paired computer**: the phone asks the desktop app to do the work. This is free and fast.
   2. **On the phone itself**: only when the phone has passed a speed test, using `whisper.cpp`.
@@ -243,7 +243,7 @@ Order of work:                      ①②③④⑤⑥⑦ … then go back ⑧�
 
 **Goal:** a new user installs Echo, clicks one button, and gets AI subtitles without ever opening a terminal.
 
-**Done means:** installers for macOS, Windows and Linux; tool downloads with checksums and resume; a speed test that picks the right Whisper build and model; signed builds with auto-update.
+**Done means:** Mac installers (Apple chip and Intel); tool downloads with checksums and resume; a speed test that picks the right Whisper build and model; signed builds with auto-update.
 
 **Rough time:** 3–4 weeks.
 
@@ -334,10 +334,10 @@ flowchart TB
     {
       "name": "whisper-server",
       "version": "1.8.0",
-      "os": "win",
-      "arch": "x64",
-      "variant": "vulkan",
-      "url": "https://github.com/<you>/echo/releases/download/tools-1.8.0/whisper-server-win-x64-vulkan.zip",
+      "os": "mac",
+      "arch": "arm64",
+      "variant": "metal",
+      "url": "https://github.com/<you>/echo/releases/download/tools-1.8.0/whisper-server-mac-arm64-metal.zip",
       "sha256": "…",
       "size": 12345678
     }
@@ -359,16 +359,9 @@ We build `whisper-server` ourselves in CI (see [section 15](#15-building-and-rel
 
 ```mermaid
 flowchart TB
-    Q1{"Operating<br/>system?"}
-    Q1 -->|macOS| Q2{"Apple chip<br/>(M1 or newer)?"}
+    Q2{"Apple chip<br/>(M1 or newer)?"}
     Q2 -->|yes| MAC1["mac-arm64-metal<br/>(uses Apple GPU)"]
     Q2 -->|"no (Intel)"| MAC2["mac-x64-cpu"]
-    Q1 -->|Windows| Q3{"NVIDIA card and<br/>user picked 'CUDA'?"}
-    Q3 -->|yes| WIN1["win-x64-cuda12<br/>(fastest on NVIDIA, big download)"]
-    Q3 -->|no| WIN2["win-x64-vulkan<br/>(NVIDIA, AMD, Intel GPUs)"]
-    WIN2 -.->|"speed test fails"| WIN3["win-x64-cpu"]
-    Q1 -->|Linux| LIN1["linux-x64-vulkan"]
-    LIN1 -.->|"speed test fails"| LIN2["linux-x64-cpu"]
 ```
 
 ### 7.6 Which model
@@ -417,9 +410,9 @@ These `/api/*` addresses stay **on this computer only**, as today.
 
 ### 7.9 Packaging and release
 
-- **electron-builder** makes the installers: `.dmg` (macOS), `.exe` (Windows), `.AppImage` / `.deb` (Linux).
+- **electron-builder** makes the Mac installers: `.dmg` and `.zip`, for Apple chip and Intel.
 - **electron-updater** handles automatic updates from GitHub Releases.
-- **Code signing:** without it, macOS Gatekeeper and Windows SmartScreen show scary warnings. Sign and notarize on macOS and sign on Windows.
+- **Code signing:** without it, macOS Gatekeeper shows scary warnings. Sign and notarize the app.
 - **CI jobs added in this phase:** tests, whisper-server builds, desktop FFmpeg build, `manifest.json`, desktop installers, signing ([section 15](#15-building-and-releasing)).
 
 ### 7.10 Phase 1 checklist
@@ -935,7 +928,7 @@ This adds two things to the Compute API: the `{upload: true, durationMs}` form o
 | Paired computer | — | Preferences (address, fingerprint) + Keystore (key) |
 | Certificate | `<data>/tls/` | — |
 
-`<data>` is the app data folder: `~/Library/Application Support/Echo` on macOS, `%APPDATA%\Echo` on Windows, `~/.config/Echo` on Linux. `ECHO_WEB_DATA` still overrides it, as today.
+`<data>` is the app data folder: `~/Library/Application Support/Echo`. `ECHO_WEB_DATA` still overrides it, as today.
 
 ---
 
@@ -946,10 +939,10 @@ flowchart LR
     subgraph CI["GitHub Actions"]
         direction TB
         T["Tests<br/>(core, server, ui)"]
-        BW["Build whisper-server<br/>mac-metal · win-vulkan · win-cuda<br/>win-cpu · linux-vulkan · linux-cpu"]
+        BW["Build whisper-server<br/>mac-arm64-metal · mac-x64-cpu"]
         BF["Build audio-only FFmpeg<br/>(desktop; Android arm64 in Phase 6)"]
         BA["Build Android<br/>APK (Phase 4) + libwhisper.so (Phase 6)"]
-        BD["Build desktop installers<br/>.dmg · .exe · .AppImage"]
+        BD["Build desktop installers<br/>.dmg · .zip"]
         SIGN["Sign + notarize"]
         MAN["Write manifest.json<br/>(urls + checksums)"]
         T --> BD
@@ -980,7 +973,7 @@ flowchart LR
 | Risk | Matters from | Impact | What we do |
 |---|---|---|---|
 | **Licence:** the asmr.one extension uses the *Unabandon Public License* (GPLv3 + publish-source rule) | Phase 1 (first public desktop release) | Sharing the apps with anyone means **publishing all our source** under the same terms | Decide before the first public release; keep a `LICENSE` and source link in both apps |
-| **Unsigned desktop builds** | Phase 1 | OS warnings scare users away | Budget for Apple Developer ID and a Windows signing certificate |
+| **Unsigned desktop builds** | Phase 1 | OS warnings scare users away | Budget for an Apple Developer ID |
 | **Desktop must be running** | Phase 5 | Remote subtitles fail if the computer is off | Tray mode, clear "waiting for computer" state, waiting list |
 | **Google Play** likely rejects an app that scrapes third-party sites and plays this kind of content | Phase 4 | Can't rely on Play | Distribute APKs via GitHub Releases / Obtainium |
 | **Two devices browsing the same sites** | Phase 4 | More requests to small sites | Keep the existing request spacing and back-off inside the shared core, so both apps obey them |

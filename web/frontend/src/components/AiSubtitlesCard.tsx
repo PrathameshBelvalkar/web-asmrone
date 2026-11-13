@@ -48,7 +48,6 @@ import {
 
 const ENGINE_LABEL: Record<Variant, string> = {
   metal: "Graphics card (Metal)",
-  vulkan: "Graphics card (Vulkan)",
   cpu: "Processor only",
   system: "Installed on this computer",
 };

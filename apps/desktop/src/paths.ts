@@ -14,7 +14,6 @@ export interface PathInput {
   /** `app.getPath('userData')`, unless ECHO_WEB_DATA overrides it. */
   readonly userData: string;
   readonly envDataDir?: string;
-  readonly platform: NodeJS.Platform;
   readonly arch: string;
   readonly appVersion: string;
 }
@@ -30,18 +29,11 @@ export interface AppPaths {
   readonly licensesDir: string;
 }
 
-/** `mac`, `win` or `linux`, as used in the tools folder names. */
-export function osName(platform: NodeJS.Platform): 'mac' | 'win' | 'linux' {
-  if (platform === 'darwin') return 'mac';
-  if (platform === 'win32') return 'win';
-  return 'linux';
-}
-
 export function resolvePaths(input: PathInput, fileExists: (path: string) => boolean = existsSync): AppPaths {
   const resources = input.isPackaged ? input.resourcesPath : input.packageDir;
   const repoRoot = join(input.packageDir, '..', '..');
   const dataDir = input.envDataDir ?? input.userData;
-  const devBin = join(input.packageDir, 'resources', 'bin', `${osName(input.platform)}-${input.arch}`);
+  const devBin = join(input.packageDir, 'resources', 'bin', `mac-${input.arch}`);
   return {
     resources,
     dataDir,

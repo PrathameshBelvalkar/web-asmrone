@@ -1,4 +1,4 @@
-# Builds FFmpeg and whisper-server for the four targets, self-tests them, and publishes the
+# Builds FFmpeg and whisper-server for the two Mac targets, self-tests them, and publishes the
 # archives as a GitHub release (tools-N). The app downloads these with apps/desktop/scripts/fetch-tools.mjs.
 # Run it by hand: Actions → tools → Run workflow (pick the branch, then fill in the three inputs).
 name: tools
@@ -27,8 +27,6 @@ jobs:
         include:
           - { target: mac-arm64, os: macos-15, variants: 'metal' }
           - { target: mac-x64, os: macos-15-intel, variants: 'cpu' }
-          - { target: win-x64, os: windows-2022, variants: 'vulkan cpu' }
-          - { target: linux-x64, os: ubuntu-22.04, variants: 'vulkan cpu' }
     runs-on: ${{ matrix.os }}
     env:
       WHISPER_REF: ${{ inputs.whisper_ref }}
@@ -36,30 +34,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build tools (macOS)
-        if: startsWith(matrix.target, 'mac')
+      - name: Build tools
         run: brew install nasm pkg-config
-
-      - name: Build tools (Linux)
-        if: startsWith(matrix.target, 'linux')
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake nasm pkg-config libssl-dev git curl
-
-      - name: Build tools (Windows, MSYS2 for FFmpeg)
-        if: startsWith(matrix.target, 'win')
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: false
-          install: make nasm pkg-config diffutils git curl mingw-w64-x86_64-gcc
-
-      - name: Vulkan SDK
-        if: contains(matrix.variants, 'vulkan')
-        uses: humbletim/install-vulkan-sdk@v1.2
-        with:
-          version: latest
-          cache: true
 
       - name: whisper-server (each variant)
         shell: bash
@@ -69,13 +45,7 @@ jobs:
           done
 
       - name: FFmpeg
-        if: ${{ !startsWith(matrix.target, 'win') }}
         shell: bash
-        run: bash apps/desktop/scripts/build-ffmpeg.sh "${{ matrix.target }}"
-
-      - name: FFmpeg (Windows, MSYS2 MINGW64)
-        if: startsWith(matrix.target, 'win')
-        shell: msys2 {0}
         run: bash apps/desktop/scripts/build-ffmpeg.sh "${{ matrix.target }}"
 
       - name: Self-test

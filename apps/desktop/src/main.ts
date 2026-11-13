@@ -35,10 +35,6 @@ app.on('second-instance', () => {
 });
 
 app.setName('Echo');
-if (process.platform === 'win32') app.setAppUserModelId('ai.airrived.echo');
-
-// Keep the app running in the tray on macOS and Windows; Linux quits when the window closes.
-const KEEPS_RUNNING_ON_CLOSE = process.platform !== 'linux';
 
 app
   .whenReady()
@@ -49,7 +45,6 @@ app
       packageDir: join(__dirname, '..'),
       userData: app.getPath('userData'),
       envDataDir: process.env.ECHO_WEB_DATA,
-      platform: process.platform,
       arch: process.arch,
       appVersion: app.getVersion(),
     };
@@ -96,10 +91,9 @@ app.on('activate', () => {
   showWindow();
 });
 
-app.on('window-all-closed', () => {
-  // Quitting is handled by before-quit. Closing the last window on Linux quits there.
-  if (!KEEPS_RUNNING_ON_CLOSE) app.quit();
-});
+// Closing the last window keeps the app running in the menu bar, as Mac apps do. Quitting is
+// handled by before-quit.
+app.on('window-all-closed', () => {});
 
 app.on('before-quit', (event) => {
   if (!server || quitting) return;
@@ -197,7 +191,7 @@ function createWindow(port: number): void {
   });
   window.on('close', (event) => {
     saveWindowState(window);
-    if (!quitting && KEEPS_RUNNING_ON_CLOSE) {
+    if (!quitting) {
       event.preventDefault();
       window.hide();
     }

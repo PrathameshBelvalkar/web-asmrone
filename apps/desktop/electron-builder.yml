@@ -27,19 +27,6 @@ mac:
   hardenedRuntime: true
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
-win:
-  target:
-    - nsis
-nsis:
-  oneClick: false
-  perMachine: false
-  allowToChangeInstallationDirectory: true
-linux:
-  category: AudioVideo
-  target:
-    - AppImage
-    - deb
-  maintainer: "Prathamesh <prathamesh.belvalkar@airrived.ai>"
 publish:
   provider: github
   owner: PrathameshBelvalkar

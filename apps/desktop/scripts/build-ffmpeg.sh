@@ -2,10 +2,9 @@
 # Builds a small LGPL FFmpeg (ffmpeg only, no GPL or nonfree parts) into resources/bin/<target>/.
 #
 #   usage: build-ffmpeg.sh <target>
-#   target: mac-arm64 | mac-x64 | win-x64 | linux-x64
+#   target: mac-arm64 | mac-x64
 #
-# Needs FFMPEG_REF (an FFmpeg tag such as n9.0.2), git, make, nasm and pkg-config. Windows: run in
-# an MSYS2 MINGW64 shell. The exact configure line is saved next to the binary (the LGPL asks for it).
+# Needs FFMPEG_REF (an FFmpeg tag such as n9.0.2), git, make, nasm and pkg-config. The exact configure line is saved next to the binary (the LGPL asks for it).
 set -euo pipefail
 
 target="${1:?usage: build-ffmpeg.sh <target>}"
@@ -15,14 +14,10 @@ here="$(cd "$(dirname "$0")" && pwd)"
 app="$(cd "$here/.." && pwd)"
 out="$app/resources/bin/$target"
 work="$app/.build/ffmpeg-$target"
-exe=""
-case "$target" in win-*) exe=".exe" ;; esac
 
 case "$target" in
   mac-arm64) tls="--enable-securetransport --extra-cflags=-mmacosx-version-min=11.0 --extra-ldflags=-mmacosx-version-min=11.0" ;;
   mac-x64) tls="--enable-securetransport --extra-cflags=-mmacosx-version-min=10.15 --extra-ldflags=-mmacosx-version-min=10.15" ;;
-  win-x64) tls="--enable-schannel --extra-ldflags=-static --target-os=mingw32 --arch=x86_64" ;;
-  linux-x64) tls="--enable-openssl --enable-version3" ;;
   *) echo "build-ffmpeg.sh: unknown target $target" >&2; exit 2 ;;
 esac
 
@@ -47,9 +42,9 @@ cd "$work/src"
 configure_line="./configure $common $tls"
 eval "$configure_line"
 make -j
-strip "ffmpeg$exe" || true
+strip "ffmpeg" || true
 
 mkdir -p "$out"
-cp "ffmpeg$exe" "$out/ffmpeg$exe"
+cp "ffmpeg" "$out/ffmpeg"
 printf '%s\n' "$configure_line" > "$out/FFMPEG_BUILD.txt"
-echo "built $out/ffmpeg$exe"
+echo "built $out/ffmpeg"

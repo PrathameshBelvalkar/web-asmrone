@@ -6,7 +6,7 @@ import { Mutex } from '../lib/mutex.js';
 /** What the speech-engine setup chose. A missing or corrupt file means nothing is chosen yet. */
 export interface ToolsState {
   readonly modelId?: string;
-  readonly variant?: 'metal' | 'vulkan' | 'cpu' | 'system';
+  readonly variant?: 'metal' | 'cpu' | 'system';
   readonly speedFactor?: number;
   readonly benchmarkedAt?: string;
   /** True once the user picked the model in Settings (then the automatic step-down never runs). */
@@ -23,7 +23,7 @@ export interface ToolsState {
 
 const stateSchema = z.object({
   modelId: z.string().optional(),
-  variant: z.enum(['metal', 'vulkan', 'cpu', 'system']).optional(),
+  variant: z.enum(['metal', 'cpu', 'system']).optional(),
   speedFactor: z.number().optional(),
   benchmarkedAt: z.string().optional(),
   modelPickedByUser: z.boolean().optional(),

@@ -12,7 +12,6 @@ import {
   type Hardware,
   type MutableWhisper,
 } from '../../src/services/tools/tools.service.js';
-import { EXE } from '../../src/services/tools/tool-paths.js';
 import { tempDir } from '../helpers/tmp.js';
 
 const GB = 1024 * 1024 * 1024;
@@ -126,8 +125,8 @@ function makeService(options: MakeOptions = {}): {
 /** A desktop folder with a bundled ffmpeg and a CPU engine, so setup has the tools it needs. */
 async function withBundledTools(): Promise<AppConfig> {
   const binDir = join(t.dir, 'bin');
-  await putBinary(join(binDir, `ffmpeg${EXE}`));
-  await putBinary(join(binDir, 'whisper', 'cpu', `whisper-server${EXE}`));
+  await putBinary(join(binDir, 'ffmpeg'));
+  await putBinary(join(binDir, 'whisper', 'cpu', 'whisper-server'));
   // The voice-detection file is fetched before the model; install it so tests reach the model.
   await fakeInstall(VAD_MODEL);
   return desktopConfig({ binDir, desktopVersion: '0.1.0' });
@@ -148,7 +147,7 @@ afterEach(async () => {
 
 describe('recommendedModelId', () => {
   it('picks the best model when the bundled engine has Metal', async () => {
-    await putBinary(join(t.dir, 'bin', 'whisper', 'metal', `whisper-server${EXE}`));
+    await putBinary(join(t.dir, 'bin', 'whisper', 'metal', 'whisper-server'));
     const config = desktopConfig({ binDir: join(t.dir, 'bin') });
     const { svc } = makeService({ config, hardware: { totalMemory: () => 2 * GB, cpus: () => 2 } });
     expect(svc.recommendedModelId()).toBe('large-v3-turbo-q5_0');

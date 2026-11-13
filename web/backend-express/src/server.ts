@@ -13,7 +13,7 @@ async function main(): Promise<void> {
   process.on('SIGINT', stop);
   process.on('SIGTERM', stop);
 
-  // When started by Electron's utilityProcess, talk to the parent (no signals on Windows).
+  // When started by Electron's utilityProcess, talk to the parent over its message port.
   const parent = (process as { parentPort?: ParentPort }).parentPort;
   parent?.postMessage({ type: 'listening', port: running.port });
   parent?.on('message', (event) => {

@@ -25,7 +25,7 @@ export function initUpdater(dataDir: string): void {
   mkdirSync(logDir, { recursive: true });
   logFile = join(logDir, 'updater.log');
 
-  const mode = updateMode(process.platform, Boolean(process.env.APPIMAGE));
+  const mode = updateMode();
   autoUpdater.autoDownload = mode === 'auto';
 
   autoUpdater.on('error', (err) => {
