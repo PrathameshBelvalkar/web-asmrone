@@ -2,7 +2,7 @@
 # Checks the built tools for one target: they run, they decode audio, HTTPS works, and they link
 # only system libraries. CPU builds also transcribe the sample with the tiny model.
 #
-#   usage: self-test.sh <target> [<variant>...]     (variant: cpu, metal, vulkan)
+#   usage: self-test.sh <target> [<variant>...]     (variant: cpu, metal)
 # Needs WHISPER_REF (for the pinned sample URL). Run after build-ffmpeg.sh and build-whisper.sh.
 set -euo pipefail
 
@@ -12,16 +12,14 @@ shift
 here="$(cd "$(dirname "$0")" && pwd)"
 app="$(cd "$here/.." && pwd)"
 bin="$app/resources/bin/$target"
-exe=""
-case "$target" in win-*) exe=".exe" ;; esac
-ffmpeg="$bin/ffmpeg$exe"
+ffmpeg="$bin/ffmpeg"
 fail() { echo "SELF-TEST FAILED: $*" >&2; exit 1; }
 
 [ -x "$ffmpeg" ] || fail "missing $ffmpeg"
 "$ffmpeg" -version >/dev/null || fail "ffmpeg -version"
 
 for v in "$@"; do
-  server="$bin/whisper/$v/whisper-server$exe"
+  server="$bin/whisper/$v/whisper-server"
   [ -x "$server" ] || fail "missing $server"
   "$server" --help >/dev/null 2>&1 || fail "$server --help"
 done
@@ -33,16 +31,9 @@ url="https://github.com/ggml-org/whisper.cpp/raw/$WHISPER_REF/samples/jfk.mp3"
 net="$("$ffmpeg" -loglevel error -i "$url" -f s16le -ac 1 -ar 16000 pipe:1 | wc -c | tr -d ' ')"
 [ "$net" -gt 300000 ] || fail "HTTPS decode produced $net bytes"
 
-case "$target" in
-  mac-*)
-    bad="$(for f in "$ffmpeg" "$bin"/whisper/*/whisper-server; do otool -L "$f" | tail -n +2 | awk '{print $1}'; done \
-      | grep -v -E '^(/usr/lib/|/System/)' || true)"
-    [ -z "$bad" ] || fail "non-system libraries: $bad" ;;
-  linux-*)
-    bad="$(for f in "$ffmpeg" "$bin"/whisper/*/whisper-server; do ldd "$f"; done \
-      | awk '{print $1}' | grep -v -E '^(linux-vdso|ld-linux|libc\.|libm\.|libstdc\+\+|libgcc_s|libssl|libcrypto|libvulkan|libgomp|lib[^ ]*-linux|/)' || true)"
-    [ -z "$bad" ] || fail "unexpected libraries: $bad" ;;
-esac
+bad="$(for f in "$ffmpeg" "$bin"/whisper/*/whisper-server; do otool -L "$f" | tail -n +2 | awk '{print $1}'; done \
+  | grep -v -E '^(/usr/lib/|/System/)' || true)"
+[ -z "$bad" ] || fail "non-system libraries: $bad"
 
 # CPU builds keep the model in memory, so the transcription can be checked here. GPU builds are
 # checked by the app's speed test instead (CI machines have no GPU).
@@ -54,7 +45,7 @@ for v in "$@"; do
   [ -f "$model" ] || curl -sSfL -o "$model" \
     "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny-q5_1.bin"
   port=8099
-  "$bin/whisper/cpu/whisper-server$exe" -m "$model" --host 127.0.0.1 --port "$port" >"$work/server.log" 2>&1 &
+  "$bin/whisper/cpu/whisper-server" -m "$model" --host 127.0.0.1 --port "$port" >"$work/server.log" 2>&1 &
   pid=$!
   trap 'kill $pid 2>/dev/null || true' EXIT
   for _ in $(seq 1 60); do

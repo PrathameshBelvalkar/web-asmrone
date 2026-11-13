@@ -7,11 +7,10 @@ export interface MenuFolders {
   readonly checkForUpdates: () => void;
 }
 
-/** Standard menus plus Help. Quit is in the app menu on macOS and in File elsewhere. */
+/** Standard Mac menus plus Help. */
 export function buildAppMenu(folders: MenuFolders): void {
-  const mac = process.platform === 'darwin';
   const template: MenuItemConstructorOptions[] = [
-    ...(mac ? [{ role: 'appMenu' as const }] : [{ label: 'File', submenu: [{ role: 'quit' as const }] }]),
+    { role: 'appMenu' },
     { role: 'editMenu' },
     { role: 'viewMenu' },
     { role: 'windowMenu' },

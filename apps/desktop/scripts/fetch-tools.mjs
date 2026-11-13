@@ -13,11 +13,10 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const appDir = join(here, '..');
 const REPO = 'PrathameshBelvalkar/web-asmrone';
-const TARGETS = ['mac-arm64', 'mac-x64', 'win-x64', 'linux-x64'];
+const TARGETS = ['mac-arm64', 'mac-x64'];
 
 function defaultTarget() {
-  const os = { darwin: 'mac', win32: 'win', linux: 'linux' }[process.platform];
-  return `${os}-${process.arch === 'arm64' ? 'arm64' : 'x64'}`;
+  return `mac-${process.arch === 'arm64' ? 'arm64' : 'x64'}`;
 }
 
 function fail(message) {
@@ -54,10 +53,8 @@ mkdirSync(dirname(tmp), { recursive: true });
 writeFileSync(tmp, bytes);
 execFileSync('tar', ['-xzf', tmp, '-C', out], { stdio: 'inherit' });
 
-if (!target.startsWith('win-')) {
-  for (const name of ['ffmpeg', join('whisper', 'metal', 'whisper-server'), join('whisper', 'cpu', 'whisper-server'), join('whisper', 'vulkan', 'whisper-server')]) {
-    const path = join(out, name);
-    if (existsSync(path)) chmodSync(path, 0o755);
-  }
+for (const name of ['ffmpeg', join('whisper', 'metal', 'whisper-server'), join('whisper', 'cpu', 'whisper-server')]) {
+  const path = join(out, name);
+  if (existsSync(path)) chmodSync(path, 0o755);
 }
 console.log(`fetch-tools: installed ${target} into ${out}`);

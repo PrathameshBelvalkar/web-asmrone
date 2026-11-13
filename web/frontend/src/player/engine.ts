@@ -141,8 +141,17 @@ export async function loadAndPlay(index: number): Promise<void> {
   } catch (e) {
     if (myToken !== token) return;
     usePlayer.getState().setState({ loading: false, playing: false });
-    setError(e instanceof Error ? e.message : 'Playback failed.');
+    playFailed(e, e instanceof Error ? e.message : 'Playback failed.');
   }
+}
+
+/**
+ * play() rejects with an AbortError when a pause or a new track interrupts it. That is not a
+ * failure, so it is not shown to the user.
+ */
+function playFailed(e: unknown, message: string): void {
+  const aborted = e instanceof DOMException && e.name === 'AbortError';
+  if (!aborted) setError(message);
 }
 
 /** Start playing [tracks] from [index]. */
@@ -171,7 +180,7 @@ export function togglePlay(): void {
   if (state.index < 0) return;
   if (audio.paused) {
     if (loadedUrl === null) void loadAndPlay(state.index);
-    else void audio.play().catch(() => setError('Playback was blocked. Press play again.'));
+    else audio.play().catch((e: unknown) => playFailed(e, 'Playback was blocked. Press play again.'));
   } else {
     audio.pause();
   }
@@ -182,7 +191,7 @@ export function nextTrack(): void {
   if (!queue.length) return;
   if (repeat === 'one') {
     seek(0);
-    void audio.play();
+    audio.play().catch((e: unknown) => playFailed(e, 'Playback was blocked. Press play again.'));
     return;
   }
   let target: number;
@@ -300,7 +309,7 @@ audio.addEventListener('error', () => {
   const original = streams.get(track.id)?.url ?? loadedUrl;
   pendingSeek = base;
   audio.src = proxyUrl(original);
-  void audio.play().catch(() => setError('This track could not be loaded.'));
+  audio.play().catch((e: unknown) => playFailed(e, 'This track could not be loaded.'));
 });
 
 audio.volume = usePlayer.getState().volume;

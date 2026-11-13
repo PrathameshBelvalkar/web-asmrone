@@ -8,7 +8,7 @@ on:
 
 jobs:
   server:
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,7 +22,7 @@ jobs:
       - run: cd web/backend-express && npm ci && npm run lint && npm run typecheck && npm test
 
   ui:
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -36,7 +36,7 @@ jobs:
       - run: cd web/frontend && npm ci && npm run typecheck && npm test && npm run build
 
   desktop:
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     env:
       ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
     steps:

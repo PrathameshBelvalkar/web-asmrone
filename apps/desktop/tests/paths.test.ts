@@ -1,23 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { osName, resolvePaths, serverEnv, type PathInput } from '../src/paths';
+import { resolvePaths, serverEnv, type PathInput } from '../src/paths';
 
 const base: PathInput = {
   isPackaged: false,
   resourcesPath: '/app/Resources',
   packageDir: '/repo/apps/desktop',
   userData: '/home/u/Library/Application Support/Echo',
-  platform: 'darwin',
   arch: 'arm64',
   appVersion: '0.1.0',
 };
-
-describe('osName', () => {
-  it('maps platforms to the folder names', () => {
-    expect(osName('darwin')).toBe('mac');
-    expect(osName('win32')).toBe('win');
-    expect(osName('linux')).toBe('linux');
-  });
-});
 
 describe('resolvePaths', () => {
   it('uses the repository for the server and UI in development', () => {
@@ -33,13 +24,17 @@ describe('resolvePaths', () => {
     expect(p.binDir).toBe('/repo/apps/desktop/resources/bin/mac-arm64');
   });
 
-  it('uses the resources folder when packaged, on each platform', () => {
-    const win = resolvePaths({ ...base, isPackaged: true, platform: 'win32', arch: 'x64' });
-    expect(win.serverEntry).toBe('/app/Resources/server/server.mjs');
-    expect(win.uiDir).toBe('/app/Resources/ui');
-    expect(win.binDir).toBe('/app/Resources/bin');
-    const linux = resolvePaths({ ...base, isPackaged: true, platform: 'linux', arch: 'x64' });
-    expect(linux.licensesDir).toBe('/app/Resources/licenses');
+  it('uses the Intel tools folder on an Intel Mac', () => {
+    const p = resolvePaths({ ...base, arch: 'x64' }, (path) => path.endsWith('mac-x64'));
+    expect(p.binDir).toBe('/repo/apps/desktop/resources/bin/mac-x64');
+  });
+
+  it('uses the resources folder when packaged', () => {
+    const p = resolvePaths({ ...base, isPackaged: true });
+    expect(p.serverEntry).toBe('/app/Resources/server/server.mjs');
+    expect(p.uiDir).toBe('/app/Resources/ui');
+    expect(p.binDir).toBe('/app/Resources/bin');
+    expect(p.licensesDir).toBe('/app/Resources/licenses');
   });
 
   it('uses ECHO_WEB_DATA as the data folder when it is set', () => {

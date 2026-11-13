@@ -1,6 +1,6 @@
 # Echo
 
-Echo plays asmr.one and Japanese ASMR tracks on your computer. For tracks that have no subtitles,
+Echo plays asmr.one and Japanese ASMR tracks on your Mac. For tracks that have no subtitles,
 Echo can write them itself with AI: it runs on your computer, it is free, and nothing is uploaded.
 
 ## Download
@@ -9,21 +9,14 @@ Echo can write them itself with AI: it runs on your computer, it is free, and no
 |---|---|
 | Mac with an Apple chip (M1 or newer) | `Echo-<version>-mac-arm64.dmg` |
 | Mac with an Intel chip | `Echo-<version>-mac-x64.dmg` |
-| Windows | `Echo-<version>-win-x64.exe` |
-| Linux | `Echo-<version>-linux-x64.AppImage` or `.deb` |
 
 Get them from the [latest release](https://github.com/PrathameshBelvalkar/web-asmrone/releases/latest).
 
 ### The first time you open it
 
-The app is not signed yet, so your system asks you once:
-
-- **Mac:** open the `.dmg`, drag Echo to Applications and open it. If macOS blocks it, go to
-  System Settings → Privacy & Security and click **Open Anyway**. As a fallback, run
-  `xattr -cr /Applications/Echo.app` in Terminal.
-- **Windows:** on the blue SmartScreen box, click **More info**, then **Run anyway**.
-- **Linux:** run `chmod +x Echo-*.AppImage`, then the file. On Ubuntu 22.04 and newer, first run
-  `sudo apt install libfuse2`. Or install the `.deb`.
+The app is not signed yet, so macOS asks you once. Open the `.dmg`, drag Echo to Applications and
+open it. If macOS blocks it, go to System Settings → Privacy & Security and click **Open Anyway**. As a
+fallback, run `xattr -cr /Applications/Echo.app` in Terminal.
 
 ## AI subtitles
 
@@ -37,19 +30,12 @@ Deleting the model in use switches to another downloaded model. If it was the la
 
 ## Where your data is
 
-| System | Folder |
-|---|---|
-| Mac | `~/Library/Application Support/Echo` |
-| Windows | `%APPDATA%\Echo` |
-| Linux | `~/.config/Echo` |
-
-Settings, your login, the saved queue, subtitles and the models are in that folder. The log is in its
+Everything is in `~/Library/Application Support/Echo`. Settings, your login, the saved queue, subtitles and the models are in that folder. The log is in its
 `logs` folder (**Help → Open log folder**). Your data stays on your computer.
 
 ## Updates
 
-On Windows, and on Linux as an AppImage, Echo downloads updates and asks you to restart. On Mac and with the
-`.deb`, Echo tells you when a new version is out and opens the download page. **Help → Check for updates…**
+Echo tells you when a new version is out and opens the download page. **Help → Check for updates…**
 checks now.
 
 ## Licence
@@ -93,7 +79,7 @@ npm run e2e    # launches the packaged app and checks the first start
 npm run dist   # installers in release/
 ```
 
-The tools for all four systems are built by the **tools** workflow on GitHub (Actions → tools → Run workflow).
+The tools for both Mac types (Apple chip and Intel) are built by the **tools** workflow on GitHub (Actions → tools → Run workflow).
 After it publishes a release, copy its `SHA256SUMS` into `apps/desktop/tools.lock.json`. The app checks its
 downloads against that file.
 
@@ -106,7 +92,7 @@ cd apps/desktop && npm version 0.1.0 --no-git-tag-version
 git commit -am "Release 0.1.0" && git tag v0.1.0 && git push personal main v0.1.0
 ```
 
-The tag starts the **release** workflow. It builds all four installers and creates a **draft** release. Open the
+The tag starts the **release** workflow. It builds the two Mac installers and creates a **draft** release. Open the
 draft on GitHub, test one installer, edit the notes and publish.
 
 ## Echo Web (the browser version)

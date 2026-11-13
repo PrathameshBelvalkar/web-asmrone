@@ -190,8 +190,8 @@ function freePort(): Promise<number> {
  * GUI-launched shell may not have). Null when it can't be found.
  */
 export async function findExecutable(bin: string): Promise<string | null> {
-  // A path (including a Windows path with backslashes) is checked as it is, not searched on PATH.
-  if (isAbsolute(bin) || bin.includes('/') || bin.includes('\\'))
+  // A path is checked as it is, not searched on PATH.
+  if (isAbsolute(bin) || bin.includes('/'))
     return (await canRun(bin)) ? bin : null;
   const dirs = [
     ...(process.env.PATH ?? '').split(delimiter),

@@ -1,9 +1,9 @@
 # Manual test checklist (Echo Desktop)
 
-Run this on a real machine for each operating system before publishing a release. Record the
+Run this on a real Mac (one with an Apple chip and one with an Intel chip) before publishing a release. Record the
 results in the release notes. Automated tests cover the logic; this list covers what only a person can see.
 
-Machine: ______________  OS: ______________  Installer: ______________  Date: __________
+Mac: ______________  macOS: ______________  Installer: ______________  Date: __________
 
 | # | Test | Expected | Result |
 |---|---|---|---|
@@ -14,16 +14,16 @@ Machine: ______________  OS: ______________  Installer: ______________  Date: __
 | 4 | Quit the app during the download, reopen | Download continues by itself from the same percent | |
 | 4a | Turn the switch off during the download, then on again | Pauses, then continues from the same percent | |
 | 4b | Pause, then Cancel download | Pause keeps the progress; Cancel deletes the partial file | |
-| 5 | Speed test | Shows a speed; Windows/Linux without a Vulkan driver end on "Processor only" | |
+| 5 | Speed test | Shows a speed; Intel Macs end on "Processor only" | |
 | 6 | Play a track that has no subtitles | Lines appear within about 20 seconds | |
 | 7 | Jump to the middle of the track | New lines start from there | |
 | 8 | Settings → switch model, play another track | Works with the new model | |
 | 8a | Settings → delete a downloaded model (not in use, then the one in use) | The file is removed; the one in use switches to another, or AI subtitles turn off | |
-| 9 | Close the window while audio plays (macOS, Windows) | Audio continues; tray icon reopens the window | |
-| 10 | Quit (Cmd+Q, tray Quit, File → Quit) | No `Echo`, `ffmpeg` or `whisper-server` process is left | |
+| 9 | Close the window while audio plays | Audio continues; menu bar icon reopens the window | |
+| 10 | Quit (Cmd+Q, menu bar icon → Quit) | No `Echo`, `ffmpeg` or `whisper-server` process is left | |
 | 11 | Open the app twice | The second start focuses the first window | |
 | 12 | Restart the app | Queue and settings are still there | |
 | 13 | Disk almost full | Clear "Not enough free disk space" message | |
 | 14 | Install a newer version over an older one | Models and settings are kept | |
-| 15 | Path with spaces or non-English letters in the user name (Windows) | Everything works | |
+| 15 | Path with spaces or non-English letters in the user name | Everything works | |
 | 16 | Help → Check for updates… | "You have the latest version of Echo" when there is nothing new | |
