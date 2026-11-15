@@ -1,7 +1,7 @@
 {
   "release": "tools-1",
   "sha256": {
-    "mac-arm64": "",
-    "mac-x64": ""
+    "mac-arm64": "1145fe07e6c264d94ae5926c68dbd5a0314e7acc68838d914fba93eb13300952",
+    "mac-x64": "3d0ef4f2809ec770f742c44f258f874ea7fc3a79ddac62162e9a8bf3e2baa222"
   }
 }
