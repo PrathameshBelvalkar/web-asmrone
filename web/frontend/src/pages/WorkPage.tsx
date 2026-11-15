@@ -11,7 +11,7 @@ import { ShelfBlock } from '../components/ShelfBlock';
 import { ErrorState } from '../components/States';
 import { Button, IconButton, Skeleton } from '../components/ui';
 import { useHeaderWash } from '../lib/wash';
-import { useCrumbs } from '../lib/crumbs';
+import { useDetailCrumbs } from '../lib/crumbs';
 import { artistLinkFor, playFeed, shareItem, startRadio } from '../lib/actions';
 import { isExternal } from '../lib/media';
 import { albumStub, formatDuration } from '../lib/media';
@@ -33,7 +33,7 @@ export function WorkPage() {
   const detail = useQuery(albumOptions(stub));
   const album = detail.data as Album | undefined;
   const source = album ?? stub;
-  useCrumbs([{ label: 'Home', to: '/' }, { label: album?.title?.trim() || 'Work' }]);
+  useDetailCrumbs(album?.title?.trim() || 'Work');
 
   // Episodes: the work's main audio folder.
   const episodes = useQuery({ ...albumTracksOptions(source), enabled: !!album });

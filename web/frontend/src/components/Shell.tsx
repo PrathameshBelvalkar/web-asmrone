@@ -108,7 +108,7 @@ function TopSearch() {
   };
   return (
     <form role="search" onSubmit={submit} className="w-full max-w-[22rem] shrink">
-      <label className="group flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.07] px-3 text-sm text-muted-foreground transition-colors focus-within:border-white/25 focus-within:bg-white/[0.12] hover:bg-white/10">
+      <label className="group flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-background/60 px-3 backdrop-blur-md text-sm text-muted-foreground transition-colors focus-within:border-white/25 focus-within:bg-background/80 hover:border-white/20">
         <Search size={16} className="shrink-0 transition-colors group-focus-within:text-foreground" aria-hidden />
         <input
           value={text}

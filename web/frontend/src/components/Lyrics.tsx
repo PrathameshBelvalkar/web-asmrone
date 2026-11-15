@@ -17,13 +17,19 @@ export function LyricsView({ track }: { track: Track }) {
   const query = useQuery(lyricsOptions(track));
   const position = usePlayer((s) => s.position);
   const activeRef = useRef<HTMLButtonElement | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
   const lyrics = query.data?.lyrics;
   const timed = lyrics && lyrics.type.endsWith('Timed') ? lyrics.list ?? [] : null;
   const ms = position * 1000;
   const activeIndex = timed ? timed.findIndex((l) => ms >= l.startTime && ms < l.endTime) : -1;
 
+  // Scroll only the lyrics list: scrollIntoView would also scroll the dialog and its other ancestors.
   useEffect(() => {
-    activeRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    const list = listRef.current;
+    const line = activeRef.current;
+    if (!list || !line) return;
+    const top = line.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop;
+    list.scrollTo({ top: top - (list.clientHeight - line.offsetHeight) / 2, behavior: 'smooth' });
   }, [activeIndex]);
 
   if (query.isPending) {
@@ -56,7 +62,7 @@ export function LyricsView({ track }: { track: Track }) {
   if (!timed) {
     return (
       <div className="scroll-thin h-full overflow-y-auto px-8 py-12 md:py-16">
-        <p className="whitespace-pre-line text-2xl leading-relaxed text-white/80">{(lyrics as { text?: string }).text ?? ''}</p>
+        <p className="whitespace-pre-line text-2xl [overflow-wrap:anywhere] leading-relaxed text-white/80">{(lyrics as { text?: string }).text ?? ''}</p>
       </div>
     );
   }
@@ -64,7 +70,7 @@ export function LyricsView({ track }: { track: Track }) {
   return (
     <div className="relative h-full">
       {ai && <AiBadge data={ai} positionMs={ms} />}
-      <div className="scroll-thin h-full overflow-y-auto px-6 md:px-12 [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)]">
+      <div ref={listRef} className="scroll-thin h-full overflow-y-auto px-6 md:px-12 [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)]">
         <ol className="flex flex-col gap-6 py-[28vh] md:py-[38vh]">
           {timed.map((line, i) => {
             const active = i === activeIndex;
@@ -78,7 +84,7 @@ export function LyricsView({ track }: { track: Track }) {
                   className={cn(
                     // One font size for every line: the active line never changes size. Lines are
                     // only timed per line (not per word), so the active line is lit as a whole.
-                    'block w-full text-left text-3xl font-semibold leading-snug transition-opacity duration-500 ease-[cubic-bezier(0.2,0,0,1)] md:text-4xl',
+                    'block w-full text-left text-3xl [overflow-wrap:anywhere] font-semibold leading-snug transition-opacity duration-500 ease-[cubic-bezier(0.2,0,0,1)] md:text-4xl',
                     active ? 'text-white opacity-100' : past ? 'text-white opacity-45 hover:opacity-80' : 'text-white opacity-30 hover:opacity-70',
                   )}
                 >

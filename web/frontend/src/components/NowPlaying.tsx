@@ -52,7 +52,7 @@ export function NowPlaying() {
           </div>
         </header>
         <Controls track={track} />
-        <section className="flex min-h-0 flex-1 flex-col">
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col">
           <div className="flex min-h-0 flex-1 flex-col md:pt-20">
             {tab === 'lyrics' ? <LyricsView track={track} /> : <div className="h-full overflow-y-auto px-6 pb-10 pt-4 md:px-12 md:pt-6"><QueueList /></div>}
           </div>

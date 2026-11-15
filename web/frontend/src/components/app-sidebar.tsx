@@ -26,7 +26,7 @@ const BROWSE: { title: string; url: string; icon: LucideIcon; end?: boolean }[] 
 
 /** Nav rows; the active one gets a surface step and its icon in the brand colour. */
 const NAV_ITEM =
-  'h-9 rounded-lg px-3 text-sm text-sidebar-foreground/80 hover:text-sidebar-accent-foreground data-[active=true]:bg-white/10 data-[active=true]:font-medium data-[active=true]:text-white [&>svg]:size-[18px]! data-[active=true]:[&>svg]:text-primary';
+  'h-9 rounded-lg px-3 text-sm text-sidebar-foreground/80 hover:text-sidebar-accent-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground [&>svg]:size-[18px]! data-[active=true]:[&>svg]:text-primary';
 
 /** App navigation. Collapses to icons on desktop and becomes a sheet on phones. */
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {

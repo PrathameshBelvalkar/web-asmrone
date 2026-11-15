@@ -18,13 +18,13 @@ import { Checkbox } from '../components/ui/checkbox';
 import { messageFor } from '../lib/errors';
 import { playlistStub, recall } from '../lib/media';
 import { toast } from '../lib/toast';
-import { useCrumbs } from '../lib/crumbs';
+import { useDetailCrumbs } from '../lib/crumbs';
 
 export function PlaylistPage() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const playlist = recall<Playlist>('Playlist', id) ?? playlistStub(id);
-  useCrumbs([{ label: 'Home', to: '/' }, { label: 'Library', to: '/library' }, { label: playlist.title }]);
+  useDetailCrumbs(playlist.title, [{ label: 'Home', to: '/' }, { label: 'Library', to: '/library' }]);
   const [editing, setEditing] = useState(false);
   const feed = useQuery(playlistTracksOptions(playlist));
 

@@ -29,14 +29,14 @@ export function HeaderWash() {
           key={src}
           src={src}
           alt=""
-          className="absolute inset-0 h-full w-full scale-125 object-cover opacity-[0.14] blur-3xl saturate-50"
+          className="absolute inset-0 h-full w-full scale-125 object-cover opacity-[0.1] blur-3xl saturate-50"
           style={{ animation: 'rise 600ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
           onError={(e) => {
             e.currentTarget.style.display = 'none';
           }}
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-b from-background/0 via-background/55 to-background" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/75 to-background" />
     </div>
   );
 }

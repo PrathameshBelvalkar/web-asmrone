@@ -8,13 +8,13 @@ import { CardSkeletons, ErrorState } from '../components/States';
 import { EmptyState } from '../components/ui';
 import { recall } from '../lib/media';
 import { UserRound } from 'lucide-react';
-import { useCrumbs } from '../lib/crumbs';
+import { useDetailCrumbs } from '../lib/crumbs';
 
 /** An artist (circle or voice actor). Needs the name, so it's opened from a link. */
 export function ArtistPage() {
   const { id = '' } = useParams();
   const artist = recall<Artist>('Artist', id);
-  useCrumbs([{ label: 'Home', to: '/' }, { label: artist?.name || 'Artist' }]);
+  useDetailCrumbs(artist?.name || 'Artist');
   const feed = useQuery({ ...artistFeedOptions(artist ?? { mediaItemType: '', id, name: '', extras: {} }), enabled: !!artist });
 
   if (!artist) {
