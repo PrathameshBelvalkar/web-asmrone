@@ -7,14 +7,14 @@ import { feedOptions } from '../api/queries';
 import { FeedView } from '../components/FeedView';
 import { CardSkeletons, ErrorState } from '../components/States';
 import { EmptyState, PageHeader } from '../components/ui';
-import { useCrumbs } from '../lib/crumbs';
+import { useDetailCrumbs } from '../lib/crumbs';
 
 /** A feed opened from "See all", a tag, or a folder. */
 export function FeedPage() {
   const { feedId = '' } = useParams();
   const location = useLocation();
   const title = (location.state as { title?: string } | null)?.title ?? 'Browse';
-  useCrumbs([{ label: 'Home', to: '/' }, { label: title }]);
+  useDetailCrumbs(title);
   const [params, setParams] = useSearchParams();
   const tab = params.get('tab');
   const feed = useQuery(feedOptions(feedId, tab));

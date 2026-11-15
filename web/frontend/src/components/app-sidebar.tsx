@@ -24,6 +24,10 @@ const BROWSE: { title: string; url: string; icon: LucideIcon; end?: boolean }[] 
   { title: 'Library', url: '/library', icon: Library },
 ];
 
+/** Nav rows; the active one gets a surface step and its icon in the brand colour. */
+const NAV_ITEM =
+  'h-9 rounded-lg px-3 text-sm text-sidebar-foreground/80 hover:text-sidebar-accent-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground [&>svg]:size-[18px]! data-[active=true]:[&>svg]:text-primary';
+
 /** App navigation. Collapses to icons on desktop and becomes a sheet on phones. */
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const me = useQuery(meOptions());
@@ -33,18 +37,18 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const browse = source !== 'asmrone' ? BROWSE.filter((item) => item.url !== '/library') : BROWSE;
   const isActive = (url: string, end?: boolean) => (end ? pathname === url : pathname.startsWith(url));
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" className="border-r-sidebar-border" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <NavLink to="/">
-                <span className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                <span className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <Disc3 className="size-4" aria-hidden />
                 </span>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Echo</span>
-                  <span className="truncate text-xs text-sidebar-foreground/70">asmr.one player</span>
+                <div className="grid flex-1 text-left leading-tight">
+                  <span className="truncate text-base font-semibold">Echo</span>
+                  <span className="truncate text-xs text-sidebar-foreground/60">asmr.one player</span>
                 </div>
               </NavLink>
             </SidebarMenuButton>
@@ -58,7 +62,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             {browse.map((item) => (
               <SidebarMenuItem key={item.url}>
-                <SidebarMenuButton asChild tooltip={item.title} isActive={isActive(item.url, item.end)}>
+                <SidebarMenuButton asChild tooltip={item.title} isActive={isActive(item.url, item.end)} className={NAV_ITEM}>
                   <NavLink to={item.url} end={item.end}>
                     <item.icon aria-hidden />
                     <span>{item.title}</span>
@@ -73,7 +77,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupLabel>Account</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Settings" isActive={isActive('/settings')}>
+              <SidebarMenuButton asChild tooltip="Settings" isActive={isActive('/settings')} className={NAV_ITEM}>
                 <NavLink to="/settings">
                   <Settings aria-hidden />
                   <span>Settings</span>

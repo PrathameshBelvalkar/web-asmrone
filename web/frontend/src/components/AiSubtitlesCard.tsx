@@ -385,7 +385,7 @@ function StoredModels({ models }: { models: ToolsModel[] }) {
   if (installed.length === 0) return null;
   return (
     <div className="space-y-1 border-t pt-3">
-      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+      <div className="text-sm font-medium text-muted-foreground">
         Downloaded models
       </div>
       {installed.map((m) => (

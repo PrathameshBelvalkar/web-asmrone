@@ -263,7 +263,7 @@ function SettingRow({ setting }: { setting: SettingDto }) {
   if (setting.kind === "category") {
     return (
       <div className="py-5 first:pt-0 last:pb-0">
-        <div className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <div className="mb-4 text-sm font-medium text-muted-foreground">
           {setting.title}
         </div>
         <div className="space-y-5">

@@ -9,7 +9,7 @@ import { CardSkeletons, ErrorState } from '../components/States';
 import { IconButton, PageHeader } from '../components/ui';
 import { openMedia } from '../lib/actions';
 import { artistsOf, titleOf } from '../lib/media';
-import { useCrumbs } from '../lib/crumbs';
+import { searchLabel, useCrumbs } from '../lib/crumbs';
 import { useSource } from '../lib/source';
 
 function useDebounced<T>(value: T, delay: number): T {
@@ -27,7 +27,7 @@ export function SearchPage() {
   const submitted = params.get('q') ?? '';
   useCrumbs(
     submitted
-      ? [{ label: 'Home', to: '/' }, { label: 'Search', to: '/search' }, { label: `“${submitted}”` }]
+      ? [{ label: 'Home', to: '/' }, { label: 'Search', to: '/search' }, { label: `“${searchLabel(submitted)}”` }]
       : [{ label: 'Home', to: '/' }, { label: 'Search' }],
   );
   const [text, setText] = useState(submitted);
@@ -114,7 +114,7 @@ export function SearchPage() {
           />
         )}
         {open && text.trim() && items.length > 0 && (
-          <ul role="listbox" className="scroll-thin absolute z-20 mt-2 max-h-80 w-full overflow-y-auto rounded-xl border border-input bg-muted p-1.5 shadow-2xl shadow-black/50">
+          <ul role="listbox" className="scroll-thin absolute z-20 mt-2 max-h-80 w-full overflow-y-auto rounded-xl border border-input bg-popover p-1.5 text-popover-foreground shadow-2xl shadow-black/50">
             {items.map((item, i) => {
               const label = 'query' in item ? item.query.trim() : `${titleOf(item.media)}`;
               const sub = 'query' in item ? 'Search' : artistsOf(item.media);

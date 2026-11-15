@@ -19,7 +19,7 @@ import {
   itemsShelf,
 } from '../mappers/shelves.js';
 import { workToAlbum, workToFakeTrack } from '../mappers/works.js';
-import { sortByText } from '../util/text.js';
+import { sortByNatural } from '../util/text.js';
 import { SLOW_SHELF_TIMEOUT_MS, shelfOrNull, withTimeoutOrNull, type ExtensionContext } from './context.js';
 
 /** Albums, artists, playlist contents, tracks, and the stream lookup. */
@@ -55,7 +55,7 @@ export class CatalogFeature {
     );
   }
 
-  /** Tracks of the work's main audio folder, sorted by title. Empty when there is none. */
+  /** Tracks of the work's main audio folder, in natural title order (2 before 10). Empty when there is none. */
   loadAlbumTracks(album: Album): Feed<Track> {
     return feedOfPaged(
       PagedData.single<Track>(async () => {
@@ -63,7 +63,7 @@ export class CatalogFeature {
         const path = findMainAudioFolder(tree);
         if (path === null) return [];
         const folder = getFolder(tree, path);
-        return sortByText(
+        return sortByNatural(
           getAllAudioFiles(folder, false).map((a) => audioToTrack(a, album, folder.title)),
           (t) => t.title,
         );
