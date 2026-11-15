@@ -21,7 +21,7 @@ _To be written._
 | Intel | [**Echo-{{VERSION}}-mac-x64.dmg**](https://github.com/{{REPO}}/releases/download/{{TAG}}/Echo-{{VERSION}}-mac-x64.dmg) | [.zip](https://github.com/{{REPO}}/releases/download/{{TAG}}/Echo-{{VERSION}}-mac-x64.zip) |
 
 > [!TIP]
-> Not sure which one? Open  → **About This Mac**. **Chip: Apple M…** means Apple chip; **Processor: Intel…** means Intel.
+> Not sure which one? Open the Apple menu → **About This Mac**. **Chip: Apple M…** means Apple chip; **Processor: Intel…** means Intel.
 
 > [!IMPORTANT]
 > Echo isn't signed by Apple yet. The first time you open it, macOS may block it: go to **System Settings →

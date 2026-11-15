@@ -31,7 +31,7 @@ _Mac only. Pick `…-mac-arm64.dmg` for an Apple chip or `…-mac-x64.dmg` for I
 
 </div>
 
-Not sure which Mac you have? Open  → **About This Mac**. If it says **Chip: Apple M…**, take the Apple chip
+Not sure which Mac you have? Open the Apple menu → **About This Mac**. If it says **Chip: Apple M…**, take the Apple chip
 version. If it says **Processor: Intel…**, take the Intel one.
 
 > [!IMPORTANT]
