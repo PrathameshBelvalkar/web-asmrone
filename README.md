@@ -18,6 +18,12 @@ The AI runs on your Mac, it is free, and nothing is uploaded.
 
 [Download](#download) · [Features](#features) · [AI subtitles](#ai-subtitles) · [FAQ](#faq) · [Developing](docs/DEVELOPMENT.md)
 
+<a href="docs/media/echo-promo.mp4">
+  <img src="docs/media/echo-promo-poster.jpg" alt="Echo in 45 seconds: a still from the promo video" width="720">
+</a>
+
+_▶ [Watch Echo in 45 seconds](docs/media/echo-promo.mp4)_
+
 </div>
 
 ## Download
