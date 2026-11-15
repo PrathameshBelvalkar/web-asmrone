@@ -1,195 +1,134 @@
+<div align="center">
+
+<a href="https://github.com/PrathameshBelvalkar/web-asmrone/releases/latest">
+  <img src="apps/desktop/build/icon.png" alt="Echo icon" width="128" height="128">
+</a>
+
 # Echo
 
-Echo plays asmr.one and Japanese ASMR tracks on your Mac. For tracks that have no subtitles,
-Echo can write them itself with AI: it runs on your computer, it is free, and nothing is uploaded.
+### An ASMR player for your Mac
+
+Play asmr.one and Japanese ASMR with synced subtitles, and let AI write subtitles for tracks that have none.
+The AI runs on your Mac, it is free, and nothing is uploaded.
+
+[![Latest release](https://img.shields.io/github/v/release/PrathameshBelvalkar/web-asmrone?filter=v*&label=release&labelColor=2B1D3F&color=7B3FC4)](https://github.com/PrathameshBelvalkar/web-asmrone/releases/latest)
+[![CI](https://img.shields.io/github/actions/workflow/status/PrathameshBelvalkar/web-asmrone/ci.yml?branch=main&label=CI&labelColor=2B1D3F)](https://github.com/PrathameshBelvalkar/web-asmrone/actions/workflows/ci.yml)
+[![macOS](https://img.shields.io/badge/macOS-Apple%20chip%20%7C%20Intel-7B3FC4?logo=apple&logoColor=white&labelColor=2B1D3F)](#download)
+[![License](https://img.shields.io/badge/license-Unabandon%20Public%20License-7B3FC4?labelColor=2B1D3F)](LICENSE.md)
+
+[Download](#download) · [Features](#features) · [AI subtitles](#ai-subtitles) · [FAQ](#faq) · [Developing](docs/DEVELOPMENT.md)
+
+</div>
 
 ## Download
 
-| Computer | File |
-|---|---|
-| Mac with an Apple chip (M1 or newer) | `Echo-<version>-mac-arm64.dmg` |
-| Mac with an Intel chip | `Echo-<version>-mac-x64.dmg` |
+<div align="center">
 
-Get them from the [latest release](https://github.com/PrathameshBelvalkar/web-asmrone/releases/latest).
+[![Download for Apple chip](https://img.shields.io/badge/Download-Apple%20chip%20(M1%20or%20newer)-7B3FC4?style=for-the-badge&logo=apple&logoColor=white&labelColor=2B1D3F)](https://github.com/PrathameshBelvalkar/web-asmrone/releases/latest)
+[![Download for Intel](https://img.shields.io/badge/Download-Intel%20Mac-5A5A72?style=for-the-badge&logo=apple&logoColor=white&labelColor=2B1D3F)](https://github.com/PrathameshBelvalkar/web-asmrone/releases/latest)
 
-### The first time you open it
+_Mac only. Pick `…-mac-arm64.dmg` for an Apple chip or `…-mac-x64.dmg` for Intel._
 
-The app is not signed yet, so macOS asks you once. Open the `.dmg`, drag Echo to Applications and
-open it. If macOS blocks it, go to System Settings → Privacy & Security and click **Open Anyway**. As a
-fallback, run `xattr -cr /Applications/Echo.app` in Terminal.
+</div>
+
+Not sure which Mac you have? Open the Apple menu → **About This Mac**. If it says **Chip: Apple M…**, take the Apple chip
+version. If it says **Processor: Intel…**, take the Intel one.
+
+> [!IMPORTANT]
+> Echo isn't signed by Apple yet, so macOS stops it the first time. Open the `.dmg`, drag Echo to
+> **Applications**, then open it. If macOS blocks it, go to **System Settings → Privacy & Security** and click
+> **Open Anyway**. You only do this once.
+
+## Features
+
+- **asmr.one, HASMR and JASMR** in one library: browse, search, and open any work with its full track list.
+- **Synced subtitles and lyrics** that follow the audio, with translation into your language.
+- **AI subtitles** for tracks without any, made on your Mac with Whisper. See [below](#ai-subtitles).
+- **Music-player controls**: a queue that's saved between launches, shuffle, repeat, and a mini player.
+- **Your asmr.one account**: log in to see your playlists and favourites. Browsing works without one.
+- **Manga & Doujinshi**: browse and search galleries by tag, artist and language, and read them in a built-in reader.
+- **Private by design**: the server inside Echo listens only on your Mac, and your data never leaves it.
+- **Update checks**: Echo tells you when a new version is out (**Help → Check for updates…**).
 
 ## AI subtitles
 
-Open **Settings** and turn on **AI subtitles**. Echo then downloads what it needs by itself (190 to 550 MB,
-once) and tells you when it is ready. You can:
+Open **Settings** and turn on **AI subtitles**. Echo downloads what it needs once (190 to 550 MB, depending on
+the model) and tells you when it's ready.
 
-- **pause** a download and resume it later, or **cancel** it (this deletes the partial file);
-- see the models you have, pick one, run a speed test, and **delete** a model you no longer need.
+- **Pause** a download and resume it later, or **cancel** it, which deletes the partial file.
+- See the models you have, pick one, and run a **speed test** to check it keeps up on your Mac.
+- **Delete** a model you don't need. If it was the one in use, Echo switches to another downloaded model. If it
+  was the last one, AI subtitles turn off.
 
-Deleting the model in use switches to another downloaded model. If it was the last one, AI subtitles are turned off.
+Apple-chip Macs run Whisper on the GPU (Metal). Intel Macs use the CPU, which is slower.
 
-## Where your data is
+## FAQ
 
-Everything is in `~/Library/Application Support/Echo`. Settings, your login, the saved queue, subtitles and the models are in that folder. The log is in its
-`logs` folder (**Help → Open log folder**). Your data stays on your computer.
+<details>
+<summary><b>Where is my data?</b></summary>
 
-## Updates
+<br>
 
-Echo tells you when a new version is out and opens the download page. **Help → Check for updates…**
-checks now.
+Everything is in `~/Library/Application Support/Echo` (**Help → Open data folder**): settings, your login, the
+saved queue, subtitles and AI models. The log is in its `logs` folder (**Help → Open log folder**).
 
-## Licence
+</details>
 
-Echo is released under the Unabandon Public License (see `LICENSE.md`). The bundled FFmpeg is LGPL 2.1; its
-licence texts are in the app (**Help → Licences**). The source is this repository.
+<details>
+<summary><b>macOS says Echo "is damaged" or "can't be opened".</b></summary>
 
-## For developers
+<br>
 
-### Desktop app
-
-```bash
-cd web/backend-express && npm ci && npm run build      # the server
-cd web/frontend && npm ci && npm run build             # the web UI
-cd apps/desktop && npm ci && npm run typecheck && npm test
-```
-
-Run the desktop app from this repository. It uses the tools in `apps/desktop/resources/bin/<target>` when they are
-built, and Homebrew's otherwise:
+This happens because Echo isn't signed yet. Try **System Settings → Privacy & Security → Open Anyway** first. If
+that button isn't there, run this in Terminal once:
 
 ```bash
-cd apps/desktop && npm run dev
+xattr -cr /Applications/Echo.app
 ```
 
-Build the tools for your Mac (once):
+</details>
 
-```bash
-brew install cmake nasm pkg-config
-cd apps/desktop
-WHISPER_REF=v1.9.5 bash scripts/build-whisper.sh mac-arm64 metal
-FFMPEG_REF=n9.0.2 bash scripts/build-ffmpeg.sh mac-arm64
-WHISPER_REF=v1.9.5 bash scripts/self-test.sh mac-arm64 metal
-```
+<details>
+<summary><b>Does Echo work on Windows or Linux?</b></summary>
 
-Package it:
+<br>
 
-```bash
-cd apps/desktop
-npm run pack   # unpacked app in release/; its smoke test: release/mac-arm64/Echo.app/Contents/MacOS/Echo --smoke-test
-npm run e2e    # launches the packaged app and checks the first start
-npm run dist   # installers in release/
-```
+Not as an app. Echo Desktop is Mac only. There's a browser version you can run yourself; see
+[Developing Echo](docs/DEVELOPMENT.md#echo-web-the-browser-version).
 
-The tools for both Mac types (Apple chip and Intel) are built by the **tools** workflow on GitHub (Actions → tools → Run workflow).
-After it publishes a release, copy its `SHA256SUMS` into `apps/desktop/tools.lock.json`. The app checks its
-downloads against that file.
+</details>
 
-The manual test checklist before a release is in [`apps/desktop/MANUAL-TESTS.md`](apps/desktop/MANUAL-TESTS.md).
+<details>
+<summary><b>How do I uninstall Echo?</b></summary>
 
-### Releasing a version
+<br>
 
-```bash
-cd apps/desktop && npm version 0.1.0 --no-git-tag-version
-git commit -am "Release 0.1.0" && git tag v0.1.0 && git push personal main v0.1.0
-```
+Drag **Echo** from **Applications** to the Trash. To remove your data and AI models too, delete
+`~/Library/Application Support/Echo`.
 
-The tag starts the **release** workflow. It builds the two Mac installers and creates a **draft** release. Open the
-draft on GitHub, test one installer, edit the notes and publish.
+</details>
 
-## Echo Web (the browser version)
+## Contributing
 
+Bug reports and ideas are welcome in [Issues](https://github.com/PrathameshBelvalkar/web-asmrone/issues). When
+you report a bug, include your Echo version (**Echo → About Echo**), your Mac type, and the steps that cause it.
+For larger changes, open an issue before a pull request.
 
-A browser version of Echo that plays only the **asmr.one** extension
-([rebelonion/echo-asmr-one](https://github.com/rebelonion/echo-asmr-one)).
+Building, running and releasing Echo are covered in [Developing Echo](docs/DEVELOPMENT.md).
 
-- `backend/` – Kotlin + Ktor server. It runs the extension in-process, keeps
-  paging state, stores settings and the login, and proxies audio.
-- `frontend/` – React + Vite + TypeScript app (Tailwind, TanStack Query, Zustand).
+## Credits
 
-Runs on your Mac, for one user. The server listens on `127.0.0.1` only.
+- [Echo](https://github.com/brahmkshatriya/echo) by brahmkshatriya, the Android music app this project grew out of.
+- [echo-asmr-one](https://github.com/rebelonion/echo-asmr-one) by rebelonion, the asmr.one extension.
+- [whisper.cpp](https://github.com/ggml-org/whisper.cpp) for AI subtitles, and [FFmpeg](https://ffmpeg.org) for audio.
+- [Electron](https://www.electronjs.org), [React](https://react.dev) and [Express](https://expressjs.com).
 
-### Requirements
+## Disclaimer
 
-- JDK 17: `brew install openjdk@17`, then `export JAVA_HOME=/opt/homebrew/opt/openjdk@17`
-- Gradle: `brew install gradle` (the backend has no wrapper; see below)
-- Node.js 20+ and npm
+Echo is not affiliated with asmr.one, HASMR, JASMR, or any other site it can read from, and it hosts no content.
+Everything you see comes from those sites. Some of it is for adults only (18+).
 
-### Run it
+## License
 
-```bash
-# 1. Build the UI
-cd web/frontend
-npm install
-npm run build
-
-# 2. Start the server (serves the UI on http://127.0.0.1:8080)
-cd ../backend
-gradle :server:run
-```
-
-Open <http://127.0.0.1:8080>.
-
-For UI development with hot reload, run the server as above and, in another
-terminal:
-
-```bash
-cd web/frontend && npm run dev     # http://127.0.0.1:5173, proxies /api to :8080
-```
-
-### Environment variables
-
-| Variable | Default | Purpose |
-|---|---|---|
-| `PORT` | `8080` | Server port |
-| `ECHO_WEB_DATA` | `~/.echo-web` | Settings and saved login |
-| `ECHO_WEB_DIST` | auto-detected `web/frontend/dist` | Built UI to serve |
-| `ECHO_WEB_API` | `http://127.0.0.1:8080` | Dev-server proxy target (frontend) |
-
-### Accounts
-
-Browsing, search and playback work without an account. To see playlists and
-favourites, log in under **Settings → Account** with your asmr.one username and
-password. The password is sent only to asmr.one. The login is kept in
-`~/.echo-web/user.json`.
-
-### Tests
-
-```bash
-cd web/backend && gradle :server:test
-cd web/frontend && npm run typecheck
-```
-
-### Layout of the backend
-
-| File | Role |
-|---|---|
-| `asmrone/` | Vendored extension source (see `asmrone/SOURCE.txt`) with `echo-web patch` edits |
-| `server/.../Host.kt` | Starts the extension in the same order as the Android app |
-| `server/.../Feeds.kt` | Opens feeds and pages them by continuation token |
-| `server/.../Routes.kt` | HTTP API (`/api/...`) and the audio/image proxy |
-| `server/.../Storage.kt` | Settings file, saved login, expiring id registries, proxy allow-list |
-| `server/.../Codec.kt` | JSON for the polymorphic models and the shelves |
-
-### Patches to the extension
-
-Each change is marked `// echo-web patch N` in `asmrone/`:
-
-1. The site-mirror setting is read on each call (it was fixed at startup).
-2. Editing a playlist keeps its privacy setting.
-3. Empty artist and playlist radios return an empty list instead of crashing.
-4. Translation errors keep the original text instead of failing the page.
-5. Album share links use the album's id.
-6. "In playlist" checks compare work ids, not file hashes.
-7. The default translation language index matches the sorted list.
-8. The pending-likes map is thread-safe.
-
-### Proxy safety
-
-`/api/proxy` only serves URLs the extension has returned in this session, so
-it can't be used as an open proxy.
-
-### Licence
-
-The vendored extension is under the **Unabandon Public License** (GPLv3 plus a
-requirement to publish source for derivative works). This is fine for personal
-local use. Publishing or hosting this for other people means releasing your
-source under the same terms.
+Echo is released under the [Unabandon Public License](LICENSE.md). The bundled FFmpeg is LGPL 2.1; its licence
+texts are inside the app (**Help → Licences**).
