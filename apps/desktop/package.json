@@ -1,7 +1,7 @@
 {
   "name": "echo-desktop",
   "productName": "Echo",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "description": "Echo music player with AI subtitles",
   "author": "Prathamesh",
