@@ -82,6 +82,11 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
+          # Unset secrets are empty strings; electron-builder treats an empty CSC_LINK as a path and fails.
+          # Dropping them builds unsigned installers until signing is set up.
+          for v in CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do
+            [ -n "${!v}" ] || unset "$v"
+          done
           cd apps/desktop
           npx electron-builder ${{ matrix.args }} \
             --publish ${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }}
