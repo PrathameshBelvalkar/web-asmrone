@@ -5,8 +5,9 @@ import type { Track } from "../api/types";
 import { MODEL_PREFIX } from "../api/types";
 import { usePlayer } from "../player/store";
 import { MiniPlayer } from "./MiniPlayer";
+import { stopPlayback } from "../player/engine";
 
-vi.mock("../player/engine", () => ({ togglePlay: vi.fn(), nextTrack: vi.fn() }));
+vi.mock("../player/engine", () => ({ togglePlay: vi.fn(), nextTrack: vi.fn(), stopPlayback: vi.fn() }));
 
 const track = {
   mediaItemType: `${MODEL_PREFIX}Track`,
@@ -33,5 +34,12 @@ describe("MiniPlayer", () => {
     expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /Open now playing/ }));
     expect(usePlayer.getState().nowPlayingOpen).toBe(true);
+  });
+
+  it("has a close button that stops playback", async () => {
+    usePlayer.setState({ queue: [track], index: 0, playing: true });
+    render(<MiniPlayer />);
+    await userEvent.click(screen.getByRole("button", { name: "Close player" }));
+    expect(stopPlayback).toHaveBeenCalled();
   });
 });

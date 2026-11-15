@@ -1,14 +1,14 @@
-import { LoaderCircle, Pause, Play, SkipForward } from 'lucide-react';
+import { LoaderCircle, Pause, Play, SkipForward, X } from 'lucide-react';
 import { Cover } from './Cover';
 import { artistsOf, titleOf } from '../lib/media';
-import { nextTrack, togglePlay } from '../player/engine';
+import { nextTrack, stopPlayback, togglePlay } from '../player/engine';
 import { usePlayer } from '../player/store';
 import { cn } from '@/lib/utils';
 
 /**
  * A small square player for the manga pages, in the bottom-right corner: the artwork with the title
- * over it, play/pause and next, and a thin progress line. Clicking the artwork opens Now Playing.
- * Renders nothing when nothing is playing.
+ * over it, play/pause and next, a close button that stops playback, and a thin progress line.
+ * Clicking the artwork opens Now Playing. Renders nothing when nothing is playing.
  */
 export function MiniPlayer() {
   const track = usePlayer((s) => (s.index >= 0 ? s.queue[s.index] : undefined));
@@ -39,6 +39,16 @@ export function MiniPlayer() {
         <Cover holder={track.cover} className="h-full w-full" rounded="rounded-none" />
       </button>
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10" aria-hidden />
+
+      <button
+        type="button"
+        onClick={stopPlayback}
+        aria-label="Close player"
+        title="Close player"
+        className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/55 text-white/90 backdrop-blur-sm transition-[background-color,transform] duration-150 hover:bg-black/75 hover:text-white active:scale-[0.95]"
+      >
+        <X size={14} strokeWidth={2.4} aria-hidden />
+      </button>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 p-3 pb-3.5 text-white">
         <p className="truncate text-sm font-medium leading-tight">{titleOf(track)}</p>

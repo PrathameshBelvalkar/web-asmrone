@@ -13,6 +13,7 @@ import { EmptyState, IconButton } from '../../components/ui';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../../components/ui/sheet';
 import { Slider } from '../../components/ui/slider';
 import { useCrumbs } from '../../lib/crumbs';
+import { recordRead } from '../../lib/history';
 import {
   autoRtl,
   buildSpreads,
@@ -120,9 +121,11 @@ export function MangaReaderPage() {
     if (before) goTo(before[0] ?? page);
   }, [ended, goTo, index, page, spreads]);
 
-  // Remember the page.
+  // Remember the page, and put the gallery at the top of History.
   useEffect(() => {
-    if (g) saveResume(g.id, page);
+    if (!g) return;
+    saveResume(g.id, page);
+    recordRead(g, page);
   }, [g, page]);
 
   // Load the next three pages and the one before ahead of time.

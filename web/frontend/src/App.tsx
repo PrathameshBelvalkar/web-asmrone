@@ -8,6 +8,7 @@ import { WorkPage } from './pages/WorkPage';
 import { ArtistPage } from './pages/ArtistPage';
 import { PlaylistPage } from './pages/PlaylistPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { HistoryPage } from './pages/HistoryPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { MangaBrowsePage } from './pages/manga/MangaBrowsePage';
 import { MangaSearchPage } from './pages/manga/MangaSearchPage';
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="work/:id" element={<WorkPage />} />
         <Route path="artist/:id" element={<ArtistPage />} />
         <Route path="playlist/:id" element={<PlaylistPage />} />
+        <Route path="history" element={<HistoryPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="manga" element={<MangaBrowsePage />} />
         <Route path="manga/search" element={<MangaSearchPage />} />
