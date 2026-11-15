@@ -4,6 +4,7 @@ import { mediaOptions } from '../api/queries';
 import { queryClient } from '../lib/queryClient';
 import type { Track } from '../api/types';
 import { artistsOf, imageUrl, titleOf } from '../lib/media';
+import { recordListen } from '../lib/history';
 import { usePlayer } from './store';
 
 /**
@@ -137,6 +138,7 @@ export async function loadAndPlay(index: number): Promise<void> {
     }
     usePlayer.getState().setState({ duration: chapterDuration(), position: 0 });
     updateSession(track);
+    recordListen(track);
     await audio.play();
   } catch (e) {
     if (myToken !== token) return;
@@ -245,6 +247,21 @@ export function removeFromQueue(position: number): void {
     return;
   }
   usePlayer.getState().setState({ queue, index });
+}
+
+/** Stops playback and empties the queue, so no player shows until something is played again. */
+export function stopPlayback(): void {
+  token++; // a load still in flight must not start playing afterwards
+  audio.pause();
+  audio.removeAttribute('src');
+  audio.load();
+  destroyHls();
+  loadedUrl = null;
+  pendingSeek = null;
+  if ('mediaSession' in navigator) navigator.mediaSession.metadata = null;
+  usePlayer.getState().setState({
+    queue: [], index: -1, playing: false, loading: false, position: 0, duration: 0, error: null, nowPlayingOpen: false,
+  });
 }
 
 /** The current track, to show in the bar and the lyrics panel. */

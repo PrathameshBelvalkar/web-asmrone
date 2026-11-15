@@ -1,4 +1,5 @@
-import { BookOpen, Disc3, House, Library, Palette, Search, Settings, Tags } from 'lucide-react';
+import { BookOpen, History, House, Library, Palette, Search, Settings, Tags } from 'lucide-react';
+import appIcon from '../assets/echo-icon.png';
 import type { LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -69,9 +70,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <NavLink to="/">
-                <span className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Disc3 className="size-4" aria-hidden />
-                </span>
+                <img src={appIcon} alt="" aria-hidden className="aspect-square size-8 shrink-0 rounded-lg ring-1 ring-white/10" />
                 <div className="grid flex-1 text-left leading-tight">
                   <span className="truncate text-base font-semibold">Echo</span>
                   <span className="truncate text-xs text-sidebar-foreground/60">asmr.one player</span>
@@ -123,6 +122,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup>
           <SidebarGroupLabel>Account</SidebarGroupLabel>
           <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="History" isActive={isActive('/history')} className={NAV_ITEM}>
+                <NavLink to="/history">
+                  <History aria-hidden />
+                  <span>History</span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Settings" isActive={isActive('/settings')} className={NAV_ITEM}>
                 <NavLink to="/settings">
