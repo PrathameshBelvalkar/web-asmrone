@@ -320,7 +320,11 @@ Breadcrumbs go in `src/lib/crumbs.tsx`.
 - `src/api/queries.ts`: query options. Listings use `useInfiniteQuery`, the same as `FeedView.tsx`. Galleries have a long `staleTime`.
 - `src/api/types.ts`: the types from 5.2.
 
-### 6.4 Components (`src/components/manga/`)
+### 6.4 Music player on manga pages
+
+The full player bar is replaced by `MiniPlayer` (`src/components/MiniPlayer.tsx`) on every `/manga` page: a small square in the bottom-right corner with the artwork, title, play/pause, next and a progress line; clicking the artwork opens Now Playing. It isn't shown at all when nothing is playing.
+
+### 6.5 Components (`src/components/manga/`)
 
 | Component | Notes |
 |---|---|
@@ -333,34 +337,47 @@ Breadcrumbs go in `src/lib/crumbs.tsx`.
 
 ## 7. The reader
 
-`src/pages/MangaReaderPage.tsx`. It takes over the content area, and the sidebar collapses while it's open.
+`src/pages/manga/MangaReaderPage.tsx`, with its settings panel in `src/components/manga/ReaderSettings.tsx` and the page-pairing logic in `src/lib/manga.ts`. It covers the whole window (portalled to `<body>`), with the page(s) on a plain background.
+
+The design follows what dedicated readers do (Mihon, Kavita, Komga, Komic): a reading direction that defaults to right to left for manga, two-page mode with a cover / offset option and wide spreads kept whole, tap zones, and bars that get out of the way.
 
 | Feature | Detail |
 |---|---|
-| Modes | **Single page**, **Double page** (with a right-to-left option, first page on its own), **Long strip** (vertical scroll) |
-| Fit | Width, height or original size |
-| Fullscreen | The whole window goes fullscreen (not just the reader), so menus and the page sheet still show |
+| Modes | **Single page**, **Two pages**, **Long strip** (vertical scroll, optional gaps) |
+| Page order (two pages) | **Auto** (default), Right to left or Left to right. Auto lays Japanese manga out right to left (the earlier page on the right, as printed; translations keep this order) unless the gallery's category is Western. It only changes which page sits on which side: turning always goes right = next. |
+| Two pages | Laid out as printed: in right to left the earlier page is on the right. **Cover on its own** (on by default) keeps page 1 alone; turning it off shifts the pairs by one, for books whose spreads come out split. A wide page (wider than tall: a spread scanned as one image) is always shown alone, and so is the page before it. A small gap separates the two pages, each sitting against it like an open book. |
+| Reading order | While the bars are up, each page of a spread shows its number, and the one to read first is marked **Read first** in the accent colour. The first time two pages show (and again after the page order or mode changes), a hint over the gap says "Read right to left" or "Read left to right" with an arrow sweeping that way, then fades. |
+| Page size | Fit screen, fit width or original |
+| Background | Black, grey or white |
+| Bars | The top bar (back, title, page, pages, settings, fullscreen) and bottom bar (turn buttons, slider) fade after 2.5 s without the mouse moving, and come back on a mouse move or a tap in the middle. They stay while a panel or the end screen is open. A small page counter stays in the corner. |
+| Turning | The right side always goes forward and the left side back, whatever the page order: tap or click the outer 30 % of either side, swipe left for next, use → / ←, or scroll the wheel (fit screen only, one turn per gesture). |
+| Slider | Page 1 on the left, shows a thumbnail of the page you're dragging to, and jumps when you let go |
+| Progress | A thin line across the top, filling from the left |
+| End of gallery | Back to gallery, More by the artist, Read again |
+| Settings | One side panel, opened with the button or S. Every change applies at once and is saved in localStorage. Older saves with a right-to-left switch are read as a direction. |
 | No layout jumps | Each page box is sized from the `w` and `h` the gallery JSON gives, before the image loads |
-| Preload | Next 3 pages (and the one before) |
-| Thumbnails | A strip in a `ui/sheet`. Click to jump. |
-| Progress | Page counter, a slider (`ui/slider`) and a thin progress bar |
+| Preload | The next 3 pages and the one before |
+| Pages | A thumbnail sheet (T). Click to jump. |
 | Resume | Last page per gallery, saved in localStorage (every read and write wrapped in try/catch) |
-| End of gallery | "Back to gallery" and "Next in this tag or artist" |
-| Errors | Retry button per page, then the proxy fallback |
+| Fullscreen | The whole window goes fullscreen (not just the reader), so menus and panels still show |
+| Errors | Each page tries its address, then the proxy, then shows Try again |
 
 ### 7.1 Keys
 
 | Key | Action |
 |---|---|
-| → / D / PgDn / click right half | Next page (reversed in right-to-left mode) |
-| ← / A / PgUp / click left half | Previous page |
+| → / D | Next page (also when two pages are laid out right to left) |
+| ← / A | Previous page |
+| Space / Page Down | Next page (scrolls in long strip) |
+| Shift Space / Page Up | Previous page |
 | Home / End | First / last page |
+| M | Next reading mode |
+| T | Pages |
+| S | Settings |
 | F | Fullscreen |
-| M | Cycle mode |
-| T | Thumbnails |
-| Esc | Leave fullscreen, then back to the gallery |
+| Esc | Leave fullscreen, close the end screen, then back to the gallery |
 
-`Shell.tsx` uses Space for play/pause. The reader stops that while it's open, and Space scrolls in long-strip mode.
+`Shell.tsx` uses Space for play/pause. The reader listens first and stops that while it's open.
 
 ---
 

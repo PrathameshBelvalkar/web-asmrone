@@ -125,20 +125,43 @@ export function saveResume(id: string, page: number): void {
 
 export type ReaderMode = 'single' | 'double' | 'strip';
 export type ReaderFit = 'width' | 'height' | 'original';
+/**
+ * How two pages sit side by side. `auto` lays Japanese manga out right to left (the earlier page on
+ * the right, as printed) and Western comics left to right. Turning always goes right = next.
+ */
+export type ReaderDirection = 'auto' | 'ltr' | 'rtl';
+export type ReaderBackground = 'black' | 'gray' | 'white';
 
 export interface ReaderPrefs {
   mode: ReaderMode;
   fit: ReaderFit;
-  rtl: boolean;
+  direction: ReaderDirection;
+  /** Two pages: the first page (the cover) stands alone, so the printed pairs line up. */
+  coverAlone: boolean;
+  background: ReaderBackground;
+  /** Long strip: a small gap between pages. */
+  stripGap: boolean;
 }
 
 const PREFS_KEY = 'echo:manga:reader';
-export const DEFAULT_PREFS: ReaderPrefs = { mode: 'single', fit: 'height', rtl: false };
+export const DEFAULT_PREFS: ReaderPrefs = {
+  mode: 'single',
+  fit: 'height',
+  direction: 'auto',
+  coverAlone: true,
+  background: 'black',
+  stripGap: false,
+};
 
 export function loadPrefs(): ReaderPrefs {
   try {
     const raw = localStorage.getItem(PREFS_KEY);
-    return raw ? { ...DEFAULT_PREFS, ...(JSON.parse(raw) as Partial<ReaderPrefs>) } : DEFAULT_PREFS;
+    if (!raw) return DEFAULT_PREFS;
+    const saved = JSON.parse(raw) as Partial<ReaderPrefs> & { rtl?: boolean };
+    // Older saves had a right-to-left switch instead of a direction.
+    const direction = saved.direction ?? (saved.rtl ? 'rtl' : DEFAULT_PREFS.direction);
+    const { rtl: _old, ...rest } = saved;
+    return { ...DEFAULT_PREFS, ...rest, direction };
   } catch {
     return DEFAULT_PREFS;
   }
@@ -153,40 +176,77 @@ export function savePrefs(prefs: ReaderPrefs): void {
 }
 
 /**
- * The pages shown together at `page` (1-based). In double mode, page 1 (the cover) stands alone and
- * the rest go in pairs: 2–3, 4–5, …
+ * Right to left unless the gallery is a Western comic. Japanese manga and doujinshi (and their
+ * translations, which keep the Japanese page order) read right to left.
  */
-export function spreadAt(page: number, total: number, mode: ReaderMode): number[] {
-  const p = Math.min(Math.max(page, 1), Math.max(total, 1));
-  if (mode !== 'double' || p === 1) return [p];
-  const first = p % 2 === 0 ? p : p - 1;
-  return first + 1 <= total ? [first, first + 1] : [first];
+export function autoRtl(tags: { kind: string; slug: string }[]): boolean {
+  return !tags.some((t) => t.kind === 'category' && t.slug === 'western');
 }
 
-/** The first page of the next (`+1`) or previous (`-1`) spread, kept within the gallery. */
-export function stepPage(page: number, total: number, mode: ReaderMode, dir: 1 | -1): number {
-  const spread = spreadAt(page, total, mode);
-  if (dir === 1) return Math.min((spread[spread.length - 1] ?? page) + 1, total);
-  const prevLast = (spread[0] ?? page) - 1;
-  if (prevLast < 1) return 1;
-  return spreadAt(prevLast, total, mode)[0] ?? 1;
+export function isRtl(direction: ReaderDirection, tags: { kind: string; slug: string }[]): boolean {
+  return direction === 'auto' ? autoRtl(tags) : direction === 'rtl';
 }
 
-/** What a key does in the reader, or null. Right-to-left swaps the arrow and A/D directions. */
-export type ReaderAction = 'next' | 'prev' | 'first' | 'last' | 'fullscreen' | 'mode' | 'thumbs' | 'close';
+/** A page wider than it is tall: a two-page spread scanned as one image. */
+export function isWide(page: { width: number | null; height: number | null }): boolean {
+  return !!page.width && !!page.height && page.width > page.height * 1.1;
+}
 
-export function readerAction(key: string, rtl: boolean): ReaderAction | null {
-  const forward = rtl ? 'prev' : 'next';
-  const back = rtl ? 'next' : 'prev';
+/**
+ * The groups of pages shown together, in reading order (page numbers from 1). Single page and long
+ * strip show one page at a time. Two pages pairs them, with the cover alone when `coverAlone` is on,
+ * and any wide page (a spread scanned as one image) alone; the page before a lone wide page is
+ * then alone too, as in the printed book.
+ */
+export function buildSpreads(
+  pages: { width: number | null; height: number | null }[],
+  mode: ReaderMode,
+  coverAlone: boolean,
+): number[][] {
+  if (mode !== 'double') return pages.map((_, i) => [i + 1]);
+  const spreads: number[][] = [];
+  let pending: number[] = [];
+  const flush = () => {
+    if (pending.length) spreads.push(pending);
+    pending = [];
+  };
+  pages.forEach((page, i) => {
+    const n = i + 1;
+    if ((n === 1 && coverAlone) || isWide(page)) {
+      flush();
+      spreads.push([n]);
+      return;
+    }
+    pending.push(n);
+    if (pending.length === 2) flush();
+  });
+  flush();
+  return spreads;
+}
+
+/** Index of the spread holding `page`; pages outside the gallery go to the first or last spread. */
+export function spreadIndexOf(spreads: number[][], page: number): number {
+  const i = spreads.findIndex((s) => s.includes(page));
+  if (i >= 0) return i;
+  return page < 1 ? 0 : Math.max(spreads.length - 1, 0);
+}
+
+/**
+ * What a key does in the reader, or null. → and D always go forward, also when two pages are laid
+ * out right to left: the direction only changes which page sits on which side.
+ */
+export type ReaderAction = 'next' | 'prev' | 'first' | 'last' | 'fullscreen' | 'mode' | 'thumbs' | 'settings' | 'close';
+
+export function readerAction(key: string): ReaderAction | null {
   switch (key) {
     case 'ArrowRight':
     case 'd':
     case 'D':
-      return forward;
+      return 'next';
     case 'ArrowLeft':
     case 'a':
     case 'A':
-      return back;
+      return 'prev';
     case 'PageDown':
       return 'next';
     case 'PageUp':
@@ -204,6 +264,9 @@ export function readerAction(key: string, rtl: boolean): ReaderAction | null {
     case 't':
     case 'T':
       return 'thumbs';
+    case 's':
+    case 'S':
+      return 'settings';
     case 'Escape':
       return 'close';
     default:

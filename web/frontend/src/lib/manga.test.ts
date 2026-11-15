@@ -1,55 +1,83 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { formatCount, lastLanguage, readerAction, resumePage, saveLastLanguage, saveResume, spreadAt, stepPage } from './manga';
+import {
+  autoRtl,
+  buildSpreads,
+  formatCount,
+  lastLanguage,
+  loadPrefs,
+  readerAction,
+  resumePage,
+  saveLastLanguage,
+  saveResume,
+  spreadIndexOf,
+} from './manga';
+
+const tall = { width: 900, height: 1300 };
+const wide = { width: 1800, height: 1300 };
+const pages = (...list: { width: number; height: number }[]) => list;
 
 describe('reader spreads', () => {
-  it('shows one page at a time in single mode', () => {
-    expect(spreadAt(3, 10, 'single')).toEqual([3]);
-    expect(stepPage(3, 10, 'single', 1)).toBe(4);
-    expect(stepPage(1, 10, 'single', -1)).toBe(1);
-    expect(stepPage(10, 10, 'single', 1)).toBe(10);
+  it('shows one page at a time in single page and long strip', () => {
+    expect(buildSpreads(pages(tall, tall, tall), 'single', true)).toEqual([[1], [2], [3]]);
+    expect(buildSpreads(pages(tall, tall), 'strip', true)).toEqual([[1], [2]]);
   });
 
-  it('keeps the cover alone and pairs the rest in double mode', () => {
-    expect(spreadAt(1, 10, 'double')).toEqual([1]);
-    expect(spreadAt(2, 10, 'double')).toEqual([2, 3]);
-    expect(spreadAt(3, 10, 'double')).toEqual([2, 3]);
-    expect(spreadAt(10, 10, 'double')).toEqual([10]);
-    expect(spreadAt(9, 9, 'double')).toEqual([8, 9]);
-    expect(stepPage(1, 10, 'double', 1)).toBe(2);
-    expect(stepPage(2, 10, 'double', 1)).toBe(4);
-    expect(stepPage(4, 10, 'double', -1)).toBe(2);
-    expect(stepPage(2, 10, 'double', -1)).toBe(1);
+  it('keeps the cover alone and pairs the rest in two-page mode', () => {
+    expect(buildSpreads(pages(tall, tall, tall, tall, tall), 'double', true)).toEqual([[1], [2, 3], [4, 5]]);
+    expect(buildSpreads(pages(tall, tall, tall, tall), 'double', true)).toEqual([[1], [2, 3], [4]]);
   });
 
-  it('clamps pages outside the gallery', () => {
-    expect(spreadAt(0, 5, 'single')).toEqual([1]);
-    expect(spreadAt(99, 5, 'single')).toEqual([5]);
+  it('pairs from the first page when the cover is not alone (the offset switch)', () => {
+    expect(buildSpreads(pages(tall, tall, tall, tall, tall), 'double', false)).toEqual([[1, 2], [3, 4], [5]]);
+  });
+
+  it('shows a wide page (a scanned spread) alone, and the page before it alone too', () => {
+    expect(buildSpreads(pages(tall, tall, wide, tall, tall), 'double', true)).toEqual([[1], [2], [3], [4, 5]]);
+    expect(buildSpreads(pages(tall, tall, tall, wide), 'double', true)).toEqual([[1], [2, 3], [4]]);
+  });
+
+  it('finds the spread of a page, clamping pages outside the gallery', () => {
+    const spreads = [[1], [2, 3], [4, 5]];
+    expect(spreadIndexOf(spreads, 3)).toBe(1);
+    expect(spreadIndexOf(spreads, 0)).toBe(0);
+    expect(spreadIndexOf(spreads, 99)).toBe(2);
+  });
+});
+
+describe('reading direction', () => {
+  it('reads right to left unless the gallery is a Western comic', () => {
+    expect(autoRtl([{ kind: 'category', slug: 'doujinshi' }, { kind: 'language', slug: 'english' }])).toBe(true);
+    expect(autoRtl([{ kind: 'category', slug: 'manga' }])).toBe(true);
+    expect(autoRtl([{ kind: 'category', slug: 'western' }])).toBe(false);
+  });
+
+  it('turns an old right-to-left switch into a direction', () => {
+    localStorage.setItem('echo:manga:reader', JSON.stringify({ mode: 'double', fit: 'width', rtl: true }));
+    expect(loadPrefs()).toMatchObject({ mode: 'double', fit: 'width', direction: 'rtl', coverAlone: true });
+    expect(loadPrefs()).not.toHaveProperty('rtl');
+    localStorage.clear();
+    expect(loadPrefs().direction).toBe('auto');
   });
 });
 
 describe('reader keys', () => {
-  it('turns pages with the arrows, A/D and Page Up/Down', () => {
-    expect(readerAction('ArrowRight', false)).toBe('next');
-    expect(readerAction('d', false)).toBe('next');
-    expect(readerAction('ArrowLeft', false)).toBe('prev');
-    expect(readerAction('PageDown', false)).toBe('next');
-    expect(readerAction('PageUp', false)).toBe('prev');
-  });
-
-  it('swaps arrow directions right to left, but not Page Up/Down', () => {
-    expect(readerAction('ArrowRight', true)).toBe('prev');
-    expect(readerAction('a', true)).toBe('next');
-    expect(readerAction('PageDown', true)).toBe('next');
+  it('turns pages with the arrows, A/D and Page Up/Down; right is always next', () => {
+    expect(readerAction('ArrowRight')).toBe('next');
+    expect(readerAction('d')).toBe('next');
+    expect(readerAction('ArrowLeft')).toBe('prev');
+    expect(readerAction('PageDown')).toBe('next');
+    expect(readerAction('PageUp')).toBe('prev');
   });
 
   it('maps the other shortcuts and ignores everything else', () => {
-    expect(readerAction('Home', false)).toBe('first');
-    expect(readerAction('End', false)).toBe('last');
-    expect(readerAction('f', false)).toBe('fullscreen');
-    expect(readerAction('M', false)).toBe('mode');
-    expect(readerAction('t', false)).toBe('thumbs');
-    expect(readerAction('Escape', false)).toBe('close');
-    expect(readerAction('x', false)).toBeNull();
+    expect(readerAction('Home')).toBe('first');
+    expect(readerAction('End')).toBe('last');
+    expect(readerAction('f')).toBe('fullscreen');
+    expect(readerAction('M')).toBe('mode');
+    expect(readerAction('t')).toBe('thumbs');
+    expect(readerAction('s')).toBe('settings');
+    expect(readerAction('Escape')).toBe('close');
+    expect(readerAction('x')).toBeNull();
   });
 });
 
