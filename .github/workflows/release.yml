@@ -1,6 +1,6 @@
 # Builds the Mac installers (Apple chip and Intel) and publishes them as a DRAFT release.
 # Starts on a tag v<version> (for example v0.1.0) or by hand (builds without publishing).
-# Releasing: see README, "Releasing a version".
+# Releasing: see docs/DEVELOPMENT.md, "Releasing a version".
 name: release
 
 on:
@@ -24,6 +24,17 @@ jobs:
             echo "Tag $GITHUB_REF_NAME does not match apps/desktop/package.json version $version." >&2
             exit 1
           fi
+
+      # Create the draft before the builds, so both Mac builds upload into the same release.
+      - name: Draft release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 ||
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft --verify-tag \
+              --title "Echo $version" --notes "Building the installers…"
 
   build:
     needs: check
@@ -99,3 +110,20 @@ jobs:
             apps/desktop/release/*.zip
             apps/desktop/release/*.yml
             apps/desktop/release/*.blockmap
+
+  notes:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: echo-mac-*
+          path: ${{ runner.temp }}/installers
+      - name: Release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node .github/scripts/release-notes.mjs "$RUNNER_TEMP/installers"
