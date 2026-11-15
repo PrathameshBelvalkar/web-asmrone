@@ -56,6 +56,11 @@ export interface MangaGallery {
   readonly titleJapanese: string | null;
   readonly prettyTitle: string | null;
   readonly cover: string;
+  /**
+   * Other cover addresses to try, in order. The image host sometimes has no file for the cover the
+   * gallery names, and answers with a "not found" page labelled as an image instead of a 404.
+   */
+  readonly coverFallbacks: readonly string[];
   readonly pages: readonly MangaPage[];
   readonly tags: readonly MangaTag[];
   /** ISO 8601, or null. */

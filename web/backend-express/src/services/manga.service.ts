@@ -133,6 +133,7 @@ export class MangaService {
       throw unavailable();
     }
     this.issued.add(gallery.cover);
+    for (const url of gallery.coverFallbacks) this.issued.add(url);
     for (const page of gallery.pages) {
       this.issued.add(page.url);
       this.issued.add(page.thumb);

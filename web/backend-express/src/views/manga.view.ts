@@ -42,6 +42,7 @@ export function mangaGalleryView(gallery: MangaGallery): Json {
     titleJapanese: gallery.titleJapanese,
     prettyTitle: gallery.prettyTitle,
     cover: gallery.cover,
+    coverFallbacks: [...gallery.coverFallbacks],
     pages: gallery.pages.map((p) => ({ n: p.n, url: p.url, thumb: p.thumb, width: p.width, height: p.height })),
     tags: gallery.tags.map(tagView),
     uploadedAt: gallery.uploadedAt,

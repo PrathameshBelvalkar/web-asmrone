@@ -51,6 +51,15 @@ describe('3hentai.to parsers', () => {
       height: expect.any(Number),
     });
     expect(g?.cover).toBe('https://3-hentai.xyz/4327126/cover.webp');
+    // The host can answer a missing cover with a "not found" page labelled as an image, so the
+    // client tries these in order, ending with the first page.
+    expect(g?.coverFallbacks).toEqual([
+      'https://3-hentai.xyz/4327126/cover.jpg',
+      'https://3-hentai.xyz/4327126/thumb.webp',
+      'https://3-hentai.xyz/4327126/thumb.jpg',
+      'https://3-hentai.xyz/4327126/1t.webp',
+      'https://3-hentai.xyz/4327126/1.webp',
+    ]);
     expect(g?.tags).toContainEqual(expect.objectContaining({ kind: 'artist', slug: 'orita', name: 'orita' }));
     expect(g?.tags).toContainEqual(expect.objectContaining({ kind: 'category', slug: 'doujinshi' }));
     expect(g?.tags.every((t) => t.id !== null)).toBe(true);
@@ -62,6 +71,7 @@ describe('3hentai.to parsers', () => {
     const g = parseGalleryPage(fixture('gallery-699591.html'), '699591');
     expect(g?.pages).toHaveLength(53);
     expect(g?.pages[1]?.url).toBe('https://3-hentai.xyz/4327126/2.webp');
+    expect(g?.coverFallbacks).toEqual(['https://3-hentai.xyz/4327126/1t.webp', 'https://3-hentai.xyz/4327126/1.webp']);
     expect(g?.tags.map((t) => t.kind)).toEqual(
       expect.arrayContaining(['tag', 'artist', 'parody', 'group', 'language', 'category']),
     );

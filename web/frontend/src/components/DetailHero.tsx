@@ -17,9 +17,11 @@ function titleSize(title: string): string {
  * comes from the cover, which sits large beside an eyebrow, a big title, details and actions.
  */
 export function DetailHero({
-  cover, eyebrow, title, shape = 'square', meta, actions, children,
+  cover, art, eyebrow, title, shape = 'square', meta, actions, children,
 }: {
   cover: ImageHolder | null | undefined;
+  /** Drawn instead of the cover image (the cover still colours the header wash). */
+  art?: ReactNode;
   eyebrow: string;
   title: string;
   /** `wide` shows the whole 4:3 cover (works); `round` for artists; `portrait` for manga covers; `none` for no picture. */
@@ -33,7 +35,7 @@ export function DetailHero({
     // @container: the layout follows the hero's own width, which the sidebar narrows on tablets.
     <section className="@container mb-12 pt-2 sm:pt-4" style={{ animation: 'rise 400ms cubic-bezier(0.22, 1, 0.36, 1) both' }}>
       <div className={cn('flex flex-col gap-6 @2xl:flex-row @2xl:items-end @2xl:gap-9', shape === 'round' && 'items-center @2xl:items-end')}>
-        {shape !== 'none' && (
+        {art ?? (shape !== 'none' && (
           <Cover
             holder={cover}
             fit={shape === 'wide' ? 'contain' : 'cover'}
@@ -46,7 +48,7 @@ export function DetailHero({
             )}
             rounded={shape === 'round' ? 'rounded-full' : 'rounded-2xl'}
           />
-        )}
+        ))}
         <div className={cn('flex min-w-0 flex-1 flex-col justify-end', shape === 'round' && 'text-center @2xl:text-left')}>
           <p className="text-sm font-medium text-foreground/70">{eyebrow}</p>
           <h1 className={cn('mt-2 text-balance break-words font-semibold leading-[1.08] tracking-[-0.02em] [overflow-wrap:anywhere]', titleSize(title))}>

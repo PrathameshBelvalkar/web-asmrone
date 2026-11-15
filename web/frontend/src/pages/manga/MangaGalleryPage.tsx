@@ -37,7 +37,18 @@ export function MangaGalleryPage() {
   return (
     <article>
       <DetailHero
-        cover={mangaHolder(g.cover)}
+        // The first page colours the header: it's the image most sure to exist.
+        cover={mangaHolder(g.pages[0]?.thumb ?? g.cover)}
+        art={
+          <MangaImage
+            src={g.cover}
+            fallbacks={g.coverFallbacks}
+            alt=""
+            loading="eager"
+            className="aspect-[1/1.41] w-full max-w-[220px] shrink-0 rounded-2xl shadow-2xl shadow-black/60 @2xl:w-56"
+            imgClassName="h-full w-full object-cover"
+          />
+        }
         shape="portrait"
         eyebrow={category ? category[0]!.toUpperCase() + category.slice(1) : 'Gallery'}
         title={g.title}

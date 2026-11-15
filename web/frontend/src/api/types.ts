@@ -296,6 +296,8 @@ export interface MangaGallery {
   titleJapanese: string | null;
   prettyTitle: string | null;
   cover: string;
+  /** Other cover addresses to try, in order, when `cover` fails. */
+  coverFallbacks: string[];
   pages: MangaPage[];
   tags: MangaTag[];
   uploadedAt: string | null;

@@ -5,6 +5,7 @@ import { mangaListOptions } from '../../api/queries';
 import type { MangaListQuery, MangaSort, MangaTagKind } from '../../api/types';
 import { DetailHero } from '../../components/DetailHero';
 import { MangaGrid } from '../../components/manga/MangaGrid';
+import { MangaImage } from '../../components/manga/MangaImage';
 import { Segmented } from '../../components/manga/Segmented';
 import { EmptyState } from '../../components/ui';
 import { Ban } from 'lucide-react';
@@ -62,10 +63,23 @@ export function MangaListPage() {
   }
 
   const count = first?.tag?.count ?? null;
+  const newest = kind === 'artist' ? first?.items[0] : undefined;
   return (
     <>
       <DetailHero
-        cover={kind === 'artist' ? mangaHolder(first?.items[0]?.cover) : null}
+        cover={mangaHolder(newest?.cover)}
+        art={
+          newest && (
+            <MangaImage
+              src={newest.cover}
+              fallbacks={newest.coverFallbacks}
+              alt=""
+              loading="eager"
+              className="size-40 shrink-0 rounded-full shadow-2xl shadow-black/60 @2xl:size-52"
+              imgClassName="h-full w-full object-cover"
+            />
+          )
+        }
         shape={kind === 'artist' ? 'round' : 'none'}
         eyebrow={label.one}
         title={name}

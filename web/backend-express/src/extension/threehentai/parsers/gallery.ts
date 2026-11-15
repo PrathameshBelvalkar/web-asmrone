@@ -2,7 +2,7 @@ import { load } from 'cheerio';
 import { z } from 'zod';
 import type { MangaGallery, MangaPage, MangaTag } from '../../../models/manga.js';
 import { isMangaTagKind } from '../../../models/manga.js';
-import { coverUrl, extOf, isoFromUnix, pageUrl, thumbUrl } from '../mappers.js';
+import { coverFallbacks, coverUrl, extOf, isoFromUnix, pageUrl, thumbUrl } from '../mappers.js';
 import { mediaUrl, parseQty, tagLinkOf } from './common.js';
 
 const imageSchema = z.object({ t: z.string(), w: z.number().nullish(), h: z.number().nullish() });
@@ -73,12 +73,14 @@ export function parseReaderPage(html: string): MangaGallery | null {
     });
   }
   const title = g.title.english?.trim() || g.title.pretty?.trim() || `#${String(g.id)}`;
+  const cover = coverUrl(mediaId, extOf(g.images.cover?.t ?? g.images.pages[0]?.t));
   return {
     id: String(g.id),
     title,
     titleJapanese: g.title.japanese?.trim() || null,
     prettyTitle: g.title.pretty?.trim() || null,
-    cover: coverUrl(mediaId, extOf(g.images.cover?.t ?? g.images.pages[0]?.t)),
+    cover,
+    coverFallbacks: coverFallbacks(mediaId, cover, pages[0]),
     pages,
     tags,
     uploadedAt: isoFromUnix(g.upload_date),
@@ -176,6 +178,7 @@ export function parseGalleryPage(html: string, id: string): MangaGallery | null 
     titleJapanese: info.find('.middle-title').first().text().trim() || null,
     prettyTitle: null,
     cover,
+    coverFallbacks: [...new Set([pages[0]?.thumb, pages[0]?.url].filter((u): u is string => !!u && u !== cover))],
     pages,
     tags,
     uploadedAt,
