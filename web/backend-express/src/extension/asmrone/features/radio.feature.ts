@@ -11,7 +11,7 @@ import {
 } from '../media-tree/tree.js';
 import { audioToTrack } from '../mappers/tracks.js';
 import { workToAlbum } from '../mappers/works.js';
-import { sortByText } from '../util/text.js';
+import { sortByNatural } from '../util/text.js';
 import type { ExtensionContext } from './context.js';
 
 const NO_ID_TITLE = 'Open the album below to access the track\n\n';
@@ -64,7 +64,7 @@ export class RadioFeature {
       const albumId = id.slice('ALBUM_'.length);
       const tree = await this.ctx.api.getWorkMediaTree(albumId);
       const album = workToAlbum(await this.ctx.api.getWork(albumId), this.ctx.pendingLikes);
-      return sortByText(
+      return sortByNatural(
         getAllAudioFiles(tree, true).map((a) => audioToTrack(a, album, album.title)),
         (t) => t.title,
       );
@@ -97,7 +97,7 @@ export class RadioFeature {
     const album = workToAlbum(await this.ctx.api.getWork(trackWorkId), this.ctx.pendingLikes);
     const folder = findFolderWithAudio(tree, hash);
     if (!folder) throw new Error('Could not find folder with audio');
-    const tracks = sortByText(
+    const tracks = sortByNatural(
       getAllAudioFiles(folder, false).map((a) => audioToTrack(a, album, radio.title)),
       (t) => t.title,
     );
@@ -112,7 +112,7 @@ export class RadioFeature {
       path === null
         ? getAllAudioFiles(tree, true)
         : getAllAudioFiles(getFolder(tree, path), false);
-    return sortByText(
+    return sortByNatural(
       audio.map((a) => audioToTrack(a, album, album.title)),
       (t) => t.title,
     );

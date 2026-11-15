@@ -7,6 +7,20 @@ export function sortByText<T>(items: readonly T[], key: (item: T) => string): T[
   return [...items].sort((x, y) => compareText(key(x), key(y)));
 }
 
+const natural = new Intl.Collator('en', { numeric: true, sensitivity: 'variant' });
+
+/**
+ * Natural ordering for file titles: digit runs compare as numbers, so "#2" comes before "#10".
+ * Ties fall back to code-unit order so the result stays stable across platforms.
+ */
+export function compareNatural(a: string, b: string): number {
+  return natural.compare(a, b) || compareText(a, b);
+}
+
+export function sortByNatural<T>(items: readonly T[], key: (item: T) => string): T[] {
+  return [...items].sort((x, y) => compareNatural(key(x), key(y)));
+}
+
 /**
  * Java URLEncoder parity for keywords in a URL path. encodeURIComponent leaves `!'()~` alone;
  * URLEncoder encodes them, and encodes space as %20 (the Kotlin code replaces "+" with %20).

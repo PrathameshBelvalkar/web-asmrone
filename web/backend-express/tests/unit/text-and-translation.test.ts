@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { encodeKeyword, kotlinDoubleToString, parseKotlinBoolean, replaceAllLiteralIgnoreCase, compareText } from '../../src/extension/asmrone/util/text.js';
+import { encodeKeyword, kotlinDoubleToString, parseKotlinBoolean, replaceAllLiteralIgnoreCase, compareNatural, compareText } from '../../src/extension/asmrone/util/text.js';
 import { moveFirstGroupToEnd } from '../../src/extension/asmrone/translation/title.js';
 import { splitIntoChunks } from '../../src/extension/asmrone/translation/chunking.js';
 import { parseTranslation, TranslationError } from '../../src/extension/asmrone/translation/gtx-translator.js';
@@ -31,6 +31,11 @@ describe('text helpers (Kotlin parity)', () => {
   it('compareText orders by code unit', () => {
     expect(compareText('B', 'a')).toBeLessThan(0);
     expect(['b', 'A', 'a'].sort(compareText)).toEqual(['A', 'a', 'b']);
+  });
+
+  it('compareNatural orders numbers by value', () => {
+    expect(['#10.mp3', '#2.mp3', '#1.mp3'].sort(compareNatural)).toEqual(['#1.mp3', '#2.mp3', '#10.mp3']);
+    expect(['10_end.wav', '01_intro.wav', '2_main.wav'].sort(compareNatural)).toEqual(['01_intro.wav', '2_main.wav', '10_end.wav']);
   });
 });
 
