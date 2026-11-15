@@ -4,6 +4,7 @@ import { Search } from 'lucide-react';
 import { AppSidebar } from './app-sidebar';
 import { AppBreadcrumb } from './AppBreadcrumb';
 import { HeaderWash } from './HeaderWash';
+import { MiniPlayer } from './MiniPlayer';
 import { PlayerBar } from './PlayerBar';
 import { NowPlaying } from './NowPlaying';
 import { Toasts } from './Toasts';
@@ -38,6 +39,7 @@ function ShellInner() {
   const nowPlayingOpen = usePlayer((s) => s.nowPlayingOpen);
   const setState = usePlayer((s) => s.setState);
   const scrolled = useScrolled();
+  const manga = location.pathname.startsWith('/manga');
   useAutoSubtitles();
   useToolsReadyToast();
   usePlayerAccent();
@@ -77,18 +79,26 @@ function ShellInner() {
           <AppBreadcrumb />
         </div>
         <div className="min-w-0 flex-1 sm:hidden" />
-        {location.pathname !== '/search' && <TopSearch />}
+        {location.pathname !== '/search' && location.pathname !== '/manga/search' && (
+          <TopSearch manga={location.pathname.startsWith('/manga')} />
+        )}
       </header>
 
-      <main className={`relative z-[1] flex-1 px-4 pt-4 sm:px-6 sm:pt-6 lg:px-10 ${track ? 'pb-8' : 'pb-6'}`}>
+      {/* On manga pages the mini player floats over the corner: leave room for it under the last row. */}
+      <main className={`relative z-[1] flex-1 px-4 pt-4 sm:px-6 sm:pt-6 lg:px-10 ${track ? (manga ? 'pb-52' : 'pb-8') : 'pb-6'}`}>
         <div className="mx-auto max-w-[1600px]">
           <Outlet />
         </div>
       </main>
 
-      <div className="sticky bottom-0 z-30">
-        <PlayerBar />
-      </div>
+      {/* Manga pages get a small square player, and none at all when nothing is playing. */}
+      {manga ? (
+        <MiniPlayer />
+      ) : (
+        <div className="sticky bottom-0 z-30">
+          <PlayerBar />
+        </div>
+      )}
 
       {nowPlayingOpen && track && <NowPlaying />}
       <Toasts />
@@ -96,14 +106,15 @@ function ShellInner() {
   );
 }
 
-/** Search field in the top bar. Submitting opens the search page. */
-function TopSearch() {
+/** Search field in the top bar. Submitting opens the search page (the manga one on manga pages). */
+function TopSearch({ manga }: { manga: boolean }) {
   const navigate = useNavigate();
   const [text, setText] = useState('');
+  const base = manga ? '/manga/search' : '/search';
   const submit = (e: FormEvent) => {
     e.preventDefault();
     const q = text.trim();
-    navigate(q ? `/search?q=${encodeURIComponent(q)}` : '/search');
+    navigate(q ? `${base}?q=${encodeURIComponent(q)}` : base);
     setText('');
   };
   return (
@@ -113,8 +124,8 @@ function TopSearch() {
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Search"
-          aria-label="Search"
+          placeholder={manga ? 'Search galleries' : 'Search'}
+          aria-label={manga ? 'Search galleries' : 'Search'}
           className="min-w-0 flex-1 bg-transparent text-foreground outline-none placeholder:text-muted-foreground"
         />
       </label>

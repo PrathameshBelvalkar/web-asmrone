@@ -5,6 +5,12 @@ import type {
   FeedDto,
   Lyrics,
   LoginForm,
+  MangaGallery,
+  MangaIndex,
+  MangaIndexKind,
+  MangaList,
+  MangaListQuery,
+  MangaTag,
   MediaItem,
   PageDto,
   Playlist,
@@ -145,6 +151,28 @@ export const api = {
   deleteModel: (id: string) =>
     req<void>("POST", `/tools/models/${enc(id)}/delete`),
   runBenchmark: () => req<void>("POST", "/tools/benchmark"),
+
+  manga: {
+    list: (query: MangaListQuery, page: number) => {
+      if (query.by === "browse")
+        return req<MangaList>("GET", `/manga/browse?sort=${query.sort}&page=${page}`);
+      if (query.by === "search")
+        return req<MangaList>("GET", `/manga/search?q=${enc(query.q)}&page=${page}`);
+      return req<MangaList>(
+        "GET",
+        `/manga/${query.by}/${enc(query.slug)}?sort=${query.sort}&page=${page}`,
+      );
+    },
+    index: (kind: MangaIndexKind, letter: string | null, sort: "az" | "popular", page: number) =>
+      req<MangaIndex>(
+        "GET",
+        `/manga/index/${kind}?sort=${sort}&page=${page}${letter ? `&letter=${enc(letter)}` : ""}`,
+      ),
+    /** Names of one kind containing `q` (the site has no name search; the server reads its A–Z pages). */
+    searchIndex: (kind: MangaIndexKind, q: string) =>
+      req<{ items: MangaTag[] }>("GET", `/manga/index/${kind}/search?q=${enc(q)}`),
+    gallery: (id: string) => req<MangaGallery>("GET", `/manga/gallery/${enc(id)}`),
+  },
 };
 
 export interface LikeStatusDto {

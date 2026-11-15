@@ -26,4 +26,11 @@ export const LIMITS = {
   hasmrResponseTimeoutMs: 30_000,
   hasmrRequestGapMs: 3_000,
   hasmrCacheTtlMs: 30 * 60_000,
+  /** 3hentai.to (Manga & Doujinshi): timeouts, the gap between requests, and how long pages are kept. */
+  threehentaiConnectTimeoutMs: 10_000,
+  threehentaiResponseTimeoutMs: 30_000,
+  threehentaiRequestGapMs: 1_000,
+  threehentaiListingTtlMs: 5 * 60_000,
+  threehentaiGalleryTtlMs: 60 * 60_000,
+  threehentaiIndexTtlMs: 24 * 60 * 60_000,
 } as const;
