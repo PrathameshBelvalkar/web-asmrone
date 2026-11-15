@@ -443,14 +443,15 @@ export class ToolsService {
   private async stepDown(): Promise<void> {
     const { config, repository } = this.deps;
     const small = findModel(SMALL_MODEL_ID);
-    await repository.update({ steppedDown: true });
     if (await isInstalled(config.modelsDir, small)) {
+      await repository.update({ steppedDown: true });
       await this.useModel(small);
       await this.afterModelChange();
       this.scheduleSpeedTest();
       return;
     }
-    await repository.update({ benchmarkPending: small.id });
+    // One write, so nothing ever sees the step-down without the model it is waiting for.
+    await repository.update({ steppedDown: true, benchmarkPending: small.id });
     try {
       await this.download.start(small.id);
     } catch (err) {
