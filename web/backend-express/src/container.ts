@@ -11,6 +11,8 @@ import { PlaylistController } from './controllers/playlist.controller.js';
 import { ProxyController } from './controllers/proxy.controller.js';
 import { SettingsController } from './controllers/settings.controller.js';
 import { ToolsController } from './controllers/tools.controller.js';
+import { StorageController } from './controllers/storage.controller.js';
+import { StorageService } from './services/storage.service.js';
 import { createDispatcher } from './lib/http-client.js';
 import type { Feed } from './models/feed.js';
 import type { PagedData } from './models/paged-data.js';
@@ -178,6 +180,7 @@ export function createContainer(
   const whisperEngine = new WhisperServerEngine(() => whisperState, {
     setupHint: config.desktopVersion === null ? SETUP_HINT : DESKTOP_SETUP_HINT,
   });
+  const subtitleRepo = new AiSubtitleRepository(join(config.dataDir, 'ai-subtitles'));
   const aiSubtitles =
     options.aiSubtitles === undefined
       ? new AiSubtitleService({
@@ -185,7 +188,7 @@ export function createContainer(
           engine: whisperEngine,
           openAudio: (input) =>
             FfmpegAudioStream.open(ffmpegBin(config.binDir, config.whisper.ffmpegBin), input),
-          repository: new AiSubtitleRepository(join(config.dataDir, 'ai-subtitles')),
+          repository: subtitleRepo,
           translator: {
             languageCode: () => languageForCode(settingsRepo.getString('translationLanguage')).code,
             translate: async (texts) => {
@@ -225,6 +228,15 @@ export function createContainer(
     indexTtlMs: LIMITS.threehentaiIndexTtlMs,
   });
   const mangaService = new MangaService(mangaSource, issued);
+  const storageService = new StorageService({
+    subtitles: subtitleRepo,
+    settings: settingsRepo,
+    auth: authService,
+    tools,
+    applySettings: () => {
+      extension.setSettings(settingsRepo);
+    },
+  });
 
   const controllers: Controllers = {
     feed: new FeedController(feedService, presentation),
@@ -234,6 +246,7 @@ export function createContainer(
     settings: new SettingsController(settingsService),
     proxy: new ProxyController(proxyService),
     tools: new ToolsController(tools),
+    storage: new StorageController(storageService),
     manga: new MangaController(mangaService),
   };
 

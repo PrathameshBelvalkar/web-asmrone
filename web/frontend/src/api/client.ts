@@ -20,6 +20,7 @@ import type {
   SourceId,
   StreamMedia,
   Track,
+  StorageUsage,
   ToolsStatus,
   User,
 } from "./types";
@@ -151,6 +152,10 @@ export const api = {
   deleteModel: (id: string) =>
     req<void>("POST", `/tools/models/${enc(id)}/delete`),
   runBenchmark: () => req<void>("POST", "/tools/benchmark"),
+
+  storage: () => req<StorageUsage>("GET", "/storage"),
+  clearCache: () => req<void>("POST", "/storage/clear-cache"),
+  clearData: () => req<void>("POST", "/storage/clear-data"),
 
   manga: {
     list: (query: MangaListQuery, page: number) => {

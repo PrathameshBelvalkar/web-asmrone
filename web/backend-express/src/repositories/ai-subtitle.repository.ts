@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { z } from 'zod';
 import { appLogger } from '../lib/app-logger.js';
@@ -45,6 +45,30 @@ export class AiSubtitleRepository {
       lines: [...lines],
     };
     await writeFileAtomic(this.path(trackId), JSON.stringify(data), 0o644);
+  }
+
+  /** Total bytes of the saved subtitle files. */
+  async size(): Promise<number> {
+    let total = 0;
+    for (const name of await this.files()) {
+      total += await stat(join(this.dir, name)).then((s) => s.size, () => 0);
+    }
+    return total;
+  }
+
+  /** Deletes every saved subtitle file. */
+  async clear(): Promise<void> {
+    await Promise.all(
+      (await this.files()).map((name) => rm(join(this.dir, name), { force: true })),
+    );
+  }
+
+  private async files(): Promise<string[]> {
+    try {
+      return (await readdir(this.dir)).filter((name) => name.endsWith('.json'));
+    } catch {
+      return [];
+    }
   }
 
   private path(trackId: string): string {

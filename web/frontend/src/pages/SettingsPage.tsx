@@ -12,6 +12,7 @@ import { formsOptions, meOptions, settingsOptions } from "../api/queries";
 import type { FormField, LoginForm, SettingDto, SourceId } from "../api/types";
 import { ErrorState, RowSkeletons } from "../components/States";
 import { AiSubtitlesCard } from "../components/AiSubtitlesCard";
+import { StorageCard } from "../components/StorageCard";
 import { Button, PageHeader, Toggle } from "../components/ui";
 import {
   Card,
@@ -116,6 +117,7 @@ export function SettingsPage() {
             </CardContent>
           </Card>
           <AiSubtitlesCard />
+          <StorageCard />
         </div>
 
         <Card>

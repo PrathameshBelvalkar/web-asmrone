@@ -196,3 +196,41 @@ export function useDeleteModel() {
 export function useRunBenchmark() {
   return useToolsMutation(() => api.runBenchmark());
 }
+
+/**
+ * Clear cache: the server deletes saved AI subtitles and leftover partial downloads, and every
+ * cached answer in the browser is dropped so pages load fresh.
+ */
+export function useClearCache() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.clearCache(),
+    onSuccess: async () => {
+      queryClient.removeQueries({ type: "inactive" });
+      await queryClient.invalidateQueries();
+    },
+    onError: (error) => toast(messageFor(error)),
+  });
+}
+
+/**
+ * Clear all data: the server resets preferences, logs out and clears its cache. The browser forgets
+ * its own saved state (queue, volume, reading progress, music source), then the app reloads.
+ */
+export function useClearData() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.clearData(),
+    onSuccess: () => {
+      queryClient.clear();
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch {
+        // Storage can be blocked; the server side is already reset.
+      }
+      window.location.reload();
+    },
+    onError: (error) => toast(messageFor(error)),
+  });
+}

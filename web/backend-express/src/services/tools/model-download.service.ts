@@ -261,6 +261,8 @@ export class ModelDownloadService {
   }
 
   private request(url: string, offset: number, signal: AbortSignal): Promise<Response> {
+    // A cancel that lands before the request is sent stops here, whatever the fetch does.
+    signal.throwIfAborted();
     const headers: Record<string, string> = offset > 0 ? { Range: `bytes=${offset}-` } : {};
     return this.deps.fetch(url, { headers, signal });
   }

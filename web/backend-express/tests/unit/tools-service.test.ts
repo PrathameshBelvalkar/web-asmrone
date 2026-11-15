@@ -270,6 +270,43 @@ describe('pause, cancel and resume', () => {
     expect(fetchCalls.some((c) => c.url === LARGE.url)).toBe(true);
   });
 
+  it('resume reports the download as running once it returns', async () => {
+    const config = await withBundledTools();
+    const { svc, repo } = makeService({ config });
+    await repo.update({ modelId: LARGE.id });
+
+    await svc.resume();
+    expect((await svc.status()).download).toMatchObject({ status: 'downloading', modelId: LARGE.id });
+  });
+
+  it('a download can start again after one was cancelled', async () => {
+    const config = await withBundledTools();
+    const { svc, repo } = makeService({ config });
+    await repo.update({ modelId: LARGE.id });
+    await svc.resume();
+    await svc.cancelDownload();
+    expect((await svc.status()).download.status).toBe('idle');
+
+    await svc.downloadModel(SMALL.id);
+    expect((await svc.status()).download).toMatchObject({ status: 'downloading', modelId: SMALL.id });
+  });
+
+  it('leftover partial files are counted and removed, but not the paused one', async () => {
+    const config = await withBundledTools();
+    await mkdir(join(t.dir, 'models'), { recursive: true });
+    const largePart = join(t.dir, 'models', `${LARGE.file}.part`);
+    const smallPart = join(t.dir, 'models', `${SMALL.file}.part`);
+    await writeFile(largePart, Buffer.alloc(1000));
+    await writeFile(smallPart, Buffer.alloc(500));
+    const { svc, repo } = makeService({ config });
+    await repo.update({ paused: true, pausedModelId: LARGE.id });
+
+    expect(await svc.leftoverPartialBytes()).toBe(500);
+    await svc.removeLeftoverPartials();
+    await expect(stat(smallPart)).rejects.toThrow();
+    expect((await stat(largePart)).size).toBe(1000);
+  });
+
   it('does not restart a paused download at start-up', async () => {
     const config = await withBundledTools();
     const { svc, repo, settings } = makeService({ config });

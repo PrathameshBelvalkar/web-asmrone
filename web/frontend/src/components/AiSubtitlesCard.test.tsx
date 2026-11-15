@@ -263,4 +263,15 @@ describe("AiSubtitlesCard", () => {
     expect(await screen.findByText("Downloaded models")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
   });
+
+  it("after a cancelled download, offers the recommended model to download again", async () => {
+    vi.mocked(api.downloadModel).mockResolvedValue(undefined);
+    renderCard(status({ enabled: true }));
+    expect(await screen.findByText("No model downloaded")).toBeInTheDocument();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Download" }));
+    await waitFor(() =>
+      expect(api.downloadModel).toHaveBeenCalledWith("large-v3-turbo-q5_0"),
+    );
+  });
 });

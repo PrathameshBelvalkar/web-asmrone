@@ -6,6 +6,7 @@ import type { MediaController } from '../controllers/media.controller.js';
 import type { PlaylistController } from '../controllers/playlist.controller.js';
 import type { ProxyController } from '../controllers/proxy.controller.js';
 import type { SettingsController } from '../controllers/settings.controller.js';
+import type { StorageController } from '../controllers/storage.controller.js';
 import type { ToolsController } from '../controllers/tools.controller.js';
 import { jsonObjectBody } from '../middlewares/json-body.js';
 import { methodNotAllowed, type RouteMeta } from '../middlewares/method-not-allowed.js';
@@ -19,6 +20,7 @@ export interface Controllers {
   readonly settings: SettingsController;
   readonly proxy: ProxyController;
   readonly tools: ToolsController;
+  readonly storage: StorageController;
   readonly manga: MangaController;
 }
 
@@ -73,6 +75,9 @@ function routeTable(c: Controllers): RouteSpec[] {
     { method: 'GET', path: '/settings', handler: c.settings.list },
     { method: 'PUT', path: '/settings/:key', handler: c.settings.update },
     { method: 'GET', path: '/proxy', handler: c.proxy.stream },
+    { method: 'GET', path: '/storage', handler: c.storage.usage },
+    { method: 'POST', path: '/storage/clear-cache', handler: c.storage.clearCache },
+    { method: 'POST', path: '/storage/clear-data', handler: c.storage.clearData },
 
     // AI subtitle setup
     { method: 'GET', path: '/tools', handler: c.tools.status },

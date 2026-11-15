@@ -33,6 +33,14 @@ export class SettingsRepository implements Settings {
     await this.persist();
   }
 
+  /** Removes every stored value except the listed keys, and persists. */
+  async clear(keep: readonly string[] = []): Promise<void> {
+    for (const key of [...this.values.keys()]) {
+      if (!keep.includes(key)) this.values.delete(key);
+    }
+    await this.persist();
+  }
+
   getString(key: string): string | null {
     const v = this.values.get(key);
     if (v === undefined || v === null) return null;

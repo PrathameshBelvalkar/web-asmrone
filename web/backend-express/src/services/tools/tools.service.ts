@@ -185,7 +185,10 @@ export class ToolsService {
   /** Resume after a pause (or the switch being turned on): clears the pause and runs the setup. */
   async resume(): Promise<void> {
     await this.deps.repository.update({ paused: false, pausedModelId: undefined });
-    this.startSetup();
+    // Waits until the download has started, so the status the UI reads next is not a stale idle.
+    await this.ensureReady().catch((err: unknown) => {
+      appLogger().error({ err }, 'AI subtitle setup failed');
+    });
   }
 
   /** Starts the automatic setup in the background. */
@@ -254,6 +257,29 @@ export class ToolsService {
     await this.download.cancel();
     if (modelId) await this.download.removePartial(modelId);
     await this.deps.repository.update({ paused: false, pausedModelId: undefined });
+  }
+
+  /** Bytes in partial download files that are not being written right now. */
+  async leftoverPartialBytes(): Promise<number> {
+    let total = 0;
+    for (const m of MODELS) {
+      if (!this.isPartialInUse(m.id)) total += await partialBytes(this.deps.config.modelsDir, m);
+    }
+    return total;
+  }
+
+  /** Deletes partial download files that are not in use (a running or paused download keeps its own). */
+  async removeLeftoverPartials(): Promise<void> {
+    for (const m of MODELS) {
+      if (!this.isPartialInUse(m.id)) await this.download.removePartial(m.id);
+    }
+  }
+
+  private isPartialInUse(modelId: string): boolean {
+    return (
+      this.download.activeModelId() === modelId ||
+      this.deps.repository.get().pausedModelId === modelId
+    );
   }
 
   async downloadModel(id: string): Promise<void> {
@@ -357,7 +383,12 @@ export class ToolsService {
       this.scheduleSpeedTest();
       return;
     }
-    if (saved.modelId !== undefined && saved.modelId !== modelId) return;
+    // A newly downloaded model is used when the selected one is not on disk (for example after
+    // it was deleted), so downloading any model from Settings makes AI subtitles ready again.
+    const selected = MODELS.find((m) => m.id === saved.modelId);
+    const selectedInstalled =
+      selected !== undefined && (await isInstalled(this.deps.config.modelsDir, selected));
+    if (saved.modelId !== undefined && saved.modelId !== modelId && selectedInstalled) return;
     await this.useModel(findModel(modelId));
     await this.afterModelChange();
     // The first model ever installed is timed, so the speed is known before the user needs it.

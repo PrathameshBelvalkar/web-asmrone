@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { CircleCheck, Cpu, Gauge, Subtitles, Trash2 } from "lucide-react";
+import { useIsMutating, useQuery } from "@tanstack/react-query";
+import { CircleCheck, Cpu, Download, Gauge, Subtitles, Trash2 } from "lucide-react";
 import {
   useCancelDownload,
   useDeleteModel,
@@ -214,13 +214,78 @@ function SetupDetails({ status }: { status: ToolsStatus }) {
     );
   }
   if (!status.ready) {
+    return <NotSetUpDetails status={status} />;
+  }
+  return <ReadyDetails status={status} />;
+}
+
+/**
+ * Nothing is downloading and no model is in place (the download was cancelled, or the last model
+ * was deleted). The user picks a model and starts the download again.
+ */
+function NotSetUpDetails({ status }: { status: ToolsStatus }) {
+  const downloadModel = useDownloadModel();
+  const selectModel = useSelectModel();
+  const busy = useIsMutating() > 0;
+  const fallback =
+    status.models.find((m) => m.selected)?.id ??
+    status.models.find((m) => m.recommended)?.id ??
+    status.models[0]?.id ??
+    "";
+  const [choice, setChoice] = useState<string | null>(null);
+  const modelId = choice ?? fallback;
+  const model = status.models.find((m) => m.id === modelId);
+
+  if (busy) {
     return (
       <div className="border-t py-4">
         <Spinner label="Getting AI subtitles ready…" />
       </div>
     );
   }
-  return <ReadyDetails status={status} />;
+
+  const start = () => {
+    if (!model) return;
+    if (model.installed) selectModel.mutate(model.id);
+    else downloadModel.mutate(model.id);
+  };
+
+  return (
+    <div className="space-y-3 border-t py-4">
+      <div className="text-sm">No model downloaded</div>
+      <p className="text-xs text-muted-foreground">
+        AI subtitles need one model file. Pick one and download it. You can
+        keep using Echo while it downloads.
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <Select value={modelId} onValueChange={setChoice}>
+          <SelectTrigger
+            aria-label="Model to download"
+            className="w-auto min-w-52 rounded-full"
+          >
+            <SelectValue placeholder="Choose a model" />
+          </SelectTrigger>
+          <SelectContent>
+            {status.models.map((m) => (
+              <SelectItem key={m.id} value={m.id}>
+                {m.title} ({formatBytes(m.size)})
+                {m.recommended ? " · recommended" : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button
+          variant="primary"
+          icon={Download}
+          className="h-8 px-3 text-xs"
+          disabled={!model}
+          onClick={start}
+        >
+          {model?.installed ? "Use this model" : "Download"}
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 /** A download the user paused: its progress, and the ways to go on. */

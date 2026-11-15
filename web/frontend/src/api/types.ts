@@ -211,6 +211,12 @@ export interface User {
   subtitle?: string | null;
 }
 
+/** Settings › Storage (`GET /api/storage`). */
+export interface StorageUsage {
+  subtitlesBytes: number;
+  partialBytes: number;
+}
+
 /* AI subtitle setup (`GET /api/tools`). Mirrors the server's ToolsStatus. */
 
 export type Variant = "metal" | "cpu" | "system";

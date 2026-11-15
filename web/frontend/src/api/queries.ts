@@ -128,6 +128,13 @@ export const toolsOptions = () =>
     refetchInterval: (query) => (toolsBusy(query.state.data) ? 1000 : false),
   });
 
+export const storageOptions = () =>
+  queryOptions({
+    queryKey: ['storage'],
+    queryFn: () => api.storage(),
+    staleTime: 0,
+  });
+
 /** A gallery list, one site page per query page. */
 export const mangaListOptions = (query: MangaListQuery) =>
   infiniteQueryOptions({
