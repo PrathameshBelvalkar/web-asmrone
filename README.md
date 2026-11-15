@@ -18,11 +18,11 @@ The AI runs on your Mac, it is free, and nothing is uploaded.
 
 [Download](#download) · [Features](#features) · [AI subtitles](#ai-subtitles) · [FAQ](#faq) · [Developing](docs/DEVELOPMENT.md)
 
-<a href="docs/media/echo-promo.mp4">
-  <img src="docs/media/echo-promo-poster.jpg" alt="Echo in 45 seconds: a still from the promo video" width="720">
+<a href="https://github.com/PrathameshBelvalkar/web-asmrone/raw/main/docs/media/echo-promo.mp4">
+  <img src="docs/media/echo-promo.webp" alt="Echo in 45 seconds: the promo video" width="720">
 </a>
 
-_▶ [Watch Echo in 45 seconds](docs/media/echo-promo.mp4)_
+_[Download the full-quality video (MP4)](https://github.com/PrathameshBelvalkar/web-asmrone/raw/main/docs/media/echo-promo.mp4)_
 
 </div>
 
