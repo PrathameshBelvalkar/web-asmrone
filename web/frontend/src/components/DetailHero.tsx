@@ -22,8 +22,8 @@ export function DetailHero({
   cover: ImageHolder | null | undefined;
   eyebrow: string;
   title: string;
-  /** `wide` shows the whole 4:3 cover (works); `round` for artists. */
-  shape?: 'square' | 'wide' | 'round';
+  /** `wide` shows the whole 4:3 cover (works); `round` for artists; `portrait` for manga covers; `none` for no picture. */
+  shape?: 'square' | 'wide' | 'round' | 'portrait' | 'none';
   meta?: ReactNode;
   actions?: ReactNode;
   children?: ReactNode;
@@ -33,17 +33,20 @@ export function DetailHero({
     // @container: the layout follows the hero's own width, which the sidebar narrows on tablets.
     <section className="@container mb-12 pt-2 sm:pt-4" style={{ animation: 'rise 400ms cubic-bezier(0.22, 1, 0.36, 1) both' }}>
       <div className={cn('flex flex-col gap-6 @2xl:flex-row @2xl:items-end @2xl:gap-9', shape === 'round' && 'items-center @2xl:items-end')}>
-        <Cover
-          holder={cover}
-          fit={shape === 'wide' ? 'contain' : 'cover'}
-          className={cn(
-            'shrink-0 shadow-2xl shadow-black/60',
-            shape === 'wide' && 'aspect-[4/3] w-full max-w-[380px] self-start bg-black/30 @2xl:w-80',
-            shape === 'square' && 'aspect-square w-full max-w-[240px] @2xl:w-60',
-            shape === 'round' && 'size-40 @2xl:size-52',
-          )}
-          rounded={shape === 'round' ? 'rounded-full' : 'rounded-2xl'}
-        />
+        {shape !== 'none' && (
+          <Cover
+            holder={cover}
+            fit={shape === 'wide' ? 'contain' : 'cover'}
+            className={cn(
+              'shrink-0 shadow-2xl shadow-black/60',
+              shape === 'wide' && 'aspect-[4/3] w-full max-w-[380px] self-start bg-black/30 @2xl:w-80',
+              shape === 'square' && 'aspect-square w-full max-w-[240px] @2xl:w-60',
+              shape === 'round' && 'size-40 @2xl:size-52',
+              shape === 'portrait' && 'aspect-[1/1.41] w-full max-w-[220px] @2xl:w-56',
+            )}
+            rounded={shape === 'round' ? 'rounded-full' : 'rounded-2xl'}
+          />
+        )}
         <div className={cn('flex min-w-0 flex-1 flex-col justify-end', shape === 'round' && 'text-center @2xl:text-left')}>
           <p className="text-sm font-medium text-foreground/70">{eyebrow}</p>
           <h1 className={cn('mt-2 text-balance break-words font-semibold leading-[1.08] tracking-[-0.02em] [overflow-wrap:anywhere]', titleSize(title))}>

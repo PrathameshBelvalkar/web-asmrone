@@ -1,6 +1,7 @@
 import { Router, type RequestHandler } from 'express';
 import type { AuthController } from '../controllers/auth.controller.js';
 import type { FeedController } from '../controllers/feed.controller.js';
+import type { MangaController } from '../controllers/manga.controller.js';
 import type { MediaController } from '../controllers/media.controller.js';
 import type { PlaylistController } from '../controllers/playlist.controller.js';
 import type { ProxyController } from '../controllers/proxy.controller.js';
@@ -18,6 +19,7 @@ export interface Controllers {
   readonly settings: SettingsController;
   readonly proxy: ProxyController;
   readonly tools: ToolsController;
+  readonly manga: MangaController;
 }
 
 interface RouteSpec extends RouteMeta {
@@ -81,6 +83,14 @@ function routeTable(c: Controllers): RouteSpec[] {
     { method: 'PUT', path: '/tools/model', handler: c.tools.selectModel },
     { method: 'POST', path: '/tools/models/:id/delete', handler: c.tools.deleteModel },
     { method: 'POST', path: '/tools/benchmark', handler: c.tools.benchmark },
+
+    // Manga & Doujinshi (the fixed paths come before /manga/:kind/:slug)
+    { method: 'GET', path: '/manga/browse', handler: c.manga.browse },
+    { method: 'GET', path: '/manga/search', handler: c.manga.search },
+    { method: 'GET', path: '/manga/index/:kind', handler: c.manga.index },
+    { method: 'GET', path: '/manga/index/:kind/search', handler: c.manga.indexSearch },
+    { method: 'GET', path: '/manga/gallery/:id', handler: c.manga.gallery },
+    { method: 'GET', path: '/manga/:kind/:slug', handler: c.manga.byTag },
   ];
 }
 

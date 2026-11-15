@@ -132,6 +132,12 @@ All paths are under `/api`. Errors use `{ "type": string, "message": string | nu
 | GET | `/settings` | Settings with resolved values |
 | PUT | `/settings/:key` | Body `{value}`; `null` removes the value |
 | GET | `/proxy?url=` | Streams an issued URL; forwards `Range`; 403 if not issued |
+| GET | `/manga/browse?sort=new\|popular&page=` | Gallery cards |
+| GET | `/manga/search?q=&page=` | Gallery cards. `q` takes `tag:x` and `-tag:x` |
+| GET | `/manga/:kind/:slug?sort=new\|24h\|7d\|popular&page=` | Cards for one tag, artist, character, parody, group, language or category, with `tag` (its name and gallery count) |
+| GET | `/manga/index/:kind?letter=&sort=az\|popular&page=` | A–Z list of tags, artists, characters, parodies or groups |
+| GET | `/manga/index/:kind/search?q=` | Names of that kind containing `q`, names starting with it first (up to 60). Reads every A–Z page of `q`'s first letter, so the first search for a letter takes a few seconds |
+| GET | `/manga/gallery/:id` | Gallery with every page's address and size; 451 if blocked |
 
 An unknown `/api` path returns `404 {"type":"not_found","message":null}`. A known path with a method it doesn't support returns `405 {"type":"method_not_allowed","message":null}` with an `Allow` header.
 
@@ -152,6 +158,14 @@ Four sources run side by side. Each source's ids carry its prefix, and asmr.one 
 - Every request identifies itself as `EchoASMR/1.0`. There is no browser impersonation and no bypass of any block page: a block only pauses requests.
 - Login, library, playlists, likes, radio and the sites' own lyrics are asmr.one or unsupported (`not_supported`, 501) for these sources. AI subtitles are made locally for all of them.
 - The translation switch and language (`jasmrTranslateTitles`, `translationLanguage`) apply to every non-asmr.one source.
+
+### Manga & Doujinshi
+
+**3hentai.to** (used with the site's permission) is a separate area, not a music source: `MangaSource` in `src/models/manga.ts`, implemented in `src/extension/threehentai/`. See [docs/MANGA.md](../../docs/MANGA.md).
+
+- HTML pages, read the same way as hentaiasmr.moe: an address allow-list, one request at a time at least `LIMITS.threehentaiRequestGapMs` (1 s) apart, cached pages, and a pause on any block or bot check.
+- A gallery comes from its reader page, which embeds every page's address and size as JSON. Images load straight from `3-hentai.xyz`; their addresses are also issued to `/proxy` as a fallback.
+- **Content rules** (`src/services/manga.service.ts`, not a setting): galleries tagged lolicon, shotacon, toddlercon, low lolicon, low shotacon or oppai loli, or with any tag whose name contains `loli`, `shota` or `toddler`, are dropped from lists, refused with 451, and never searched for. So are galleries whose titles say the characters are children (school years below high school, words for young children, in English, Japanese and Chinese), since the site's tags are incomplete. The same names are left out of the A–Z lists.
 
 ## Serving the UI
 

@@ -1,4 +1,4 @@
-import { Disc3, House, Library, Search, Settings } from 'lucide-react';
+import { BookOpen, Disc3, House, Library, Palette, Search, Settings, Tags } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -18,7 +18,9 @@ import {
   SidebarRail,
 } from './ui/sidebar';
 
-const BROWSE: { title: string; url: string; icon: LucideIcon; end?: boolean }[] = [
+type NavItem = { title: string; url: string; icon: LucideIcon; end?: boolean };
+
+const BROWSE: NavItem[] = [
   { title: 'Home', url: '/', icon: House, end: true },
   { title: 'Search', url: '/search', icon: Search },
   { title: 'Library', url: '/library', icon: Library },
@@ -27,6 +29,30 @@ const BROWSE: { title: string; url: string; icon: LucideIcon; end?: boolean }[] 
 /** Nav rows; the active one gets a surface step and its icon in the brand colour. */
 const NAV_ITEM =
   'h-9 rounded-lg px-3 text-sm text-sidebar-foreground/80 hover:text-sidebar-accent-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground [&>svg]:size-[18px]! data-[active=true]:[&>svg]:text-primary';
+
+const MANGA: NavItem[] = [
+  { title: 'Browse', url: '/manga', icon: BookOpen, end: true },
+  { title: 'Search', url: '/manga/search', icon: Search },
+  { title: 'Artists', url: '/manga/artists', icon: Palette },
+  { title: 'Tags', url: '/manga/tags', icon: Tags },
+];
+
+/**
+ * Which manga item a page belongs to: an artist's page goes with Artists, other tag pages with Tags,
+ * and galleries, the reader and the language and category lists with Browse.
+ */
+function mangaActive(item: NavItem, pathname: string): boolean {
+  const section = pathname.startsWith('/manga/search')
+    ? '/manga/search'
+    : pathname.startsWith('/manga/artist')
+      ? '/manga/artists'
+      : /^\/manga\/(?:tags|tag|character|parody|group)(?:\/|$)/.test(pathname)
+        ? '/manga/tags'
+        : pathname.startsWith('/manga')
+          ? '/manga'
+          : null;
+  return section === item.url;
+}
 
 /** App navigation. Collapses to icons on desktop and becomes a sheet on phones. */
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
@@ -63,6 +89,27 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             {browse.map((item) => (
               <SidebarMenuItem key={item.url}>
                 <SidebarMenuButton asChild tooltip={item.title} isActive={isActive(item.url, item.end)} className={NAV_ITEM}>
+                  <NavLink to={item.url} end={item.end}>
+                    <item.icon aria-hidden />
+                    <span>{item.title}</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Manga &amp; Doujinshi</SidebarGroupLabel>
+          <SidebarMenu>
+            {MANGA.map((item) => (
+              <SidebarMenuItem key={item.url}>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={`Manga: ${item.title}`}
+                  isActive={mangaActive(item, pathname)}
+                  className={NAV_ITEM}
+                >
                   <NavLink to={item.url} end={item.end}>
                     <item.icon aria-hidden />
                     <span>{item.title}</span>

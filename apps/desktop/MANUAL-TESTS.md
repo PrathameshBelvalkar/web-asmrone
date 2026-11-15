@@ -27,3 +27,8 @@ Mac: ______________  macOS: ______________  Installer: ______________  Date: ___
 | 14 | Install a newer version over an older one | Models and settings are kept | |
 | 15 | Path with spaces or non-English letters in the user name | Everything works | |
 | 16 | Help → Check for updates… | "You have the latest version of Echo" when there is nothing new | |
+| 17 | First start | Manga & Doujinshi is in the sidebar between Browse and Account | |
+| 18 | Manga → Browse, scroll; pick a language, then a category; open a gallery; read | Covers load; more load on scroll; the language is still picked after a restart; the reader turns pages with the arrow keys and Space without starting playback | |
+| 19 | Reader → Two pages, RTL, Long strip, F for fullscreen | Pages pair after the cover; RTL swaps the order; the strip's page number follows scrolling; the page menu and thumbnails still open in fullscreen | |
+| 20 | Manga → Artists, type part of a name; open an artist | Matching artists appear (the first search for a letter can take a few seconds); the artist page shows the name, gallery count and their galleries | |
+| 21 | Manga → Search → Tags, type a tag name | Matching tags appear as you type; each opens its galleries | |

@@ -23,6 +23,7 @@ export async function makeTestApp(options: {
   asmrDispatcher?: Dispatcher;
   proxyDispatcher?: Dispatcher;
   jasmrDispatcher?: Dispatcher;
+  threehentaiDispatcher?: Dispatcher;
   distDir?: string | null;
   /** Off unless a test passes one. */
   aiSubtitles?: AiSubtitleService | null;

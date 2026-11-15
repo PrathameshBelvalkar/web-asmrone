@@ -9,6 +9,12 @@ import { ArtistPage } from './pages/ArtistPage';
 import { PlaylistPage } from './pages/PlaylistPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { MangaBrowsePage } from './pages/manga/MangaBrowsePage';
+import { MangaSearchPage } from './pages/manga/MangaSearchPage';
+import { MangaTagsPage } from './pages/manga/MangaTagsPage';
+import { MangaListPage } from './pages/manga/MangaListPage';
+import { MangaGalleryPage } from './pages/manga/MangaGalleryPage';
+import { MangaReaderPage } from './pages/manga/MangaReaderPage';
 
 export default function App() {
   return (
@@ -22,6 +28,13 @@ export default function App() {
         <Route path="artist/:id" element={<ArtistPage />} />
         <Route path="playlist/:id" element={<PlaylistPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="manga" element={<MangaBrowsePage />} />
+        <Route path="manga/search" element={<MangaSearchPage />} />
+        <Route path="manga/tags" element={<MangaTagsPage />} />
+        <Route path="manga/artists" element={<MangaTagsPage key="artists" fixedKind="artist" />} />
+        <Route path="manga/g/:id" element={<MangaGalleryPage />} />
+        <Route path="manga/g/:id/read/:page?" element={<MangaReaderPage />} />
+        <Route path="manga/:kind/:slug" element={<MangaListPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

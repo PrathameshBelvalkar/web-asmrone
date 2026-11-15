@@ -257,3 +257,68 @@ export interface ToolsStatus {
   problem: string | null;
   ready: boolean;
 }
+
+// Manga & Doujinshi ------------------------------------------------------------
+
+export type MangaTagKind = "tag" | "artist" | "character" | "parody" | "group" | "language" | "category";
+export type MangaIndexKind = "tag" | "artist" | "character" | "parody" | "group";
+export type MangaSort = "new" | "popular" | "24h" | "7d";
+
+export interface MangaCard {
+  id: string;
+  title: string;
+  /** The site's flag code (`eng`, `jpn`, `zho`, …). */
+  language: string | null;
+  cover: string;
+  coverFallbacks: string[];
+  /** Height divided by width. */
+  aspect: number | null;
+}
+
+export interface MangaTag {
+  kind: MangaTagKind;
+  slug: string;
+  name: string;
+  count: number | null;
+}
+
+export interface MangaPage {
+  n: number;
+  url: string;
+  thumb: string;
+  width: number | null;
+  height: number | null;
+}
+
+export interface MangaGallery {
+  id: string;
+  title: string;
+  titleJapanese: string | null;
+  prettyTitle: string | null;
+  cover: string;
+  pages: MangaPage[];
+  tags: MangaTag[];
+  uploadedAt: string | null;
+  scanlator: string | null;
+}
+
+export interface MangaList {
+  /** On a tag, artist or other single-name list: that name, with its gallery count. */
+  tag: MangaTag | null;
+  items: MangaCard[];
+  page: number;
+  lastPage: number | null;
+  hasMore: boolean;
+}
+
+export interface MangaIndex {
+  items: MangaTag[];
+  page: number;
+  lastPage: number | null;
+}
+
+/** What a gallery list shows: Browse, a search, or one tag, artist, language… */
+export type MangaListQuery =
+  | { by: "browse"; sort: "new" | "popular" }
+  | { by: "search"; q: string }
+  | { by: MangaTagKind; slug: string; sort: MangaSort };

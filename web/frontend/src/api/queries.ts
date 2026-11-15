@@ -1,6 +1,6 @@
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import { api } from './client';
-import type { Album, Artist, Lyrics, MediaItem, Playlist, SourceId, ToolsStatus, Track } from './types';
+import type { Album, Artist, Lyrics, MangaIndexKind, MangaListQuery, MediaItem, Playlist, SourceId, ToolsStatus, Track } from './types';
 import { usePlayer } from '../player/store';
 
 /** Shared cache times. Content is long-lived; user-specific data is shorter. */
@@ -126,4 +126,40 @@ export const toolsOptions = () =>
     queryFn: () => api.tools(),
     staleTime: 0,
     refetchInterval: (query) => (toolsBusy(query.state.data) ? 1000 : false),
+  });
+
+/** A gallery list, one site page per query page. */
+export const mangaListOptions = (query: MangaListQuery) =>
+  infiniteQueryOptions({
+    queryKey: ['manga', 'list', query],
+    queryFn: ({ pageParam }) => api.manga.list(query, pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.hasMore ? last.page + 1 : undefined),
+    staleTime: STALE.content,
+    enabled: query.by !== 'search' || query.q.length > 0,
+  });
+
+export const mangaIndexOptions = (kind: MangaIndexKind, letter: string | null, sort: 'az' | 'popular', page: number) =>
+  queryOptions({
+    queryKey: ['manga', 'index', kind, letter, sort, page],
+    queryFn: () => api.manga.index(kind, letter, sort, page),
+    staleTime: STALE.content,
+  });
+
+/** Tag (or artist, …) names containing `q`. The first search for a letter can take a few seconds. */
+export const mangaIndexSearchOptions = (kind: MangaIndexKind, q: string) =>
+  queryOptions({
+    queryKey: ['manga', 'indexSearch', kind, q.toLowerCase()],
+    queryFn: () => api.manga.searchIndex(kind, q),
+    staleTime: STALE.content,
+    enabled: q.length > 0,
+  });
+
+/** A gallery never changes once uploaded. A blocked or missing one (451, 404) isn't retried. */
+export const mangaGalleryOptions = (id: string) =>
+  queryOptions({
+    queryKey: ['manga', 'gallery', id],
+    queryFn: () => api.manga.gallery(id),
+    staleTime: Infinity,
+    retry: (count, error) => count < 2 && !('status' in error && [404, 451].includes((error as { status: number }).status)),
   });

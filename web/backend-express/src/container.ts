@@ -5,6 +5,7 @@ import type { AppConfig } from './config/env.js';
 import { LIMITS } from './config/limits.js';
 import { AuthController } from './controllers/auth.controller.js';
 import { FeedController } from './controllers/feed.controller.js';
+import { MangaController } from './controllers/manga.controller.js';
 import { MediaController } from './controllers/media.controller.js';
 import { PlaylistController } from './controllers/playlist.controller.js';
 import { ProxyController } from './controllers/proxy.controller.js';
@@ -18,11 +19,13 @@ import { AsmrOneExtension } from './extension/asmrone/asmr-one.extension.js';
 import { JasmrExtension } from './extension/jasmr/jasmr.extension.js';
 import { JnetExtension } from './extension/jnet/jnet.extension.js';
 import { HasmrExtension } from './extension/hasmr/hasmr.extension.js';
+import { ThreehentaiExtension } from './extension/threehentai/threehentai.extension.js';
 import { SourceRouter } from './extension/source-router.js';
 import { SettingsRepository } from './repositories/settings.repository.js';
 import { UserRepository } from './repositories/user.repository.js';
 import { AuthService } from './services/auth.service.js';
 import { FeedService } from './services/feed.service.js';
+import { MangaService } from './services/manga.service.js';
 import { MediaService } from './services/media.service.js';
 import { PlaylistService } from './services/playlist.service.js';
 import { PresentationService } from './services/presentation.service.js';
@@ -67,6 +70,7 @@ export interface ContainerOptions {
   readonly jasmrDispatcher?: Dispatcher;
   readonly jnetDispatcher?: Dispatcher;
   readonly hasmrDispatcher?: Dispatcher;
+  readonly threehentaiDispatcher?: Dispatcher;
   /** AI subtitles for tracks without lyrics; null turns them off. Defaults to local Whisper. */
   readonly aiSubtitles?: AiSubtitleService | null;
 }
@@ -129,6 +133,14 @@ export function createContainer(
     createDispatcher({
       connectMs: LIMITS.hasmrConnectTimeoutMs,
       responseMs: LIMITS.hasmrResponseTimeoutMs,
+    });
+
+  const ownThreehentai = options.threehentaiDispatcher === undefined;
+  const threehentaiDispatcher: Dispatcher =
+    options.threehentaiDispatcher ??
+    createDispatcher({
+      connectMs: LIMITS.threehentaiConnectTimeoutMs,
+      responseMs: LIMITS.threehentaiResponseTimeoutMs,
     });
 
   const asmrExtension: MusicExtension = options.extension ?? new AsmrOneExtension(asmrDispatcher);
@@ -206,6 +218,13 @@ export function createContainer(
   const authService = new AuthService(extension, userRepo);
   const settingsService = new SettingsService(extension, settingsRepo);
   const proxyService = new ProxyService(issued, proxyDispatcher);
+  const mangaSource = new ThreehentaiExtension(threehentaiDispatcher, {
+    gapMs: LIMITS.threehentaiRequestGapMs,
+    listingTtlMs: LIMITS.threehentaiListingTtlMs,
+    galleryTtlMs: LIMITS.threehentaiGalleryTtlMs,
+    indexTtlMs: LIMITS.threehentaiIndexTtlMs,
+  });
+  const mangaService = new MangaService(mangaSource, issued);
 
   const controllers: Controllers = {
     feed: new FeedController(feedService, presentation),
@@ -215,6 +234,7 @@ export function createContainer(
     settings: new SettingsController(settingsService),
     proxy: new ProxyController(proxyService),
     tools: new ToolsController(tools),
+    manga: new MangaController(mangaService),
   };
 
   return {
@@ -237,6 +257,7 @@ export function createContainer(
         ownJasmr ? jasmrDispatcher.close() : undefined,
         ownJnet ? jnetDispatcher.close() : undefined,
         ownHasmr ? hasmrDispatcher.close() : undefined,
+        ownThreehentai ? threehentaiDispatcher.close() : undefined,
         aiSubtitles?.close(),
       ]);
     },
