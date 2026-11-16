@@ -15,6 +15,7 @@ import { ErrorState } from '../../components/States';
 import { Skeleton } from '../../components/ui';
 import { useDetailCrumbs } from '../../lib/crumbs';
 import { formatDate, isJavKind, JAV_HOME, listRoute } from '../../lib/jav';
+import { useJavPrefs } from '../../lib/jav-prefs';
 import { mangaHolder } from '../../lib/manga';
 import { NotFoundPage } from '../NotFoundPage';
 
@@ -25,6 +26,7 @@ export function JavMoviePage() {
   const { kind = '', slug = '' } = useParams();
   const movie = useQuery({ ...javMovieOptions(kind, slug), enabled: isJavKind(kind) });
   const m = movie.data;
+  const hideUpcoming = useJavPrefs((s) => s.hideUpcoming);
   useDetailCrumbs(m?.dvdId ?? m?.title ?? slug.toUpperCase(), [JAV_HOME, { label: 'Movies', to: '/jav/movies' }]);
 
   if (!isJavKind(kind)) return <NotFoundPage />;
@@ -80,10 +82,10 @@ export function JavMoviePage() {
           <SampleGallery samples={m.samples} title={m.dvdId ?? m.title} />
         </Section>
       )}
-      {m.similar.length > 0 && (
+      {similar(m, hideUpcoming).length > 0 && (
         <Section title="Similar movies">
           <div className={MOVIE_GRID}>
-            {m.similar.map((card) => (
+            {similar(m, hideUpcoming).map((card) => (
               <MovieCard key={`${card.kind}:${card.slug}`} card={card} />
             ))}
           </div>
@@ -168,6 +170,8 @@ function Actions({ movie }: { movie: JavMovie }) {
     </>
   );
 }
+
+const similar = (m: JavMovie, hideUpcoming: boolean) => (hideUpcoming ? m.similar.filter((c) => !c.upcoming) : m.similar);
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  Clapperboard,
   LogIn,
   LogOut,
   Search,
@@ -36,6 +37,7 @@ import { Separator } from "../components/ui/separator";
 import { messageFor } from "../lib/errors";
 import { toast } from "../lib/toast";
 import { useCrumbs } from "../lib/crumbs";
+import { useJavPrefs } from "../lib/jav-prefs";
 import { SOURCES, useSource } from "../lib/source";
 
 /** The preferences that apply to Japanese ASMR (the rest only change asmr.one). */
@@ -117,6 +119,7 @@ export function SettingsPage() {
             </CardContent>
           </Card>
           <AiSubtitlesCard />
+          <JavCard />
           <StorageCard />
         </div>
 
@@ -150,6 +153,38 @@ export function SettingsPage() {
         </Card>
       </div>
     </>
+  );
+}
+
+/** JAV preferences. They live on this device, so they apply straight away without the server. */
+function JavCard() {
+  const hideUpcoming = useJavPrefs((s) => s.hideUpcoming);
+  const setHideUpcoming = useJavPrefs((s) => s.setHideUpcoming);
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Clapperboard size={18} className="text-primary" aria-hidden /> JAV
+        </CardTitle>
+        <CardDescription>Saved on this device.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <div className="text-sm">Hide upcoming movies</div>
+            <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              Leave out movies that aren't released yet: lists start
+              with released titles, and Latest has no Coming soon row.
+            </div>
+          </div>
+          <Toggle
+            label="Hide upcoming movies"
+            checked={hideUpcoming}
+            onChange={setHideUpcoming}
+          />
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

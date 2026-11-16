@@ -8,6 +8,7 @@ import { Segmented } from '../../components/manga/Segmented';
 import { PageHeader } from '../../components/ui';
 import { useCrumbs, useDetailCrumbs } from '../../lib/crumbs';
 import { isJavListBy, JAV_HOME, LIST_BY_LABEL } from '../../lib/jav';
+import { useJavPrefs } from '../../lib/jav-prefs';
 import { NotFoundPage } from '../NotFoundPage';
 
 const KINDS: { value: JavKind; label: string }[] = [
@@ -33,11 +34,16 @@ export function JavMoviesPage() {
     else next.set(key, value);
     setParams(next, { replace: true });
   };
-  const query: JavMovieQuery = { by: 'movies', kind, sort };
+  // The release list starts with pages of announced movies; with those hidden, start where released ones begin.
+  const hideUpcoming = useJavPrefs((s) => s.hideUpcoming);
+  const query: JavMovieQuery = hideUpcoming && sort === 'release' ? { by: 'latest', kind } : { by: 'movies', kind, sort };
 
   return (
     <>
-      <PageHeader title="Movies" meta="Newest release dates first, including announced titles." />
+      <PageHeader
+        title="Movies"
+        meta={hideUpcoming ? 'Newest release dates first. Upcoming movies are hidden (Settings).' : 'Newest release dates first, including announced titles.'}
+      />
       <div className="mb-8 flex flex-wrap items-center gap-3">
         <Segmented<JavKind> label="Kind" value={kind} onChange={(v) => update('kind', v === 'censored' ? null : v)} options={KINDS} />
         <Segmented<JavMovieSort> label="Sort" value={sort} onChange={(v) => update('sort', v === 'release' ? null : v)} options={SORTS} />

@@ -426,6 +426,8 @@ JAV pages have no search box of their own: the search field in the top bar becom
 
 Searching for the text (Enter, or "Search for …") opens the Search page's results, or filters News and Genres.
 
+**Hide upcoming movies** (Settings → JAV, on by default, kept on the device in `src/lib/jav-prefs.ts`): announced movies are left out of every movie list, similar movies and search suggestions. Movies sorted by release date starts where released titles begin (the Latest list) instead of filtering pages of announced ones, Latest has no Coming soon row, and the Upcoming list (`/jav/latest?show=upcoming`) says the setting is on, with a link to Settings. A movie opened directly still shows.
+
 Breadcrumbs go in `src/lib/crumbs.tsx`. The music player becomes the `MiniPlayer` on `/jav` pages, as on `/manga` pages (MANGA.md 6.4).
 
 ### 6.3 Data

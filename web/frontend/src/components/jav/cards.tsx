@@ -5,6 +5,7 @@ import { CalendarClock, Film } from 'lucide-react';
 import { javIdolsOptions, javMoviesOptions } from '../../api/queries';
 import type { JavIdolCard, JavIdolQuery, JavMovieCard, JavMovieQuery, JavRef } from '../../api/types';
 import { formatDate, idolRoute, listRoute, movieRoute } from '../../lib/jav';
+import { useJavPrefs } from '../../lib/jav-prefs';
 import { mangaHolder } from '../../lib/manga';
 import { useHeaderWash } from '../../lib/wash';
 import { GridSkeletons, IDOL_GRID, InfiniteGrid, MOVIE_GRID } from './grid';
@@ -71,14 +72,16 @@ export function IdolCard({ idol, round = false }: { idol: JavIdolCard; round?: b
 /** A movie list that loads the next site page as you scroll. The page header takes its colour from the first cover. */
 export function MovieGrid({ query, emptyText = 'No movies found.' }: { query: JavMovieQuery; emptyText?: string }) {
   const list = useInfiniteQuery(javMoviesOptions(query));
+  // The Upcoming list is the one place announced movies are always shown.
+  const hideUpcoming = useJavPrefs((s) => s.hideUpcoming) && query.by !== 'upcoming';
   const items = useMemo(() => {
     // The site's pages can overlap when new movies arrive while you scroll.
     const seen = new Set<string>();
     return (list.data?.pages.flatMap((p) => p.items) ?? []).filter((c) => {
       const key = `${c.kind}:${c.slug}`;
-      return !seen.has(key) && !!seen.add(key);
+      return !(hideUpcoming && c.upcoming) && !seen.has(key) && !!seen.add(key);
     });
-  }, [list.data]);
+  }, [list.data, hideUpcoming]);
   useHeaderWash(mangaHolder(items[0]?.cover));
   return (
     <InfiniteGrid

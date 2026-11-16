@@ -1,13 +1,14 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { ChevronRight } from 'lucide-react';
+import { CalendarClock, ChevronRight } from 'lucide-react';
 import { javMoviesOptions } from '../../api/queries';
 import type { JavKind } from '../../api/types';
 import { MovieCard, MovieGrid } from '../../components/jav/cards';
 import { Segmented } from '../../components/manga/Segmented';
-import { PageHeader, Skeleton } from '../../components/ui';
+import { EmptyState, PageHeader, Skeleton } from '../../components/ui';
 import { useCrumbs } from '../../lib/crumbs';
 import { daysUntil } from '../../lib/jav';
+import { useJavPrefs } from '../../lib/jav-prefs';
 
 const KINDS: { value: JavKind; label: string }[] = [
   { value: 'censored', label: 'Censored' },
@@ -22,6 +23,7 @@ export function JavLatestPage() {
   const [params, setParams] = useSearchParams();
   const kind: JavKind = params.get('kind') === 'uncensored' ? 'uncensored' : 'censored';
   const upcomingOnly = params.get('show') === 'upcoming';
+  const hideUpcoming = useJavPrefs((s) => s.hideUpcoming);
   useCrumbs(
     upcomingOnly
       ? [{ label: 'JAV', to: '/jav' }, { label: 'Latest', to: '/jav/latest' }, { label: 'Upcoming' }]
@@ -47,11 +49,23 @@ export function JavLatestPage() {
       <div className="mb-8">
         <Segmented<JavKind> label="Kind" value={kind} onChange={setKind} options={KINDS} />
       </div>
-      {upcomingOnly ? (
+      {upcomingOnly && hideUpcoming ? (
+        <EmptyState
+          icon={CalendarClock}
+          title="Upcoming movies are hidden"
+          action={
+            <Link to="/settings" className="text-sm text-primary hover:underline">
+              Change this in Settings
+            </Link>
+          }
+        >
+          Turn off “Hide upcoming movies” in Settings to see announced titles.
+        </EmptyState>
+      ) : upcomingOnly ? (
         <MovieGrid key={`upcoming:${kind}`} query={{ by: 'upcoming', kind }} emptyText="No announced movies right now." />
       ) : (
         <>
-          <UpcomingShelf kind={kind} />
+          {!hideUpcoming && <UpcomingShelf kind={kind} />}
           <h2 className="mb-5 text-2xl font-semibold md:text-[28px]">Just released</h2>
           <MovieGrid key={`latest:${kind}`} query={{ by: 'latest', kind }} emptyText="No released movies found." />
         </>

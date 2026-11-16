@@ -6,6 +6,7 @@ import { ArrowRight, Clock, LoaderCircle, Search, X } from 'lucide-react';
 import { javSuggestOptions } from '../../api/queries';
 import type { JavKind } from '../../api/types';
 import { dvdIdSlug, idolRoute, movieRoute } from '../../lib/jav';
+import { useJavPrefs } from '../../lib/jav-prefs';
 import { JavImage } from './JavImage';
 
 /** One row of the suggestion list. */
@@ -87,6 +88,7 @@ export function SearchBox({
   const [recent, setRecent] = useState(() => readRecent(scope));
   const q = text.trim();
   const debounced = useDebounced(q, DEBOUNCE_MS);
+  const hideUpcoming = useJavPrefs((s) => s.hideUpcoming);
 
   // A new address (Back, a link) brings its own query.
   useEffect(() => setText(initial), [initial]);
@@ -111,7 +113,7 @@ export function SearchBox({
       out.push(...source.items.filter((s) => s.label.toLowerCase().includes(needle)).slice(0, 8));
     } else if (q.length >= 2) {
       const data = suggest.data;
-      for (const m of data?.movies ?? []) {
+      for (const m of (data?.movies ?? []).filter((m) => !(hideUpcoming && m.upcoming))) {
         out.push({
           key: `m:${m.kind}:${m.slug}`,
           label: m.dvdId ?? m.title,
@@ -126,7 +128,7 @@ export function SearchBox({
     }
     out.push({ key: 'submit', label: `Search for “${q}”` });
     return out;
-  }, [q, recent, source, suggest.data]);
+  }, [q, recent, source, suggest.data, hideUpcoming]);
 
   useEffect(() => setActive(-1), [q]);
 
