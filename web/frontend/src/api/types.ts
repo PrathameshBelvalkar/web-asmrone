@@ -451,7 +451,8 @@ export type JavMovieQuery =
   | { by: "latest"; kind: JavKind }
   | { by: "upcoming"; kind: JavKind }
   | { by: JavListBy; slug: string }
-  | { by: "search"; q: string }
+  /** `kind` limits a search to censored or uncensored movies. */
+  | { by: "search"; q: string; kind?: JavKind }
   | { by: "idol"; slug: string };
 
 /** Idol filters, by Echo's query names. Values are the site's facet values. */

@@ -311,7 +311,7 @@ describe('javdatabase.com addresses', () => {
     expect(movieListAddress({ by: 'genre', slug: 'creampie', page: 2 })).toBe(
       '/genres/creampie/page/2/',
     );
-    expect(movieListAddress({ by: 'search', q: 'aoi', page: 2 })).toBe(
+    expect(movieListAddress({ by: 'search', q: 'aoi', kind: null, page: 2 })).toBe(
       '/page/2/?s=aoi&post_type=movies%2Cuncensored',
     );
     expect(
@@ -325,8 +325,11 @@ describe('javdatabase.com addresses', () => {
     expect(idolListAddress({ sort: 'debut', facets: {}, debutYear: null, page: 1 })).toBe(
       '/idols/',
     );
+    expect(movieListAddress({ by: 'search', q: 'aoi', kind: 'uncensored', page: 1 })).toBe(
+      '/?s=aoi&post_type=uncensored',
+    );
     for (const address of [
-      movieListAddress({ by: 'search', q: 'aoi', page: 2 }),
+      movieListAddress({ by: 'search', q: 'aoi', kind: null, page: 2 }),
       idolListAddress({
         sort: 'name',
         facets: { body_type: ['slim'], hair_color: ['black'] },

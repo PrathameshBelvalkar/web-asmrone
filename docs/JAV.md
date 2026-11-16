@@ -359,7 +359,7 @@ interface JavList<T> { items: T[]; page: number; lastPage?: number; hasMore: boo
 | GET | `/api/jav/idols` | `sort`, `content`, `age`, `cup`, `body`, `hairLength`, `hairColor`, `debutYear`, `page` | `JavList<JavIdolCard>`. Facets are checked against the allow-list and then mapped to the site's `_` keys. |
 | GET | `/api/jav/idol/:slug` | `page` (`ipage`) | `JavIdol` |
 | GET | `/api/jav/genres` | none | `JavGenreGroup[]`, with blocked genres removed |
-| GET | `/api/jav/search` | `q`, `type` (`movies`, `idols`), `page` | `JavList` of movie or idol cards |
+| GET | `/api/jav/search` | `q`, `type` (`movies`, `idols`), `kind` (movies only: `censored` or `uncensored`; both when left out), `page` | `JavList` of movie or idol cards |
 
 Errors use the existing `ApiError` shape. 404 means not found on the site. 451 means blocked by a content rule. 503 means the source is backing off. The fixed paths (`/jav/movies`, `/jav/idols`, …) go before the `:slug` routes in the route table, as manga does.
 
@@ -413,6 +413,18 @@ Added to `src/App.tsx`, inside `<Shell/>`:
 | `jav/idol/:slug` | `JavIdolPage`: `DetailHero` with a round photo, the Japanese name and other names, a profile grid (age, debut, height, measurements, cup, blood, hair), the bio (collapsed after 4 lines), their movies in a grid with infinite scroll (`ipage`), then **Related idols** |
 | `jav/genres` | `JavGenresPage`: one section per group, genre chips, and a filter box that matches as you type (on the client: the list is small) |
 | `jav/search` | `JavSearchPage`: **Movies / Idols** switch. Searches on Enter. A DVD ID that looks exact (`/^[a-z]+-?\d+$/i`) gets a **Go to SAVR-1268** button that opens the movie directly. |
+
+Every JAV page has a search box with suggestions (`src/components/jav/SearchBox.tsx`). ↑ and ↓ move through them, Enter picks, Esc closes, and an empty box lists the page's recent searches (kept on the device).
+
+| Page | Searches | Suggestions |
+|---|---|---|
+| News | post titles and summaries, filtering the posts loaded so far (the site can't search its posts) | the loaded posts, instantly |
+| Latest, Movies | movies, kept to the kind shown (`/api/jav/search?kind=`) | the first 8 results of the site's search, 300 ms after typing stops; a DVD ID adds "Go to SAVR-1268" |
+| Idols | idols by name | the first 8 results of the site's idol search, with photos |
+| Genres | genre names, filtering the page | every genre, instantly |
+| Search | movies (All, Censored or Uncensored) or idols | as above |
+
+Searching for the text (Enter, or "Search for …") opens the Search page from Latest, Movies and Idols, and filters the page on News and Genres.
 
 Breadcrumbs go in `src/lib/crumbs.tsx`. The music player becomes the `MiniPlayer` on `/jav` pages, as on `/manga` pages (MANGA.md 6.4).
 

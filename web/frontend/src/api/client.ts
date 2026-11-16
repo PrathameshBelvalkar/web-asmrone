@@ -204,7 +204,10 @@ export const api = {
         case "upcoming":
           return req<JavMovieList>("GET", `/jav/${query.by}?kind=${query.kind}&page=${page}`);
         case "search":
-          return req<JavMovieList>("GET", `/jav/search?type=movies&q=${enc(query.q)}&page=${page}`);
+          return req<JavMovieList>(
+            "GET",
+            `/jav/search?type=movies&q=${enc(query.q)}&page=${page}${query.kind ? `&kind=${query.kind}` : ""}`,
+          );
         case "idol":
           return (await req<JavIdol>("GET", `/jav/idol/${enc(query.slug)}?page=${page}`)).movies;
         default:

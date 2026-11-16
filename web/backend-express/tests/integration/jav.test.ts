@@ -300,6 +300,18 @@ describe('/api/jav', () => {
     });
   });
 
+  it('searches one kind of movie when asked', async () => {
+    site()
+      .intercept({ path: '/?s=aoi&post_type=uncensored', method: 'GET' })
+      .reply(200, fixture('search-movies.html'));
+    const res = await request(t.app)
+      .get('/api/jav/search')
+      .query({ q: 'aoi', kind: 'uncensored' })
+      .expect(200);
+    expect(res.body.items.length).toBeGreaterThan(0);
+    await request(t.app).get('/api/jav/search').query({ q: 'aoi', kind: 'vr' }).expect(400);
+  });
+
   it('checks its input', async () => {
     await request(t.app).get('/api/jav/search').expect(400);
     await request(t.app).get('/api/jav/search').query({ q: 'x', type: 'studios' }).expect(400);

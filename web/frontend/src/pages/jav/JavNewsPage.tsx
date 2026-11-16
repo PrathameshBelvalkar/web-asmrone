@@ -8,10 +8,11 @@ import { javNewsOptions } from '../../api/queries';
 import type { JavNewsCategory } from '../../api/types';
 import { InfiniteGrid } from '../../components/jav/grid';
 import { NewsCard } from '../../components/jav/NewsCard';
+import { SearchBox } from '../../components/jav/SearchBox';
 import { Segmented } from '../../components/manga/Segmented';
 import { PageHeader, Skeleton } from '../../components/ui';
 import { useCrumbs } from '../../lib/crumbs';
-import { NEWS_CATEGORIES } from '../../lib/jav';
+import { formatDate, NEWS_CATEGORIES, newsRoute } from '../../lib/jav';
 
 type Category = JavNewsCategory | 'all';
 export type NewsLayout = 'magazine' | 'grid' | 'list';
@@ -60,7 +61,18 @@ export function JavNewsPage() {
   const category: Category = NEWS_CATEGORIES.some((c) => c.value === raw) ? (raw as Category) : 'all';
   const [layout, setLayout] = useState<NewsLayout>(savedLayout);
   const list = useInfiniteQuery(javNewsOptions(category === 'all' ? null : category));
-  const items = useMemo(() => list.data?.pages.flatMap((p) => p.items) ?? [], [list.data]);
+  const all = useMemo(() => list.data?.pages.flatMap((p) => p.items) ?? [], [list.data]);
+  // The site can't search its posts, so the box searches the posts loaded so far.
+  const [filter, setFilter] = useState('');
+  const needle = filter.trim().toLowerCase();
+  const items = useMemo(
+    () => (needle ? all.filter((i) => `${i.title} ${i.summary}`.toLowerCase().includes(needle)) : all),
+    [all, needle],
+  );
+  const suggestions = useMemo(
+    () => all.map((i) => ({ key: i.path, label: i.title, sub: formatDate(i.date), image: i.image, to: newsRoute(i.path) })),
+    [all],
+  );
 
   const chooseLayout = (next: NewsLayout) => {
     setLayout(next);
@@ -74,6 +86,16 @@ export function JavNewsPage() {
         meta="Weekly charts, new debuts and updates from javdatabase.com."
         actions={<LayoutPicker value={layout} onChange={chooseLayout} />}
       />
+      <div className="mb-5 max-w-xl">
+        <SearchBox
+          scope="news"
+          source={{ type: 'local', items: suggestions }}
+          placeholder="Search news"
+          onSubmit={setFilter}
+          onTextChange={setFilter}
+          size="md"
+        />
+      </div>
       <div className="mb-8">
         <Segmented<Category>
           label="Category"
@@ -82,6 +104,12 @@ export function JavNewsPage() {
           options={NEWS_CATEGORIES}
         />
       </div>
+      {needle && (
+        <p className="mb-5 text-sm text-muted-foreground">
+          {items.length} of the {all.length} posts loaded so far match “{filter.trim()}”.
+          {list.hasNextPage && ' Scroll down to search older posts too.'}
+        </p>
+      )}
       <InfiniteGrid
         key={category}
         list={list}
@@ -93,7 +121,7 @@ export function JavNewsPage() {
         itemClassName={(_, i) => (layout === 'magazine' && i === 0 ? 'md:col-span-2 lg:row-span-2' : '')}
         className={GRID_CLASS[layout]}
         skeleton={<NewsSkeletons layout={layout} />}
-        emptyText="No posts in this category."
+        emptyText={needle ? 'No loaded posts match this search.' : 'No posts in this category.'}
       />
     </>
   );

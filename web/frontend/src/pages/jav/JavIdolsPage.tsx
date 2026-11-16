@@ -1,4 +1,4 @@
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
@@ -8,13 +8,14 @@ import type { JavIdol, JavIdolFilters, JavIdolSort } from '../../api/types';
 import { DetailHero } from '../../components/DetailHero';
 import { IdolCard, IdolGrid, MovieGrid } from '../../components/jav/cards';
 import { FacetSheet } from '../../components/jav/FacetSheet';
+import { SearchBox } from '../../components/jav/SearchBox';
 import { IDOL_GRID, isRefused, Unavailable } from '../../components/jav/grid';
 import { JavImage } from '../../components/jav/JavImage';
 import { Segmented } from '../../components/manga/Segmented';
 import { ErrorState } from '../../components/States';
 import { PageHeader, Skeleton } from '../../components/ui';
 import { useCrumbs, useDetailCrumbs } from '../../lib/crumbs';
-import { filtersFromParams, formatDate, IDOL_FILTERS, JAV_HOME } from '../../lib/jav';
+import { filtersFromParams, formatDate, IDOL_FILTERS, JAV_HOME, searchRoute } from '../../lib/jav';
 import { mangaHolder } from '../../lib/manga';
 
 const SORTS: { value: JavIdolSort; label: string }[] = [
@@ -32,6 +33,7 @@ export function JavIdolsPage() {
   const raw = params.get('sort');
   const sort: JavIdolSort = SORTS.some((s) => s.value === raw) ? (raw as JavIdolSort) : 'debut';
   const filters = filtersFromParams(params);
+  const navigate = useNavigate();
 
   const apply = (nextSort: JavIdolSort, nextFilters: JavIdolFilters) => {
     const next = new URLSearchParams();
@@ -48,6 +50,15 @@ export function JavIdolsPage() {
   return (
     <>
       <PageHeader title="Idols" />
+      <div className="mb-5 max-w-xl">
+        <SearchBox
+          scope="idols"
+          source={{ type: 'idols' }}
+          placeholder="Search idols by name"
+          onSubmit={(q) => navigate(searchRoute(q, 'idols'))}
+          size="md"
+        />
+      </div>
       <div className="mb-4">
         <Segmented<JavIdolSort> label="Sort" value={sort} onChange={(v) => apply(v, filters)} options={SORTS} />
       </div>

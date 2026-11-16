@@ -1,9 +1,10 @@
-import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
+import { infiniteQueryOptions, keepPreviousData, queryOptions } from '@tanstack/react-query';
 import { api } from './client';
 import type {
   Album,
   Artist,
   JavIdolQuery,
+  JavKind,
   JavMovieQuery,
   JavNewsCategory,
   Lyrics,
@@ -225,6 +226,23 @@ export const javMovieOptions = (kind: string, slug: string) =>
     queryFn: () => api.jav.movie(kind, slug),
     staleTime: 60 * MIN,
     retry: javRetry,
+  });
+
+/**
+ * Search suggestions: the first few results of a movie or idol search. Each new query keeps the last
+ * suggestions on screen until its own arrive.
+ */
+export const javSuggestOptions = (type: 'movies' | 'idols', q: string, kind?: JavKind) =>
+  queryOptions({
+    queryKey: ['jav', 'suggest', type, kind ?? 'all', q.toLowerCase()],
+    queryFn: async () =>
+      type === 'idols'
+        ? { movies: [], idols: (await api.jav.idols({ by: 'search', q }, 1)).items.slice(0, 8) }
+        : { movies: (await api.jav.movies({ by: 'search', q, kind }, 1)).items.slice(0, 8), idols: [] },
+    staleTime: STALE.content,
+    enabled: q.length >= 2,
+    placeholderData: keepPreviousData,
+    retry: false,
   });
 
 export const javIdolsOptions = (query: JavIdolQuery) =>

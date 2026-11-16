@@ -82,7 +82,13 @@ function searchAddress(q: string, postType: string, page: number): string {
 
 /** The site address for a movie list query. */
 export function movieListAddress(query: JavMovieQuery): string {
-  if (query.by === 'search') return searchAddress(query.q, 'movies,uncensored', query.page);
+  if (query.by === 'search') {
+    return searchAddress(
+      query.q,
+      query.kind === null ? 'movies,uncensored' : KIND_PATH[query.kind],
+      query.page,
+    );
+  }
   if (query.by === 'all') {
     const sort = MOVIE_SORT[query.sort];
     const path = `/${KIND_PATH[query.kind]}/${pagePart(query.page)}`;

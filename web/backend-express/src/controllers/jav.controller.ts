@@ -142,9 +142,11 @@ export class JavController {
     const type = queryString(req, 'type') ?? 'movies';
     const page = pageParam(req);
     if (type === 'idols') res.json(javIdolListView(await this.jav.searchIdols(q, page)));
-    else if (type === 'movies')
-      res.json(javMovieListView(await this.jav.movies({ by: 'search', q, page })));
-    else throw HttpError.badRequest('type must be movies or idols');
+    else if (type === 'movies') {
+      // Without `kind`, both kinds are searched.
+      const kind = queryString(req, 'kind') === undefined ? null : kindParam(req);
+      res.json(javMovieListView(await this.jav.movies({ by: 'search', q, kind, page })));
+    } else throw HttpError.badRequest('type must be movies or idols');
   };
 }
 

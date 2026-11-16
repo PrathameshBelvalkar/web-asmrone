@@ -5,6 +5,13 @@ export const JAV_HOME = { label: 'JAV', to: '/jav' };
 export const movieRoute = (kind: JavKind, slug: string) => `/jav/movie/${kind}/${encodeURIComponent(slug)}`;
 export const idolRoute = (slug: string) => `/jav/idol/${encodeURIComponent(slug)}`;
 export const listRoute = (by: JavListBy, slug: string) => `/jav/movies/${by}/${encodeURIComponent(slug)}`;
+/** The Search page for `q`; a movie search can be kept to one kind. */
+export function searchRoute(q: string, type: 'movies' | 'idols', kind?: JavKind): string {
+  const params = new URLSearchParams({ q });
+  if (type === 'idols') params.set('type', 'idols');
+  if (type === 'movies' && kind === 'uncensored') params.set('kind', 'uncensored');
+  return `/jav/search?${params.toString()}`;
+}
 /** A news post inside Echo. `path` is `2026/11/13/slug`. */
 export const newsRoute = (path: string) => `/jav/news/${path}`;
 

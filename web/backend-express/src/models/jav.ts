@@ -153,7 +153,13 @@ export type JavMovieQuery =
       readonly page: number;
     }
   | { readonly by: JavListBy; readonly slug: string; readonly page: number }
-  | { readonly by: 'search'; readonly q: string; readonly page: number };
+  | {
+      readonly by: 'search';
+      readonly q: string;
+      /** null searches both kinds. */
+      readonly kind: JavKind | null;
+      readonly page: number;
+    };
 
 /** Idol filters, keyed by the site's facet name without its `_` prefix. */
 export const JAV_IDOL_FACETS = {
