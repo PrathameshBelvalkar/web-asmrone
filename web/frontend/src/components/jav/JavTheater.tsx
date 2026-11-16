@@ -12,7 +12,8 @@ import { recordWatch, resumeAt, useWatchEntry, type WatchedMovie } from '../../l
 
 /** How often the position is saved while playing. */
 const SAVE_EVERY_MS = 5_000;
-const BOX = 'aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-2xl shadow-black/60';
+/** Edge to edge, no corners; a very wide window letterboxes rather than growing past the screen. */
+const BOX = 'aspect-video max-h-[calc(100svh-4rem)] w-full overflow-hidden bg-black';
 
 export type TheaterSource = { type: 'movie' } | { type: 'trailer'; url: string };
 
@@ -25,7 +26,15 @@ export function JavTheater({
   movie, source, poster, fromStart = false,
 }: { movie: WatchedMovie; source: TheaterSource; poster?: string; fromStart?: boolean }) {
   if (source.type === 'trailer') {
-    return <Player src={{ src: source.url, type: 'video/mp4' }} title={`${movie.dvdId ?? movie.title} · Trailer`} poster={poster} />;
+    return (
+      <Player
+        src={{ src: source.url, type: 'video/mp4' }}
+        title={`${movie.dvdId ?? movie.title} · Trailer`}
+        poster={poster}
+        // DMM's video host answers 403 outside Japan, on javdatabase.com too.
+        failText={/\.dmm\.co\.jp\//.test(source.url) ? 'Trailer unavailable: DMM only serves trailers in Japan.' : 'Trailer unavailable.'}
+      />
+    );
   }
   return <MovieStream movie={movie} poster={poster} fromStart={fromStart} />;
 }
@@ -84,12 +93,14 @@ function MovieStream({ movie, poster, fromStart }: { movie: WatchedMovie; poster
 }
 
 function Player({
-  src, title, poster, start = null, movie,
+  src, title, poster, start = null, movie, failText = 'This stream could not be played.',
 }: {
   src: PlayerSrc;
   title: string;
   poster?: string;
   start?: number | null;
+  /** Shown in place of the player when the video can't be loaded or played. */
+  failText?: string;
   /** Given for the full movie: its position is saved. */
   movie?: WatchedMovie;
 }) {
@@ -113,20 +124,31 @@ function Player({
   saveRef.current = save;
   useEffect(() => () => saveRef.current(true), []);
 
-  if (failed) return <Notice title="This stream could not be played." />;
+  // Vidstack loads a file through a <source>. A refused file (a trailer host's 403) fires `error` on
+  // the <source>, not on the <video>, and Vidstack doesn't pass it on, so listen for it here.
+  useEffect(() => {
+    const el = player.current?.el;
+    if (!el) return;
+    const onSourceError = (e: Event) => {
+      if (e.target instanceof HTMLSourceElement) setFailed(true);
+    };
+    el.addEventListener('error', onSourceError, true);
+    return () => el.removeEventListener('error', onSourceError, true);
+  }, []);
+
+  if (failed) return <Notice title={failText} />;
 
   return (
     <MediaPlayer
       ref={player}
       className={`${BOX} jav-theater`}
-      style={{ '--video-brand': 'var(--primary)', '--video-border-radius': '1rem' }}
+      style={{ '--video-brand': 'var(--primary)', '--video-border-radius': '0px' }}
       title={title}
       src={src}
       viewType="video"
       streamType="on-demand"
       playsInline
       autoPlay
-      crossOrigin
       onProviderChange={(provider) => {
         // Echo's own hls.js, not a copy from a CDN.
         if (isHLSProvider(provider)) provider.library = Hls;
@@ -139,6 +161,8 @@ function Player({
       onTimeUpdate={() => save()}
       onPause={() => save(true)}
       onEnded={() => save(true)}
+      // A refused or broken video file (a trailer host's 403, an unplayable segment).
+      onError={() => setFailed(true)}
       onHlsError={(detail) => {
         if (detail.fatal) setFailed(true);
       }}

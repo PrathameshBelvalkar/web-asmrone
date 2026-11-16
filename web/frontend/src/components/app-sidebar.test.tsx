@@ -70,11 +70,12 @@ describe("AppSidebar", () => {
   it("shows JAV between Manga & Doujinshi and Account", async () => {
     renderSidebar("/jav/movie/censored/savr-1268");
     const label = await screen.findByText("JAV");
-    const labels = screen
-      .getAllByText(/^(Browse|Manga & Doujinshi|JAV|Account)$/)
-      .filter((el) => el.getAttribute("data-sidebar") === "group-label")
-      .map((el) => el.textContent);
+    // A label's name is its first element when it has one (JAV is followed by a Beta tag).
+    const labels = [...document.querySelectorAll('[data-sidebar="group-label"]')].map(
+      (el) => el.firstElementChild?.textContent ?? el.textContent,
+    );
     expect(labels).toEqual(["Browse", "Manga & Doujinshi", "JAV", "Account"]);
+    expect(within(label.closest('[data-sidebar="group-label"]') as HTMLElement).getByText("Beta")).toBeInTheDocument();
     const group = label.closest('[data-sidebar="group"]') as HTMLElement;
     expect(within(group).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual([
       "/jav",

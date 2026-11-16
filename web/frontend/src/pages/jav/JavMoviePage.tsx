@@ -149,9 +149,16 @@ function Theater({
     top.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
   }, []);
   return (
-    <section ref={top} aria-label="Player" className="mb-10 scroll-mt-20 pt-2 sm:pt-4" style={{ animation: 'rise 400ms cubic-bezier(0.22, 1, 0.36, 1) both' }}>
-      <div className="mx-auto max-w-[min(100%,calc(78vh*16/9))]">
-        <JavTheater movie={movie} source={source} poster={poster} fromStart={fromStart} />
+    // The negative margins undo the page padding (Shell's <main>), so the player runs from the
+    // sidebar to the window's edge.
+    <section
+      ref={top}
+      aria-label="Player"
+      className="-mx-4 -mt-4 mb-10 scroll-mt-16 sm:-mx-6 sm:-mt-6 lg:-mx-10"
+      style={{ animation: 'rise 400ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
+    >
+      <JavTheater movie={movie} source={source} poster={poster} fromStart={fromStart} />
+      <div className="px-4 sm:px-6 lg:px-10">
         <div className="mt-3 flex items-center justify-between gap-4">
           <p className="min-w-0 truncate text-sm text-foreground/70">
             <span className="font-semibold text-foreground tnum">{movie.dvdId ?? movie.title}</span>

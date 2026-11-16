@@ -147,7 +147,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>JAV</SidebarGroupLabel>
+          <SidebarGroupLabel className="gap-2">
+            <span>JAV</span>
+            <span className="rounded-md bg-primary/15 px-1.5 py-px text-[0.625rem] font-semibold leading-4 text-primary">Beta</span>
+          </SidebarGroupLabel>
           <SidebarMenu>
             {JAV.map((item) => (
               <SidebarMenuItem key={item.url}>
