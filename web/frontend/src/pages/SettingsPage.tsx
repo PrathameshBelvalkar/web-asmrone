@@ -65,7 +65,8 @@ export function SettingsPage() {
     <>
       <PageHeader title="Settings" />
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+      {/* Two equal columns: the music account and preferences, then what lives on this computer. */}
+      <div className="grid items-start gap-6 lg:grid-cols-2">
         <div className="flex min-w-0 flex-col gap-6">
           <Card>
             <CardHeader>
@@ -118,39 +119,42 @@ export function SettingsPage() {
               {forms.error && <ErrorState error={forms.error} />}
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <SlidersHorizontal
+                  size={18}
+                  className="text-primary"
+                  aria-hidden
+                />{" "}
+                Preferences
+              </CardTitle>
+              <CardDescription>Changes apply straight away.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <MusicSourceRow />
+              {settings.isPending && <RowSkeletons count={4} />}
+              {settings.error && (
+                <ErrorState
+                  error={settings.error}
+                  onRetry={() => void settings.refetch()}
+                />
+              )}
+              <div className="divide-y">
+                {shown?.map((s) => (
+                  <SettingRow key={s.key} setting={s} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-6">
           <AiSubtitlesCard />
           <JavCard />
           <StorageCard />
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <SlidersHorizontal
-                size={18}
-                className="text-primary"
-                aria-hidden
-              />{" "}
-              Preferences
-            </CardTitle>
-            <CardDescription>Changes apply straight away.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <MusicSourceRow />
-            {settings.isPending && <RowSkeletons count={4} />}
-            {settings.error && (
-              <ErrorState
-                error={settings.error}
-                onRetry={() => void settings.refetch()}
-              />
-            )}
-            <div className="divide-y">
-              {shown?.map((s) => (
-                <SettingRow key={s.key} setting={s} />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </>
   );
@@ -173,8 +177,8 @@ function JavCard() {
           <div className="min-w-0">
             <div className="text-sm">Hide upcoming movies</div>
             <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-              Leave out movies that aren't released yet: lists start
-              with released titles, and Latest has no Coming soon row.
+              Leave out movies that aren't released yet: lists start with
+              released titles, and Latest has no Coming soon row.
             </div>
           </div>
           <Toggle
