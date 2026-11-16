@@ -14,6 +14,7 @@ import {
   type JavNewsCategory,
 } from '../models/jav.js';
 import type { JavService } from '../services/jav.service.js';
+import type { JavStreamService } from '../services/jav-stream.service.js';
 import {
   javGenresView,
   javIdolListView,
@@ -23,6 +24,7 @@ import {
   javMovieView,
   javNewsListView,
   javNewsPostView,
+  javStreamView,
 } from '../views/jav.view.js';
 import { paramString, queryString } from './query.js';
 
@@ -38,9 +40,12 @@ const FACET_PARAMS: Readonly<Record<string, JavIdolFacet>> = {
   hairColor: 'hair_color',
 };
 
-/** JAV: news, latest and upcoming movies, movie lists, movies, idols, genres and search. */
+/** JAV: news, latest and upcoming movies, movie lists, movies, streams, idols, genres and search. */
 export class JavController {
-  constructor(private readonly jav: JavService) {}
+  constructor(
+    private readonly jav: JavService,
+    private readonly streams: JavStreamService,
+  ) {}
 
   news = async (req: Request, res: Response): Promise<void> => {
     const raw = queryString(req, 'category') ?? 'all';
@@ -99,6 +104,17 @@ export class JavController {
     const slug = paramString(req, 'slug');
     if (!isJavKind(kind) || !SLUG.test(slug)) throw HttpError.notFound();
     res.json(javMovieView(await this.jav.movie(kind, slug)));
+  };
+
+  /** The movie's full-movie stream. Resolved only when asked for, so the client asks on Watch. */
+  stream = async (req: Request, res: Response): Promise<void> => {
+    const kind = paramString(req, 'kind');
+    const slug = paramString(req, 'slug');
+    if (!isJavKind(kind) || !SLUG.test(slug)) throw HttpError.notFound();
+    const server = queryString(req, 'server') ?? 'sb';
+    if (server !== 'sb') throw HttpError.badRequest('server must be sb');
+    res.setHeader('Cache-Control', 'no-store');
+    res.json(javStreamView(await this.streams.stream(kind, slug, server)));
   };
 
   idols = async (req: Request, res: Response): Promise<void> => {

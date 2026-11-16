@@ -107,6 +107,7 @@ function routeTable(c: Controllers): RouteSpec[] {
     { method: 'GET', path: '/jav/movies', handler: c.jav.movies },
     { method: 'GET', path: '/jav/movies/:by/:slug', handler: c.jav.moviesBy },
     { method: 'GET', path: '/jav/movie/:kind/:slug', handler: c.jav.movie },
+    { method: 'GET', path: '/jav/movie/:kind/:slug/stream', handler: c.jav.stream },
     { method: 'GET', path: '/jav/idols', handler: c.jav.idols },
     { method: 'GET', path: '/jav/idol/:slug', handler: c.jav.idol },
     { method: 'GET', path: '/jav/genres', handler: c.jav.genres },

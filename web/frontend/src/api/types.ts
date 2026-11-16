@@ -373,6 +373,14 @@ export interface JavMovie extends JavMovieCard {
   similar: JavMovieCard[];
 }
 
+/** A full movie's HLS stream. Load `master` through the proxy; its segments load from their host. */
+export interface JavStream {
+  server: "sb";
+  master: string;
+  /** Epoch ms after which the stream should be asked for again. */
+  expiresAt: number;
+}
+
 export interface JavIdolCard {
   slug: string;
   name: string;

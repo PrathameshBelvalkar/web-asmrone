@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Check, Copy, ExternalLink, Film, Image as ImageIcon } from 'lucide-react';
+import { Check, Copy, ExternalLink, Film, Image as ImageIcon, Play } from 'lucide-react';
 import { ApiError } from '../../api/client';
 import { javMovieOptions } from '../../api/queries';
 import type { JavMovie } from '../../api/types';
@@ -10,6 +10,7 @@ import { DetailHero } from '../../components/DetailHero';
 import { IdolCard, MovieCard, RefChips } from '../../components/jav/cards';
 import { IDOL_GRID, isRefused, MOVIE_GRID, Unavailable } from '../../components/jav/grid';
 import { JavImage } from '../../components/jav/JavImage';
+import { JavPlayer } from '../../components/jav/JavPlayer';
 import { SampleGallery } from '../../components/jav/SampleGallery';
 import { ErrorState } from '../../components/States';
 import { Skeleton } from '../../components/ui';
@@ -95,14 +96,25 @@ export function JavMoviePage() {
   );
 }
 
-/** The landscape cover, or the trailer once asked for. The trailer loads from its host in the browser. */
+/**
+ * The landscape cover, the trailer, or the full movie once asked for. The trailer loads from its host
+ * in the browser. The movie's stream is looked up only when Watch is pressed.
+ */
 function CoverOrTrailer({ movie }: { movie: JavMovie }) {
-  const [playing, setPlaying] = useState(false);
+  const [mode, setMode] = useState<'cover' | 'trailer' | 'movie'>('cover');
   const [failed, setFailed] = useState(false);
   const box = 'aspect-[800/538] w-full max-w-[480px] shrink-0 overflow-hidden rounded-2xl shadow-2xl shadow-black/60 @2xl:w-[440px]';
+  const canWatch = movie.dvdId !== null && !movie.upcoming;
+  const show = (next: typeof mode) => {
+    setMode((m) => (m === next ? 'cover' : next));
+    setFailed(false);
+  };
+  const button = 'inline-flex h-9 items-center gap-2 rounded-full border border-white/15 px-4 text-sm font-medium hover:border-white/30 hover:bg-white/10';
   return (
     <div className="w-full max-w-[480px] shrink-0 @2xl:w-[440px]">
-      {playing && movie.trailer && !failed ? (
+      {mode === 'movie' ? (
+        <JavPlayer kind={movie.kind} slug={movie.slug} poster={movie.coverFull ?? undefined} className={box} />
+      ) : mode === 'trailer' && movie.trailer && !failed ? (
         <video
           className={`${box} bg-black`}
           src={movie.trailer}
@@ -114,20 +126,21 @@ function CoverOrTrailer({ movie }: { movie: JavMovie }) {
       ) : (
         <JavImage src={movie.coverFull ?? movie.cover} loading="eager" className={box} imgClassName="h-full w-full object-contain" />
       )}
-      {movie.trailer && (
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              setPlaying((p) => !p);
-              setFailed(false);
-            }}
-            className="inline-flex h-9 items-center gap-2 rounded-full border border-white/15 px-4 text-sm font-medium hover:border-white/30 hover:bg-white/10"
-          >
-            {playing ? <ImageIcon size={16} aria-hidden /> : <Film size={16} aria-hidden />}
-            {playing ? 'Cover' : 'Trailer'}
-          </button>
-          {playing && failed && (
+      {(canWatch || movie.trailer) && (
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          {canWatch && (
+            <button type="button" onClick={() => show('movie')} className={button}>
+              {mode === 'movie' ? <ImageIcon size={16} aria-hidden /> : <Play size={16} aria-hidden />}
+              {mode === 'movie' ? 'Cover' : 'Watch'}
+            </button>
+          )}
+          {movie.trailer && (
+            <button type="button" onClick={() => show('trailer')} className={button}>
+              {mode === 'trailer' ? <ImageIcon size={16} aria-hidden /> : <Film size={16} aria-hidden />}
+              {mode === 'trailer' ? 'Cover' : 'Trailer'}
+            </button>
+          )}
+          {mode === 'trailer' && failed && movie.trailer && (
             <p className="text-sm text-muted-foreground">
               {/* DMM's video host answers 403 outside Japan, on javdatabase.com too. */}
               {/\.dmm\.co\.jp\//.test(movie.trailer) ? 'Trailer unavailable: DMM only serves trailers in Japan.' : 'Trailer unavailable.'}

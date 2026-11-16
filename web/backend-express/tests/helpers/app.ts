@@ -27,6 +27,7 @@ export async function makeTestApp(
     jasmrDispatcher?: Dispatcher;
     threehentaiDispatcher?: Dispatcher;
     javdatabaseDispatcher?: Dispatcher;
+    javguruDispatcher?: Dispatcher;
     javClock?: Clock;
     distDir?: string | null;
     /** Off unless a test passes one. */

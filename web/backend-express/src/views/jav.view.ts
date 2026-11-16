@@ -10,6 +10,7 @@ import type {
   JavNewsItem,
   JavNewsPost,
   JavRef,
+  JavStream,
 } from '../models/jav.js';
 
 type JsonObject = { [key: string]: Json };
@@ -52,6 +53,10 @@ export const javMovieCardsView = (list: JavList<JavMovieCard>): Json =>
   listView(list, movieCardView);
 
 export const javIdolListView = (list: JavList<JavIdolCard>): Json => listView(list, idolCardView);
+
+export function javStreamView(stream: JavStream): Json {
+  return { server: stream.server, master: stream.master, expiresAt: stream.expiresAt };
+}
 
 export function javMovieView(movie: JavMovie): Json {
   return {

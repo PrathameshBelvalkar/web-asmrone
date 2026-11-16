@@ -6,6 +6,8 @@ The source is **javdatabase.com**. We have a licence from the site to use its da
 
 Echo shows **metadata only**: titles, covers, sample images, cast, studio, genres and dates. The site doesn't host full movies, and neither does Echo. Trailers are hosted by DMM or the studio: the user's browser loads them directly, and Echo's server never fetches or proxies them (decided 2026-11-16, section 10).
 
+> **Exception (decided 2026-11-16):** a **Watch** button plays the full movie from jav.guru's "STREAM SB" server. jav.guru is not licensed. See [section 11](#11-watching-full-movies-from-javguru).
+
 > **Diagrams.** The diagrams use [Mermaid](https://mermaid.js.org/). GitHub shows them as pictures. In VS Code, install the
 > "Markdown Preview Mermaid Support" extension to see them in the preview.
 
@@ -23,6 +25,7 @@ Echo shows **metadata only**: titles, covers, sample images, cast, studio, genre
 8. [Phases](#8-phases)
 9. [Testing](#9-testing)
 10. [Open questions and risks](#10-open-questions-and-risks)
+11. [Watching full movies from jav.guru](#11-watching-full-movies-from-javguru)
 
 ---
 
@@ -464,6 +467,7 @@ Reuse `components/manga/Segmented.tsx` for the switches and sort chips. Move it 
 | Cast | A row of `IdolCard`s linking to `/jav/idol/:slug` |
 | Samples | `SampleGallery`: a grid of thumbnails. Clicking one opens a full-window viewer (portalled to `<body>`) with ← / → and swipe, Esc to close, and a counter "3 / 17". It shows the `full` image and falls back to the `thumb` when the full one fails. The next and previous images are preloaded. |
 | Trailer | Only if section 10 allows it. A **Trailer** button that swaps the cover for a `<video controls>`. No autoplay. |
+| Watch | Released movies with a DVD ID only. A **Watch** button that swaps the cover for `JavPlayer`, the full movie from jav.guru (section 11). The stream is looked up only when it's pressed. |
 | Similar | A `MovieGrid` without infinite scroll |
 | Header | **Open on javdatabase.com** (an external link) and **Copy DVD ID** |
 | Errors | 451 shows "This title isn't available in Echo." 404 shows the not-found state. 503 shows "The source is busy, try again later" with a **Try again** button. |
@@ -483,6 +487,7 @@ Box sizes are fixed before images load (147:200 cards, 160:200 idols, about 3:2 
 | 4 | Idols and idol page | Done |
 | 5 | Movie page and search | Done. Trailers load in the browser from their host; "Trailer unavailable" when the host refuses. |
 | 6 | Desktop | `apps/desktop/MANUAL-TESTS.md` has rows 22–25. Still to run on the packaged Mac app. |
+| 7 | Full movies from jav.guru | Built. See 11.8. |
 
 ---
 
@@ -499,7 +504,7 @@ Box sizes are fixed before images load (147:200 cards, 160:200 idols, about 3:2 
 
 ## 10. Open questions and risks
 
-- **Trailers (decided).** The trailer MP4s are on DMM (`cc3001.dmm.co.jp`) or the studio's host, not on javdatabase. A plain server request got **403**. Echo puts the address in a `<video>` and lets the user's browser load it; it never proxies trailers or fakes a Referer. If the host refuses, the page says "Trailer unavailable".
+- **Trailers (decided).** The trailer MP4s are on DMM (`cc3001.dmm.co.jp`) or the studio's host, not on javdatabase. A plain server request got **403**. Echo puts the address in a `<video>` and lets the user's browser load it; it never proxies trailers or fakes a Referer. If the host refuses, the page says "Trailer unavailable". The one exception to the Referer rule is the jav.guru embed page (section 11).
 - **Sample images on DMM (decided).** Shown, loaded directly by the browser with the proxy as a fallback.
 - **More blocked genres (decided).** `adopted-daughter` and `youthful` were not added. The `teen` idol age group means 18–19 on this site and stays.
 - **Upcoming is partial.** See 5.4. A complete list would need the site to sort strictly by release date, or a feed of announced titles.
@@ -507,3 +512,113 @@ Box sizes are fixed before images load (147:200 cards, 160:200 idols, about 3:2 
 - **Cloudflare.** Today there's no bot check. If the site turns one on, Echo backs off and shows a message. It doesn't try to get around it. Ask the site for an allow-listed key or a feed, since we have a licence.
 - **Licence on file.** Keep a copy of the licence. It should cover reading the HTML and RSS and hot-linking `covers/`, `idolimages/` and `wp-content/uploads/` images.
 - **REST API.** `/wp-json/` exists but needs a login. If the licence can include an API account, the JSON API would replace most of the HTML parsing. Worth asking.
+
+---
+
+## 11. Watching full movies from jav.guru
+
+**Status: built (2026-11-16).** The decisions are in 11.7.
+
+jav.guru hosts full movies, which javdatabase doesn't. It has **no licence** with us, unlike javdatabase. Each movie page has several stream servers. This plan uses only **STREAM SB**. Everything below was checked against the live site on 2026-11-16 with `DLDSS-575`.
+
+### 11.1 How a STREAM SB video is found
+
+```mermaid
+flowchart TD
+  A["DVD ID from javdatabase<br/>DLDSS-575"] -->|REST search| B["jav.guru post<br/>/1077157/dldss-575-…/"]
+  B -->|"var lvidieckvr = {iframe_url: base64}"<br/>button label STREAM SB| C["/searcho/?xd=77c617665796d6c6370347a6"]
+  C -->|"reverse → /searcho/?xr=6a74…6c77<br/>(hex of the file id)"| D["302 → javclan.com/e/jt0slmiufqlw"]
+  D -->|"GET with Referer jav.guru<br/>unpack eval(p,a,c,k,e,d)"| E["var links = {hls4, hls3, hls2}"]
+  E --> F["master.m3u8 → 480p / 720p / 1080p playlists"]
+  F --> G["segments on p16/p19-ad-site-sign-sg.tiktokcdn.com<br/>a 1×1 PNG followed by MPEG-TS"]
+```
+
+| Step | What happens | Notes |
+|---|---|---|
+| Find the post | `GET /wp-json/wp/v2/posts?search={DVD ID}&_fields=id,link,title`. Take the result whose title starts with `[{DVD ID}]`. | JSON. Use this instead of `/?s=`, which is rate-limited (11.2). |
+| Read the servers | On the post page, each `a.wp-btn-iframe__shortcode` has `data-localize="{var}"`. The inline `var {var} = {…}` holds `iframe_url` in base64. The button text tells you the server. | STREAM SB → `?xd=`. Other servers use `td`, `cd` and `hd`. |
+| File id | `xd` reversed is the hex of the 12-character file id: `77c6…47a6` → `6a74…6c77` → `jt0slmiufqlw`. | Pure function, no request. |
+| Embed host | `GET /searcho/?xr={reversed}` answers **302** with `Location: https://javclan.com/e/{id}`. | `robots.txt` disallows `/searcho/` (11.7). |
+| Embed | `GET https://javclan.com/e/{id}` with `Referer: https://jav.guru/`. Without the Referer the page is a 3.5 KB shell with no player. | Faking a Referer goes against section 10 (11.7). |
+| Links | Unpack the Dean Edwards packer, then read `var links={…}`. Order of use: `hls4` (relative to the embed host) → `hls2` → `hls3`. `hls3` is last because it's a `.txt` playlist the proxy can't recognise. | The unpacker is in TypeScript. The site's code is never run. |
+| Playlists | `master.m3u8` lists `index-f1/f2/f3-v1-a1.m3u8` (480p, 720p, 1080p). They need no Referer and no cookie. | No CORS header, so the browser can't read them directly. |
+| Segments | About 1,000 per movie (10 s each, about 3 MB), on `p16/p19-ad-site-sign-sg.tiktokcdn.com`, served as `image/png`. A 70-byte PNG comes before the MPEG-TS. | `Access-Control-Allow-Origin: *`, so the browser can load them directly. |
+
+### 11.2 Bot protection and limits found
+
+| Check | Result |
+|---|---|
+| Cloudflare in front of jav.guru | Yes. Pages are edge-cached (`cf-cache-status: HIT`). |
+| User agent rule | `curl/…` and an empty user agent get **403** with `cf-mitigated: challenge`. Echo's honest `EchoASMR/1.0` gets **200**. |
+| Search `/?s=` | **Rate-limited.** About 8 searches in about 5 s gave **429** with `cf-mitigated: challenge`. Only search was blocked: post pages, the home page and `/searcho/` kept answering 200. The block lifted in under a minute. |
+| REST search `/wp-json/wp/v2/posts?search=` | Open (javdatabase's REST API is closed). 8 searches 2 s apart all gave 200. |
+| Post pages, `/searcho/` | 200. `?xr=` is `cf-cache-status: BYPASS`, so every call reaches the origin. |
+| `robots.txt` | `Disallow: /searcho/`. Sitemaps are listed: about 186 post sitemaps of 1,000 posts each, newest last. |
+| Embed host (javclan.com) | Cloudflare too, but no bot check seen. 10 requests back to back all gave 200. The only rule is the Referer check. `robots.txt` has no rules. |
+| Stream URL binding | `hls2` carries `asn=18207`, the ASN of the network that asked for it. `hls4` carries an expiry about 12 h ahead. `hls2` is good for 129,600 s (36 h). |
+| Where Echo runs | The desktop app runs the Express server inside Electron on `127.0.0.1` (`apps/desktop/src/server-process.ts`). The server that resolves a link and the player that plays it share the user's IP and ASN. |
+
+### 11.3 Staying unblocked without getting around anything
+
+The aim is to stay well below the limits the site sets. If a check fires anyway, Echo stops. It never tries to get past one.
+
+| Rule | Why |
+|---|---|
+| Send the honest `EchoASMR/1.0` user agent. Never a browser user agent, a headless browser, a challenge solver or rotating IPs. | That user agent passes today. If the site starts blocking it, that's the site's answer. |
+| Never call `/?s=`. Find posts with the REST API, and cache each DVD ID → post URL for 7 days (including "not found", for 1 day). | Search is the one rate-limited path. |
+| One request at a time to jav.guru, at least **2 s** apart (`javguruRequestGapMs`). The embed host gets its own queue at 1 s. | The REST search test passed at 2 s. |
+| Resolve only when the user presses **Watch**, never on page load or to prefetch. | About 4 jav.guru and embed requests per Watch press, not per page view. |
+| Cache the post's server list for 24 h. Cache the resolved master URL for 1 h, which is well inside the `hls4` expiry. | Replaying or seeking doesn't go back to jav.guru. |
+| Reuse `BlockBackoff`: any 403, 429, `cf-mitigated: challenge` or challenge HTML pauses **all** jav.guru calls (doubling, starting at 5 min). The UI says "The stream source is busy". | Same as javdatabase. The 429 lifted in under a minute, so 5 minutes is safely longer. |
+| Don't treat the background `/cdn-cgi/challenge-platform/` script on normal pages as a block. | It's on every page, the same as on javdatabase. |
+| Proxy only the master and quality playlists (two small text files per play), through `ProxyService` with `rewriteHlsPlaylist`. The browser loads segments straight from the CDN. | Video traffic never goes through Echo, and the embed host sees one client. |
+| Best on desktop (11.7, item 4). | `hls2` links are tied to the network that asked for them (`asn=`). The desktop app's server and player share one network; a hosted server may not. |
+
+### 11.4 Backend
+
+`src/extension/javguru/`:
+
+| File | Job |
+|---|---|
+| `constants.ts` | Site URL, user agent, the default embed host (`javclan.com`), and `SERVERS = { sb: { label: 'STREAM SB', param: 'xd' } }` |
+| `javguru.client.ts` | Two request lanes, jav.guru (2 s gap) and the embed host (1 s gap). Each has its own `BlockBackoff`. `search()` (REST), `post()` (only `/{id}/{slug}/`), `gateway()` (returns the `Location`, accepted only if it is `https://…/e/{id}`) and `embed()` (sends the Referer). The dispatcher is built with no redirects. |
+| `parsers.ts` | `postFor()` (REST answer → the post titled `[DVD-ID] …`), `serverButtons()` (post → label and gateway address per button), `embedLinks()` (embed → master playlists, best first) |
+| `token.ts` | `xd` → file id, and → `?xr=` value. Pure functions. |
+| `packer.ts` | Unpacks `p,a,c,k,e,d` by hand. Pure. |
+
+`src/services/jav-stream.service.ts` ties the steps together. It reads the movie through `JavService.movie`, so javdatabase's content rules apply first. It also checks the jav.guru post title against `BLOCKED_JAV_TITLE`. It caches each step (11.3), shares one lookup among concurrent requests for the same movie, and tries the known embed host before the gateway. It issues the master playlist with **direct segments**: `IssuedUrls.add(url, headers, { directSegments: true })` makes `ProxyService.rewritePlaylist` proxy only child playlists and leave segment addresses as they are.
+
+Endpoint: `GET /api/jav/movie/:kind/:slug/stream?server=sb` returns `{ server: 'sb', master, expiresAt }` with `Cache-Control: no-store`. The client loads `master` through `/api/proxy`. It answers 404 when the movie is upcoming, jav.guru has no post, or the post has no STREAM SB; 451 for a blocked title; 502 when the embed host has no player; and 503 while backing off.
+
+### 11.5 Frontend
+
+- `JavMoviePage`: a **Watch** button next to **Trailer**, shown only for released movies with a DVD ID. It swaps the cover for the player, and **Cover** swaps it back.
+- `components/jav/JavPlayer.tsx`: a `<video>` with its own hls.js instance. It doesn't use `player/engine.ts`, which is the music queue. It asks for the stream when it mounts (`['jav', 'stream', kind, slug]`, kept 30 min) and has a quality menu (Auto plus `hls.levels`). It shows the server's 404 message, "This title isn't available in Echo", "The stream source is busy. Try again later" with **Try again**, or "This stream could not be played".
+- Checked: Echo's hls.js (1.7.3) plays the PNG-prefixed segments as they are, so no stripping is needed.
+
+### 11.6 Breakage to expect
+
+| Change | What Echo does |
+|---|---|
+| The embed host moves (StreamSB copies change domain often) | The `?xr=` redirect names the new host. Accept it only if it matches the `/e/{12 chars}` shape and a packed `var links`. Otherwise "Stream unavailable", and add the host to the allow-list. |
+| The packer or `links` keys change | The parser fails loudly, naming what it was looking for. The recorded embed fixture shows the diff. |
+| The site blocks `EchoASMR/1.0` or turns on a bot check | Backoff, then the feature shows "unavailable". Don't work around it. |
+| A post has no STREAM SB | 409, and the Watch button says "No stream". The other servers are out of scope. |
+
+### 11.7 Decisions (2026-11-16)
+
+1. **Unlicensed source: accepted.** jav.guru hosts full commercial movies without a licence. Watch is the one exception to "metadata only" at the top of this doc.
+2. **Referer: accepted** for the embed page only, which answers only with `Referer: https://jav.guru/`. Nothing else in the JAV section sends one.
+3. **`/searcho/`: option B.** Echo works out the file id locally and goes straight to the known embed host's `/e/{id}`. It calls the disallowed `?xr=` only when that host fails, and then remembers the new host.
+4. **Desktop vs web: not decided.** The Watch button shows in both. It works when the Echo server and the browser are on the same network, which is always true for the desktop app. A hosted server may get `hls2` links tied to its own network; `hls4` is tried first and isn't visibly tied to one.
+5. **Other servers** (VO, VI, DD, JK): out of scope.
+6. **Upcoming movies get no Watch button**, even when jav.guru already has them (it posts some before javdatabase's release date, for example DLDSS-575, released 2026-12-03).
+
+### 11.8 Phases
+
+| # | Phase | Done when |
+|---|---|---|
+| 7a | Fixtures and pure parts | Done. `tests/fixtures/javguru/` holds the REST answer, the post (trimmed to the title, buttons and configs) and the embed, all for DLDSS-575. `tests/unit/javguru.test.ts` covers the token, the packer, the parsers, the client and the direct-segment proxy mode. |
+| 7b | Client and service | Done. `tests/integration/jav-stream.test.ts`: resolve and cache, the proxy leaving segments direct, the gateway fallback to a new host, 404 / 451 / 503, and no second request while paused. |
+| 7c | Player | Done. Checked in the dev app on PIYO-242: Watch plays at 480p, the quality menu lists 1080p / 720p / 480p, and a seek to 1:00:00 at 1080p plays. Playlists went through `/api/proxy`; segments came straight from `tiktokcdn.com`. |
+| 7d | Desktop | To do: a manual-test row in `apps/desktop/MANUAL-TESTS.md`, run on the packaged app. |

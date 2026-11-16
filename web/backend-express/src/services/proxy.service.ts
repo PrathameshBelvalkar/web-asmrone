@@ -42,12 +42,16 @@ export class ProxyService {
 
   /**
    * Rewrites an HLS playlist so each segment is fetched through the proxy. Each segment URL is
-   * issued with the playlist's headers.
+   * issued with the playlist's headers. A playlist issued with direct segments sends only its child
+   * playlists through the proxy and leaves its segments as absolute addresses.
    */
   rewritePlaylist(playlistUrl: string, text: string): string {
     const headers = this.issued.headersOf(playlistUrl) ?? {};
+    const directSegments = this.issued.directSegments(playlistUrl);
     return rewriteHlsPlaylist(text, playlistUrl, (absolute) => {
-      this.issued.add(absolute, headers);
+      const child = isHlsPlaylist(absolute, undefined);
+      if (directSegments && !child) return absolute;
+      this.issued.add(absolute, headers, { directSegments: directSegments && child });
       return `${PROXY_PATH}?url=${encodeURIComponent(absolute)}`;
     });
   }

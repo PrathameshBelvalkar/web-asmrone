@@ -24,12 +24,14 @@ import { JnetExtension } from './extension/jnet/jnet.extension.js';
 import { HasmrExtension } from './extension/hasmr/hasmr.extension.js';
 import { ThreehentaiExtension } from './extension/threehentai/threehentai.extension.js';
 import { JavdatabaseExtension } from './extension/javdatabase/javdatabase.extension.js';
+import { JavguruClient } from './extension/javguru/javguru.client.js';
 import { SourceRouter } from './extension/source-router.js';
 import { SettingsRepository } from './repositories/settings.repository.js';
 import { UserRepository } from './repositories/user.repository.js';
 import { AuthService } from './services/auth.service.js';
 import { FeedService } from './services/feed.service.js';
 import { JavService } from './services/jav.service.js';
+import { JavStreamService } from './services/jav-stream.service.js';
 import { MangaService } from './services/manga.service.js';
 import { MediaService } from './services/media.service.js';
 import { PlaylistService } from './services/playlist.service.js';
@@ -77,6 +79,8 @@ export interface ContainerOptions {
   readonly hasmrDispatcher?: Dispatcher;
   readonly threehentaiDispatcher?: Dispatcher;
   readonly javdatabaseDispatcher?: Dispatcher;
+  /** jav.guru and its embed host. Must not follow redirects. */
+  readonly javguruDispatcher?: Dispatcher;
   /** The JAV area's clock, which decides which movies are still to come. */
   readonly javClock?: Clock;
   /** AI subtitles for tracks without lyrics; null turns them off. Defaults to local Whisper. */
@@ -158,6 +162,15 @@ export function createContainer(
       connectMs: LIMITS.javdatabaseConnectTimeoutMs,
       responseMs: LIMITS.javdatabaseResponseTimeoutMs,
     });
+
+  const ownJavguru = options.javguruDispatcher === undefined;
+  // No redirects: the gateway's answer is the redirect itself.
+  const javguruDispatcher: Dispatcher =
+    options.javguruDispatcher ??
+    createDispatcher(
+      { connectMs: LIMITS.javguruConnectTimeoutMs, responseMs: LIMITS.javguruResponseTimeoutMs },
+      0,
+    );
 
   const asmrExtension: MusicExtension = options.extension ?? new AsmrOneExtension(asmrDispatcher);
   const jasmrExtension: MusicExtension = new JasmrExtension(jasmrDispatcher, {
@@ -253,6 +266,21 @@ export function createContainer(
     boundaryTtlMs: LIMITS.javBoundaryTtlMs,
     now: () => javClock.now(),
   });
+  const javStreamService = new JavStreamService(
+    javService,
+    new JavguruClient(javguruDispatcher, {
+      siteGapMs: LIMITS.javguruRequestGapMs,
+      embedGapMs: LIMITS.javguruEmbedGapMs,
+    }),
+    issued,
+    {
+      postTtlMs: LIMITS.javguruPostTtlMs,
+      missTtlMs: LIMITS.javguruMissTtlMs,
+      serversTtlMs: LIMITS.javguruServersTtlMs,
+      streamTtlMs: LIMITS.javguruStreamTtlMs,
+      now: () => javClock.now(),
+    },
+  );
   const storageService = new StorageService({
     subtitles: subtitleRepo,
     settings: settingsRepo,
@@ -273,7 +301,7 @@ export function createContainer(
     tools: new ToolsController(tools),
     storage: new StorageController(storageService),
     manga: new MangaController(mangaService),
-    jav: new JavController(javService),
+    jav: new JavController(javService, javStreamService),
   };
 
   return {
@@ -298,6 +326,7 @@ export function createContainer(
         ownHasmr ? hasmrDispatcher.close() : undefined,
         ownThreehentai ? threehentaiDispatcher.close() : undefined,
         ownJavdatabase ? javdatabaseDispatcher.close() : undefined,
+        ownJavguru ? javguruDispatcher.close() : undefined,
         aiSubtitles?.close(),
       ]);
     },

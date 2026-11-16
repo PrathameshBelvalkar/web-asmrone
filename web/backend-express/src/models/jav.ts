@@ -231,6 +231,17 @@ export interface JavIdolQuery {
   readonly page: number;
 }
 
+/**
+ * A full-movie stream (docs/JAV.md section 11). `master` is an HLS master playlist the client loads
+ * through the proxy; its video segments load from their own host.
+ */
+export interface JavStream {
+  readonly server: 'sb';
+  readonly master: string;
+  /** Epoch ms after which the client should ask again. */
+  readonly expiresAt: number;
+}
+
 /** A source of JAV metadata. */
 export interface JavSource {
   movies(query: JavMovieQuery): Promise<JavMovieList>;

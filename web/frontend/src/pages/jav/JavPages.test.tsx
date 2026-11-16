@@ -9,7 +9,7 @@ import { JavMoviePage } from "./JavMoviePage";
 import { JavNewsPage } from "./JavNewsPage";
 
 vi.mock("../../api/client", () => ({
-  api: { jav: { idols: vi.fn(), movie: vi.fn(), news: vi.fn() } },
+  api: { jav: { idols: vi.fn(), movie: vi.fn(), news: vi.fn(), stream: vi.fn() } },
   proxyUrl: (url: string) => `/api/proxy?url=${url}`,
   ApiError: class ApiError extends Error {
     constructor(
@@ -101,6 +101,37 @@ describe("JavIdolsPage", () => {
 describe("JavMoviePage", () => {
   beforeEach(() => {
     vi.mocked(api.jav.movie).mockReset();
+    vi.mocked(api.jav.stream).mockReset();
+  });
+
+  it("looks for the full movie's stream only when Watch is pressed", async () => {
+    vi.mocked(api.jav.movie).mockResolvedValue(movie);
+    vi.mocked(api.jav.stream).mockRejectedValue(new ApiError(404, "not_found", "No stream was found for this movie."));
+    renderAt("/jav/movie/censored/abc-1", "/jav/movie/:kind/:slug", <JavMoviePage />);
+    const watch = await screen.findByRole("button", { name: "Watch" });
+    expect(api.jav.stream).not.toHaveBeenCalled();
+    fireEvent.click(watch);
+    expect(await screen.findByText("No stream was found for this movie.")).toBeInTheDocument();
+    expect(api.jav.stream).toHaveBeenCalledWith("censored", "abc-1");
+    fireEvent.click(screen.getByRole("button", { name: "Cover" }));
+    expect(screen.getByRole("button", { name: "Watch" })).toBeInTheDocument();
+  });
+
+  it("offers a retry when the stream source is busy", async () => {
+    vi.mocked(api.jav.movie).mockResolvedValue(movie);
+    vi.mocked(api.jav.stream).mockRejectedValue(new ApiError(503, "upstream", "busy"));
+    renderAt("/jav/movie/censored/abc-1", "/jav/movie/:kind/:slug", <JavMoviePage />);
+    fireEvent.click(await screen.findByRole("button", { name: "Watch" }));
+    expect(await screen.findByText("The stream source is busy. Try again later.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await waitFor(() => expect(api.jav.stream).toHaveBeenCalledTimes(2));
+  });
+
+  it("has no Watch button for an upcoming movie", async () => {
+    vi.mocked(api.jav.movie).mockResolvedValue({ ...movie, upcoming: true });
+    renderAt("/jav/movie/censored/abc-1", "/jav/movie/:kind/:slug", <JavMoviePage />);
+    expect(await screen.findByText("ABC-1", { selector: "h1" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Watch" })).toBeNull();
   });
 
   it("shows a refused movie as not available", async () => {

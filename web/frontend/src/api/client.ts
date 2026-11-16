@@ -14,6 +14,7 @@ import type {
   JavNewsCategory,
   JavNewsItem,
   JavNewsPost,
+  JavStream,
   Lyrics,
   LoginForm,
   MangaGallery,
@@ -215,6 +216,8 @@ export const api = {
       }
     },
     movie: (kind: string, slug: string) => req<JavMovie>("GET", `/jav/movie/${enc(kind)}/${enc(slug)}`),
+    stream: (kind: string, slug: string) =>
+      req<JavStream>("GET", `/jav/movie/${enc(kind)}/${enc(slug)}/stream?server=sb`),
     idols: (query: JavIdolQuery, page: number) => {
       if (query.by === "search")
         return req<JavList<JavIdolCard>>("GET", `/jav/search?type=idols&q=${enc(query.q)}&page=${page}`);
