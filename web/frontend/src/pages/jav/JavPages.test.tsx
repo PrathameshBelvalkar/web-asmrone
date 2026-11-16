@@ -4,7 +4,9 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { api, ApiError } from "../../api/client";
 import type { JavMovie } from "../../api/types";
+import { useHistory } from "../../lib/history";
 import { JavIdolsPage } from "./JavIdolsPage";
+import { JavLibraryPage } from "./JavLibraryPage";
 import { JavMoviePage } from "./JavMoviePage";
 import { JavNewsPage } from "./JavNewsPage";
 
@@ -113,8 +115,22 @@ describe("JavMoviePage", () => {
     fireEvent.click(watch);
     expect(await screen.findByText("No stream was found for this movie.")).toBeInTheDocument();
     expect(api.jav.stream).toHaveBeenCalledWith("censored", "abc-1");
-    fireEvent.click(screen.getByRole("button", { name: "Cover" }));
-    expect(screen.getByRole("button", { name: "Watch" })).toBeInTheDocument();
+    expect(screen.getByTestId("where").textContent).toBe("/jav/movie/censored/abc-1?play=movie");
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("region", { name: "Player" })).toBeNull();
+    expect(screen.getByTestId("where").textContent).toBe("/jav/movie/censored/abc-1");
+  });
+
+  it("offers to resume where you left off, or start over", async () => {
+    useHistory.setState({
+      entries: [{ kind: "jav", id: "censored/abc-1", movieKind: "censored", slug: "abc-1", dvdId: "ABC-1", title: "t", cover: null, position: 2527, duration: 7200, at: 1 }],
+    });
+    vi.mocked(api.jav.movie).mockResolvedValue(movie);
+    renderAt("/jav/movie/censored/abc-1", "/jav/movie/:kind/:slug", <JavMoviePage />);
+    expect(await screen.findByRole("button", { name: "Resume 42:07" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Start over" }));
+    expect(screen.getByTestId("where").textContent).toBe("/jav/movie/censored/abc-1?play=movie&from=start");
+    useHistory.setState({ entries: [] });
   });
 
   it("offers a retry when the stream source is busy", async () => {
@@ -192,5 +208,39 @@ describe("JavNewsPage", () => {
 
     renderAt("/jav", "/jav", <JavNewsPage />);
     expect(screen.getByRole("radio", { name: "List" })).toHaveAttribute("aria-checked", "true");
+  });
+});
+
+describe("JavLibraryPage", () => {
+  const entry = (slug: string, position: number) => ({
+    kind: "jav" as const,
+    id: `censored/${slug}`,
+    movieKind: "censored",
+    slug,
+    dvdId: slug.toUpperCase(),
+    title: `Movie ${slug}`,
+    cover: null,
+    position,
+    duration: 7200,
+    at: Date.now(),
+  });
+
+  it("splits what you're watching from what you finished, and opens the player to continue", () => {
+    useHistory.setState({ entries: [entry("abc-1", 600), entry("abc-2", 7190)] });
+    renderAt("/jav/library", "/jav/library", <JavLibraryPage />);
+    const watching = screen.getByRole("region", { name: "Continue watching" });
+    expect(within(watching).getByRole("link", { name: "Continue ABC-1" })).toHaveAttribute("href", "/jav/movie/censored/abc-1?play=movie");
+    expect(within(watching).getByText("1 h 50 min left")).toBeInTheDocument();
+    const watched = screen.getByRole("region", { name: "Watched" });
+    expect(within(watched).getByRole("link", { name: "ABC-2" })).toHaveAttribute("href", "/jav/movie/censored/abc-2");
+    fireEvent.click(within(watched).getByRole("button", { name: "Remove ABC-2 from your library" }));
+    expect(screen.queryByRole("region", { name: "Watched" })).toBeNull();
+    useHistory.setState({ entries: [] });
+  });
+
+  it("explains itself when nothing has been watched", () => {
+    useHistory.setState({ entries: [] });
+    renderAt("/jav/library", "/jav/library", <JavLibraryPage />);
+    expect(screen.getByText("Nothing watched yet")).toBeInTheDocument();
   });
 });

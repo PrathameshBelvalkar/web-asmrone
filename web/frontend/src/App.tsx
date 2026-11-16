@@ -24,6 +24,7 @@ import { JavMoviePage } from './pages/jav/JavMoviePage';
 import { JavIdolPage, JavIdolsPage } from './pages/jav/JavIdolsPage';
 import { JavGenresPage } from './pages/jav/JavGenresPage';
 import { JavSearchPage } from './pages/jav/JavSearchPage';
+import { JavLibraryPage } from './pages/jav/JavLibraryPage';
 
 export default function App() {
   return (
@@ -55,6 +56,7 @@ export default function App() {
         <Route path="jav/idol/:slug" element={<JavIdolPage />} />
         <Route path="jav/genres" element={<JavGenresPage />} />
         <Route path="jav/search" element={<JavSearchPage />} />
+        <Route path="jav/library" element={<JavLibraryPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

@@ -83,6 +83,7 @@ describe("AppSidebar", () => {
       "/jav/idols",
       "/jav/genres",
       "/jav/search",
+      "/jav/library",
     ]);
   });
 
@@ -95,6 +96,7 @@ describe("AppSidebar", () => {
     ["/jav/movies/genre/creampie", "Genres"],
     ["/jav/idol/hikaru-nagi", "Idols"],
     ["/jav/search?q=aoi", "Search"],
+    ["/jav/library", "Library"],
   ])("marks JAV %s as %s", async (path, active) => {
     renderSidebar(path);
     const group = (await screen.findByText("JAV")).closest('[data-sidebar="group"]') as HTMLElement;

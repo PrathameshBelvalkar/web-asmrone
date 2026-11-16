@@ -1,4 +1,4 @@
-import { BookOpen, Clapperboard, History, House, Library, Newspaper, Palette, Search, Settings, Sparkles, Tags, Users } from 'lucide-react';
+import { BookOpen, Clapperboard, History, House, Library, MonitorPlay, Newspaper, Palette, Search, Settings, Sparkles, Tags, Users } from 'lucide-react';
 import appIcon from '../assets/echo-icon.png';
 import type { LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -62,6 +62,7 @@ const JAV: NavItem[] = [
   { title: 'Idols', url: '/jav/idols', icon: Users },
   { title: 'Genres', url: '/jav/genres', icon: Tags },
   { title: 'Search', url: '/jav/search', icon: Search },
+  { title: 'Library', url: '/jav/library', icon: MonitorPlay },
 ];
 
 /**

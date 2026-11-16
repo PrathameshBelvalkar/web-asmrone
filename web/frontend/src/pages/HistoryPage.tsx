@@ -88,7 +88,7 @@ export function HistoryPage() {
               <h2 className="mb-2 text-sm font-medium text-muted-foreground">{group.label}</h2>
               <ul className="space-y-1">
                 {group.items.map((e) => (
-                  <li key={`${e.kind}:${e.id}`}>{e.kind === 'asmr' ? <ListenRow entry={e} /> : <ReadRow entry={e} />}</li>
+                  <li key={`${e.kind}:${e.id}`}>{e.kind === 'asmr' ? <ListenRow entry={e} /> : e.kind === 'manga' ? <ReadRow entry={e} /> : null}</li>
                 ))}
               </ul>
             </section>

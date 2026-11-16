@@ -102,3 +102,18 @@ export function dvdIdSlug(q: string): string | null {
   const match = /^\s*([a-z]{2,6})-?(\d{2,5})\s*$/i.exec(q);
   return match ? `${match[1]!.toLowerCase()}-${match[2]}` : null;
 }
+
+/** A video position as `42:07` or `1:02:07`. */
+export function clockTime(seconds: number): string {
+  const s = Math.max(0, Math.floor(seconds));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = String(s % 60).padStart(2, '0');
+  return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`;
+}
+
+/** "1 h 12 min left", "8 min left". */
+export function timeLeft(position: number, duration: number): string {
+  const min = Math.max(1, Math.round((duration - position) / 60));
+  return min >= 60 ? `${Math.floor(min / 60)} h ${min % 60} min left` : `${min} min left`;
+}

@@ -20,28 +20,36 @@ const CrumbContext = createContext<CrumbState>({ items: [], setItems: () => {}, 
 export function CrumbProvider({ children }: { children: ReactNode }) {
   const location = useLocation();
   const [items, setItemsState] = useState<Crumb[]>([]);
-  // The last trail a page set, and the URL it was set on.
-  const last = useRef<{ items: Crumb[]; url: string } | null>(null);
+  // The last trail a page set, the URL it was set on, and that page's own parent trail.
+  const last = useRef<{ items: Crumb[]; url: string; parent: Crumb[] | null } | null>(null);
   // Parent trail per history entry, fixed on first visit so back and forward keep it.
   const parents = useRef(new Map<string, Crumb[] | null>());
   const url = location.pathname + location.search;
   const urlRef = useRef(url);
   urlRef.current = url;
 
-  // Worked out during render so the new page reads it on its first render.
+  // Worked out during render so the new page reads it on its first render. A new query on the same
+  // path (a tab, a filter, a player opening) is the same page, so it keeps that page's parent.
   if (!parents.current.has(location.key)) {
     const from = last.current;
+    const samePage = from !== null && from.url.split('?')[0] === location.pathname;
     parents.current.set(
       location.key,
-      from && from.url !== url ? from.items.map((c, i) => (i === from.items.length - 1 ? { ...c, to: from.url } : c)) : null,
+      samePage
+        ? from.parent
+        : from && from.url !== url
+          ? from.items.map((c, i) => (i === from.items.length - 1 ? { ...c, to: from.url } : c))
+          : null,
     );
   }
   const parent = parents.current.get(location.key) ?? null;
+  const parentRef = useRef(parent);
+  parentRef.current = parent;
 
   const setItems = useCallback((next: Crumb[]) => {
     setItemsState(next);
     // Pages clear their trail on unmount; keep the last real one as the next page's parent.
-    if (next.length) last.current = { items: next, url: urlRef.current };
+    if (next.length) last.current = { items: next, url: urlRef.current, parent: parentRef.current };
   }, []);
 
   const value = useMemo(() => ({ items, setItems, parent }), [items, setItems, parent]);
