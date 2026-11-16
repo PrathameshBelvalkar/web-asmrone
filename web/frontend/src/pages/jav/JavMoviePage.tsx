@@ -125,7 +125,12 @@ function CoverOrTrailer({ movie }: { movie: JavMovie }) {
             {playing ? <ImageIcon size={16} aria-hidden /> : <Film size={16} aria-hidden />}
             {playing ? 'Cover' : 'Trailer'}
           </button>
-          {playing && failed && <p className="text-sm text-muted-foreground">Trailer unavailable.</p>}
+          {playing && failed && (
+            <p className="text-sm text-muted-foreground">
+              {/* DMM's video host answers 403 outside Japan, on javdatabase.com too. */}
+              {/\.dmm\.co\.jp\//.test(movie.trailer) ? 'Trailer unavailable: DMM only serves trailers in Japan.' : 'Trailer unavailable.'}
+            </p>
+          )}
         </div>
       )}
     </div>
