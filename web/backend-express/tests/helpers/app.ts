@@ -1,4 +1,5 @@
 import type { Dispatcher } from 'undici';
+import type { Clock } from '../../src/lib/clock.js';
 import { createApp } from '../../src/app.js';
 import type { AppConfig } from '../../src/config/env.js';
 import { createContainer, type Container } from '../../src/container.js';
@@ -18,16 +19,20 @@ export interface TestApp {
 }
 
 /** The real app, wired to a temporary data directory and optional injected dependencies. */
-export async function makeTestApp(options: {
-  extension?: MusicExtension;
-  asmrDispatcher?: Dispatcher;
-  proxyDispatcher?: Dispatcher;
-  jasmrDispatcher?: Dispatcher;
-  threehentaiDispatcher?: Dispatcher;
-  distDir?: string | null;
-  /** Off unless a test passes one. */
-  aiSubtitles?: AiSubtitleService | null;
-} = {}): Promise<TestApp> {
+export async function makeTestApp(
+  options: {
+    extension?: MusicExtension;
+    asmrDispatcher?: Dispatcher;
+    proxyDispatcher?: Dispatcher;
+    jasmrDispatcher?: Dispatcher;
+    threehentaiDispatcher?: Dispatcher;
+    javdatabaseDispatcher?: Dispatcher;
+    javClock?: Clock;
+    distDir?: string | null;
+    /** Off unless a test passes one. */
+    aiSubtitles?: AiSubtitleService | null;
+  } = {},
+): Promise<TestApp> {
   const t = await tempDir();
   const config: AppConfig = {
     port: 0,
@@ -36,14 +41,22 @@ export async function makeTestApp(options: {
     distDir: options.distDir ?? null,
     jasmrCrawlDelayMs: 0,
     logLevel: 'silent',
-    whisper: { whisperServerBin: 'whisper-server', ffmpegBin: 'ffmpeg', model: join(t.dir, 'models/m.bin'), vadModel: join(t.dir, 'models/v.bin') },
+    whisper: {
+      whisperServerBin: 'whisper-server',
+      ffmpegBin: 'ffmpeg',
+      model: join(t.dir, 'models/m.bin'),
+      vadModel: join(t.dir, 'models/v.bin'),
+    },
     binDir: null,
     benchSample: '',
     desktopVersion: null,
     modelsDir: join(t.dir, 'models'),
   };
   const logger = createLogger('silent');
-  const container = createContainer(config, logger, { ...options, aiSubtitles: options.aiSubtitles ?? null });
+  const container = createContainer(config, logger, {
+    ...options,
+    aiSubtitles: options.aiSubtitles ?? null,
+  });
   await container.init();
   const app = createApp(container, logger);
   return {

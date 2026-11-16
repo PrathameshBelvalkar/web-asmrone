@@ -39,7 +39,9 @@ function ShellInner() {
   const nowPlayingOpen = usePlayer((s) => s.nowPlayingOpen);
   const setState = usePlayer((s) => s.setState);
   const scrolled = useScrolled();
-  const manga = location.pathname.startsWith('/manga');
+  // Manga and JAV pages get the small floating player instead of the full bar.
+  const manga = /^\/(?:manga|jav)(?:\/|$)/.test(location.pathname);
+  const area = location.pathname.startsWith('/manga') ? 'manga' : location.pathname.startsWith('/jav') ? 'jav' : 'music';
   useAutoSubtitles();
   useToolsReadyToast();
   usePlayerAccent();
@@ -79,19 +81,17 @@ function ShellInner() {
           <AppBreadcrumb />
         </div>
         <div className="min-w-0 flex-1 sm:hidden" />
-        {location.pathname !== '/search' && location.pathname !== '/manga/search' && (
-          <TopSearch manga={location.pathname.startsWith('/manga')} />
-        )}
+        {!['/search', '/manga/search', '/jav/search'].includes(location.pathname) && <TopSearch area={area} />}
       </header>
 
-      {/* On manga pages the mini player floats over the corner: leave room for it under the last row. */}
+      {/* On manga and JAV pages the mini player floats over the corner: leave room for it under the last row. */}
       <main className={`relative z-[1] flex-1 px-4 pt-4 sm:px-6 sm:pt-6 lg:px-10 ${track ? (manga ? 'pb-52' : 'pb-8') : 'pb-6'}`}>
         <div className="mx-auto max-w-[1600px]">
           <Outlet />
         </div>
       </main>
 
-      {/* Manga pages get a small square player, and none at all when nothing is playing. */}
+      {/* Manga and JAV pages get a small square player, and none at all when nothing is playing. */}
       {manga ? (
         <MiniPlayer />
       ) : (
@@ -106,11 +106,17 @@ function ShellInner() {
   );
 }
 
-/** Search field in the top bar. Submitting opens the search page (the manga one on manga pages). */
-function TopSearch({ manga }: { manga: boolean }) {
+const SEARCH: Record<'music' | 'manga' | 'jav', { base: string; label: string }> = {
+  music: { base: '/search', label: 'Search' },
+  manga: { base: '/manga/search', label: 'Search galleries' },
+  jav: { base: '/jav/search', label: 'Search movies' },
+};
+
+/** Search field in the top bar. Submitting opens the search page of the area you're in. */
+function TopSearch({ area }: { area: 'music' | 'manga' | 'jav' }) {
   const navigate = useNavigate();
   const [text, setText] = useState('');
-  const base = manga ? '/manga/search' : '/search';
+  const { base, label } = SEARCH[area];
   const submit = (e: FormEvent) => {
     e.preventDefault();
     const q = text.trim();
@@ -124,8 +130,8 @@ function TopSearch({ manga }: { manga: boolean }) {
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={manga ? 'Search galleries' : 'Search'}
-          aria-label={manga ? 'Search galleries' : 'Search'}
+          placeholder={label}
+          aria-label={label}
           className="min-w-0 flex-1 bg-transparent text-foreground outline-none placeholder:text-muted-foreground"
         />
       </label>

@@ -1,4 +1,4 @@
-import { BookOpen, History, House, Library, Palette, Search, Settings, Tags } from 'lucide-react';
+import { BookOpen, Clapperboard, History, House, Library, Newspaper, Palette, Search, Settings, Sparkles, Tags, Users } from 'lucide-react';
 import appIcon from '../assets/echo-icon.png';
 import type { LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -55,6 +55,32 @@ function mangaActive(item: NavItem, pathname: string): boolean {
   return section === item.url;
 }
 
+const JAV: NavItem[] = [
+  { title: 'News', url: '/jav', icon: Newspaper, end: true },
+  { title: 'Latest', url: '/jav/latest', icon: Sparkles },
+  { title: 'Movies', url: '/jav/movies', icon: Clapperboard },
+  { title: 'Idols', url: '/jav/idols', icon: Users },
+  { title: 'Genres', url: '/jav/genres', icon: Tags },
+  { title: 'Search', url: '/jav/search', icon: Search },
+];
+
+/**
+ * Which JAV item a page belongs to: a news post goes with News, a movie and the genre, studio and
+ * director lists with Movies (genres with Genres), and an idol with Idols.
+ */
+function javActive(item: NavItem, pathname: string): boolean {
+  const section = /^\/jav\/(?:news\/|$)|^\/jav$/.test(pathname)
+    ? '/jav'
+    : pathname.startsWith('/jav/movies/genre/')
+      ? '/jav/genres'
+      : pathname.startsWith('/jav/movie')
+        ? '/jav/movies'
+        : pathname.startsWith('/jav/idol')
+          ? '/jav/idols'
+          : (JAV.find((i) => i.url !== '/jav' && pathname.startsWith(i.url))?.url ?? null);
+  return section === item.url;
+}
+
 /** App navigation. Collapses to icons on desktop and becomes a sheet on phones. */
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const me = useQuery(meOptions());
@@ -107,6 +133,27 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   asChild
                   tooltip={`Manga: ${item.title}`}
                   isActive={mangaActive(item, pathname)}
+                  className={NAV_ITEM}
+                >
+                  <NavLink to={item.url} end={item.end}>
+                    <item.icon aria-hidden />
+                    <span>{item.title}</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>JAV</SidebarGroupLabel>
+          <SidebarMenu>
+            {JAV.map((item) => (
+              <SidebarMenuItem key={item.url}>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={`JAV: ${item.title}`}
+                  isActive={javActive(item, pathname)}
                   className={NAV_ITEM}
                 >
                   <NavLink to={item.url} end={item.end}>

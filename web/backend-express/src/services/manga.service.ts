@@ -1,3 +1,4 @@
+import { BLOCKED_TITLE, BLOCKED_WORD } from '../lib/content-rules.js';
 import { HttpError } from '../models/errors.js';
 import type {
   MangaCard,
@@ -26,25 +27,6 @@ export const BLOCKED_TAG_NAMES: readonly string[] = [
 ];
 /** The site's ids for the tags above, found from their tag pages on 2026-11-15. */
 export const BLOCKED_TAG_IDS: readonly number[] = [4, 30, 540, 10340, 3625];
-/**
- * Words that name a blocked tag or a variant of one (`loli`, `lolibaba`, `shota`), matched anywhere
- * in a search, a tag name or a tag slug. `shota` followed by `r` is left alone: Shotaro is a common
- * Japanese given name.
- */
-const BLOCKED_WORD = /loli|shota(?!r)|toddler/i;
-
-/**
- * Titles that say the characters are children: school years below high school and words for young
- * children, in English, Japanese and Chinese. Tags on the site are incomplete, so titles are checked too.
- */
-const BLOCKED_TITLE = new RegExp(
-  [
-    'loli', 'shota(?!r)', 'toddler', 'elementary school', 'grade school', 'middle school', 'junior high',
-    '\\bJ[SC]\\b', '\\bchild(?:ren)?\\b', '\\bkids?\\b',
-    '小学', '中学', '女子中', '男子中', '幼女', '幼児', '幼稚園', '園児', 'ロリ', 'ショタ', '児童', '初中', '萝莉', '正太',
-  ].join('|'),
-  'i',
-);
 
 const normalName = (name: string): string =>
   decodeSafe(name).toLowerCase().replace(/[-_+]+/g, ' ').replace(/\s+/g, ' ').trim();
