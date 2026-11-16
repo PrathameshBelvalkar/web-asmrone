@@ -1,14 +1,13 @@
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { javMoviesOptions } from '../../api/queries';
 import type { JavKind, JavMovieQuery, JavMovieSort } from '../../api/types';
 import { DetailHero } from '../../components/DetailHero';
 import { MovieGrid } from '../../components/jav/cards';
-import { SearchBox } from '../../components/jav/SearchBox';
 import { Segmented } from '../../components/manga/Segmented';
 import { PageHeader } from '../../components/ui';
 import { useCrumbs, useDetailCrumbs } from '../../lib/crumbs';
-import { isJavListBy, JAV_HOME, LIST_BY_LABEL, searchRoute } from '../../lib/jav';
+import { isJavListBy, JAV_HOME, LIST_BY_LABEL } from '../../lib/jav';
 import { NotFoundPage } from '../NotFoundPage';
 
 const KINDS: { value: JavKind; label: string }[] = [
@@ -25,7 +24,6 @@ const SORTS: { value: JavMovieSort; label: string }[] = [
 export function JavMoviesPage() {
   useCrumbs([{ label: 'JAV', to: '/jav' }, { label: 'Movies' }]);
   const [params, setParams] = useSearchParams();
-  const navigate = useNavigate();
   const kind: JavKind = params.get('kind') === 'uncensored' ? 'uncensored' : 'censored';
   const raw = params.get('sort');
   const sort: JavMovieSort = SORTS.some((s) => s.value === raw) ? (raw as JavMovieSort) : 'release';
@@ -40,15 +38,6 @@ export function JavMoviesPage() {
   return (
     <>
       <PageHeader title="Movies" meta="Newest release dates first, including announced titles." />
-      <div className="mb-5 max-w-xl">
-        <SearchBox
-          scope="movies"
-          source={{ type: 'movies', kind }}
-          placeholder={kind === 'uncensored' ? 'Search uncensored movies' : 'Search movies or type a DVD ID'}
-          onSubmit={(q) => navigate(searchRoute(q, 'movies', kind))}
-          size="md"
-        />
-      </div>
       <div className="mb-8 flex flex-wrap items-center gap-3">
         <Segmented<JavKind> label="Kind" value={kind} onChange={(v) => update('kind', v === 'censored' ? null : v)} options={KINDS} />
         <Segmented<JavMovieSort> label="Sort" value={sort} onChange={(v) => update('sort', v === 'release' ? null : v)} options={SORTS} />

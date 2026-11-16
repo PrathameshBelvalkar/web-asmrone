@@ -5,6 +5,7 @@ import { AppSidebar } from './app-sidebar';
 import { AppBreadcrumb } from './AppBreadcrumb';
 import { HeaderWash } from './HeaderWash';
 import { MiniPlayer } from './MiniPlayer';
+import { JavHeaderSearch } from './jav/HeaderSearch';
 import { PlayerBar } from './PlayerBar';
 import { NowPlaying } from './NowPlaying';
 import { Toasts } from './Toasts';
@@ -81,7 +82,11 @@ function ShellInner() {
           <AppBreadcrumb />
         </div>
         <div className="min-w-0 flex-1 sm:hidden" />
-        {!['/search', '/manga/search', '/jav/search'].includes(location.pathname) && <TopSearch area={area} />}
+        {area === 'jav' ? (
+          <JavHeaderSearch />
+        ) : (
+          !['/search', '/manga/search'].includes(location.pathname) && <TopSearch area={area} />
+        )}
       </header>
 
       {/* On manga and JAV pages the mini player floats over the corner: leave room for it under the last row. */}
@@ -106,14 +111,13 @@ function ShellInner() {
   );
 }
 
-const SEARCH: Record<'music' | 'manga' | 'jav', { base: string; label: string }> = {
+const SEARCH: Record<'music' | 'manga', { base: string; label: string }> = {
   music: { base: '/search', label: 'Search' },
   manga: { base: '/manga/search', label: 'Search galleries' },
-  jav: { base: '/jav/search', label: 'Search movies' },
 };
 
-/** Search field in the top bar. Submitting opens the search page of the area you're in. */
-function TopSearch({ area }: { area: 'music' | 'manga' | 'jav' }) {
+/** Search field in the top bar. Submitting opens the search page of the area you're in (JAV has its own). */
+function TopSearch({ area }: { area: 'music' | 'manga' }) {
   const navigate = useNavigate();
   const [text, setText] = useState('');
   const { base, label } = SEARCH[area];

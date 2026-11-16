@@ -2,7 +2,6 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import type { JavKind } from '../../api/types';
 import { IdolGrid, MovieGrid } from '../../components/jav/cards';
-import { SearchBox } from '../../components/jav/SearchBox';
 import { Segmented } from '../../components/manga/Segmented';
 import { PageHeader } from '../../components/ui';
 import { useCrumbs } from '../../lib/crumbs';
@@ -17,7 +16,7 @@ const KINDS: { value: KindChoice; label: string }[] = [
   { value: 'uncensored', label: 'Uncensored' },
 ];
 
-/** Search movies (by title or DVD ID, optionally one kind) or idols (by name), with suggestions as you type. */
+/** Results for the top bar's search: movies (by title or DVD ID, optionally one kind) or idols (by name). */
 export function JavSearchPage() {
   const [params, setParams] = useSearchParams();
   const submitted = params.get('q') ?? '';
@@ -46,7 +45,7 @@ export function JavSearchPage() {
   return (
     <>
       <PageHeader title="Search" />
-      <div className="mb-5 flex flex-wrap items-center gap-3">
+      <div className="mb-8 flex flex-wrap items-center gap-3">
         <Segmented<Target>
           label="Search for"
           value={target}
@@ -59,17 +58,6 @@ export function JavSearchPage() {
         {target === 'movies' && (
           <Segmented<KindChoice> label="Kind" value={kind ?? 'all'} onChange={(k) => go({ kind: k }, true)} options={KINDS} />
         )}
-      </div>
-      <div className="mb-8">
-        <SearchBox
-          key={target}
-          scope={target}
-          source={target === 'idols' ? { type: 'idols' } : { type: 'movies', kind }}
-          placeholder={target === 'movies' ? 'Title or DVD ID, for example SAVR-1268' : 'Idol name'}
-          initial={submitted}
-          onSubmit={(q) => go({ q })}
-          autoFocus={!submitted}
-        />
       </div>
 
       {dvd && (
@@ -94,8 +82,8 @@ export function JavSearchPage() {
       ) : (
         <p className="text-sm text-muted-foreground">
           {target === 'movies'
-            ? 'Suggestions appear as you type. Type a DVD ID to jump straight to that movie.'
-            : 'Suggestions appear as you type.'}
+            ? 'Use the search at the top. Suggestions appear as you type, and a DVD ID jumps straight to that movie.'
+            : 'Use the search at the top. Suggestions appear as you type.'}
         </p>
       )}
     </>

@@ -63,7 +63,7 @@ function useDebounced(value: string, ms: number): string {
  * pictures and ends with "Search for …". ↑ and ↓ move through the list, Enter picks, Esc closes.
  */
 export function SearchBox({
-  scope, source, placeholder, initial = '', onSubmit, onTextChange, autoFocus = false, size = 'lg',
+  scope, source, placeholder, initial = '', onSubmit, onTextChange, autoFocus = false, variant = 'page',
 }: {
   /** Names the recent-search list, so each page keeps its own. */
   scope: string;
@@ -75,7 +75,8 @@ export function SearchBox({
   /** Called on every change, for pages that filter as you type. */
   onTextChange?: (text: string) => void;
   autoFocus?: boolean;
-  size?: 'md' | 'lg';
+  /** `header` matches the search field in the top bar. */
+  variant?: 'page' | 'header';
 }) {
   const navigate = useNavigate();
   const listId = useId();
@@ -183,11 +184,14 @@ export function SearchBox({
 
   const showList = open && rows.length > 0 && !(q.length === 0 && recent.length === 0);
   const loading = remote !== null && q.length >= 2 && (suggest.isFetching || debounced !== q);
-  const height = size === 'lg' ? 'h-12 text-base' : 'h-10 text-sm';
+  const field =
+    variant === 'header'
+      ? 'h-10 rounded-lg border-white/10 bg-background/60 text-sm backdrop-blur-md hover:border-white/20 focus:border-white/25 focus:bg-background/80'
+      : 'h-12 rounded-full border-input bg-card text-base focus:border-primary';
 
   return (
     <form onSubmit={onFormSubmit} role="search" className="relative w-full">
-      <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden />
+      <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-muted-foreground" aria-hidden />
       <input
         ref={inputRef}
         value={text}
@@ -209,7 +213,7 @@ export function SearchBox({
         aria-controls={listId}
         aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
         autoComplete="off"
-        className={`${height} w-full rounded-full border border-input bg-card pl-11 pr-20 text-foreground placeholder:text-muted-foreground transition focus:border-primary focus:outline-none`}
+        className={`${field} w-full border pl-10 pr-20 text-foreground placeholder:text-muted-foreground transition focus:outline-none`}
       />
       <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
         {loading && <LoaderCircle size={16} className="animate-spin text-muted-foreground" aria-label="Loading suggestions" />}
@@ -232,7 +236,9 @@ export function SearchBox({
       </div>
 
       {showList && (
-        <div className="absolute inset-x-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-white/10 bg-popover shadow-2xl shadow-black/60">
+        <div
+          className={`absolute top-full z-40 mt-2 overflow-hidden rounded-2xl border border-white/10 bg-popover shadow-2xl shadow-black/60 ${variant === 'header' ? 'right-0 w-[min(28rem,calc(100vw-2rem))]' : 'inset-x-0'}`}
+        >
           {q.length === 0 && (
             <div className="flex items-center justify-between px-4 pb-1 pt-3 text-xs text-muted-foreground">
               <span>Recent searches</span>

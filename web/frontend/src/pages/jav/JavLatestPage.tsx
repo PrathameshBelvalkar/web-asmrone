@@ -1,14 +1,13 @@
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { ChevronRight } from 'lucide-react';
 import { javMoviesOptions } from '../../api/queries';
 import type { JavKind } from '../../api/types';
 import { MovieCard, MovieGrid } from '../../components/jav/cards';
-import { SearchBox } from '../../components/jav/SearchBox';
 import { Segmented } from '../../components/manga/Segmented';
 import { PageHeader, Skeleton } from '../../components/ui';
 import { useCrumbs } from '../../lib/crumbs';
-import { daysUntil, searchRoute } from '../../lib/jav';
+import { daysUntil } from '../../lib/jav';
 
 const KINDS: { value: JavKind; label: string }[] = [
   { value: 'censored', label: 'Censored' },
@@ -23,7 +22,6 @@ export function JavLatestPage() {
   const [params, setParams] = useSearchParams();
   const kind: JavKind = params.get('kind') === 'uncensored' ? 'uncensored' : 'censored';
   const upcomingOnly = params.get('show') === 'upcoming';
-  const navigate = useNavigate();
   useCrumbs(
     upcomingOnly
       ? [{ label: 'JAV', to: '/jav' }, { label: 'Latest', to: '/jav/latest' }, { label: 'Upcoming' }]
@@ -46,15 +44,6 @@ export function JavLatestPage() {
             : 'The newest released movies. The first visit takes a few seconds while Echo finds where released titles start.'
         }
       />
-      <div className="mb-5 max-w-xl">
-        <SearchBox
-          scope="movies"
-          source={{ type: 'movies', kind }}
-          placeholder={kind === 'uncensored' ? 'Search uncensored movies' : 'Search movies or type a DVD ID'}
-          onSubmit={(q) => navigate(searchRoute(q, 'movies', kind))}
-          size="md"
-        />
-      </div>
       <div className="mb-8">
         <Segmented<JavKind> label="Kind" value={kind} onChange={setKind} options={KINDS} />
       </div>

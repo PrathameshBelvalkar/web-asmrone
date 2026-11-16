@@ -8,11 +8,10 @@ import { javNewsOptions } from '../../api/queries';
 import type { JavNewsCategory } from '../../api/types';
 import { InfiniteGrid } from '../../components/jav/grid';
 import { NewsCard } from '../../components/jav/NewsCard';
-import { SearchBox } from '../../components/jav/SearchBox';
 import { Segmented } from '../../components/manga/Segmented';
 import { PageHeader, Skeleton } from '../../components/ui';
 import { useCrumbs } from '../../lib/crumbs';
-import { formatDate, NEWS_CATEGORIES, newsRoute } from '../../lib/jav';
+import { NEWS_CATEGORIES } from '../../lib/jav';
 
 type Category = JavNewsCategory | 'all';
 export type NewsLayout = 'magazine' | 'grid' | 'list';
@@ -62,16 +61,12 @@ export function JavNewsPage() {
   const [layout, setLayout] = useState<NewsLayout>(savedLayout);
   const list = useInfiniteQuery(javNewsOptions(category === 'all' ? null : category));
   const all = useMemo(() => list.data?.pages.flatMap((p) => p.items) ?? [], [list.data]);
-  // The site can't search its posts, so the box searches the posts loaded so far.
-  const [filter, setFilter] = useState('');
+  // The site can't search its posts, so the top bar's search (`?q=`) filters the posts loaded so far.
+  const filter = params.get('q') ?? '';
   const needle = filter.trim().toLowerCase();
   const items = useMemo(
     () => (needle ? all.filter((i) => `${i.title} ${i.summary}`.toLowerCase().includes(needle)) : all),
     [all, needle],
-  );
-  const suggestions = useMemo(
-    () => all.map((i) => ({ key: i.path, label: i.title, sub: formatDate(i.date), image: i.image, to: newsRoute(i.path) })),
-    [all],
   );
 
   const chooseLayout = (next: NewsLayout) => {
@@ -86,21 +81,16 @@ export function JavNewsPage() {
         meta="Weekly charts, new debuts and updates from javdatabase.com."
         actions={<LayoutPicker value={layout} onChange={chooseLayout} />}
       />
-      <div className="mb-5 max-w-xl">
-        <SearchBox
-          scope="news"
-          source={{ type: 'local', items: suggestions }}
-          placeholder="Search news"
-          onSubmit={setFilter}
-          onTextChange={setFilter}
-          size="md"
-        />
-      </div>
       <div className="mb-8">
         <Segmented<Category>
           label="Category"
           value={category}
-          onChange={(v) => setParams(v === 'all' ? {} : { category: v }, { replace: true })}
+          onChange={(v) => {
+            const next = new URLSearchParams(params);
+            if (v === 'all') next.delete('category');
+            else next.set('category', v);
+            setParams(next, { replace: true });
+          }}
           options={NEWS_CATEGORIES}
         />
       </div>

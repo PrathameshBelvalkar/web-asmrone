@@ -414,17 +414,17 @@ Added to `src/App.tsx`, inside `<Shell/>`:
 | `jav/genres` | `JavGenresPage`: one section per group, genre chips, and a filter box that matches as you type (on the client: the list is small) |
 | `jav/search` | `JavSearchPage`: **Movies / Idols** switch. Searches on Enter. A DVD ID that looks exact (`/^[a-z]+-?\d+$/i`) gets a **Go to SAVR-1268** button that opens the movie directly. |
 
-Every JAV page has a search box with suggestions (`src/components/jav/SearchBox.tsx`). ↑ and ↓ move through them, Enter picks, Esc closes, and an empty box lists the page's recent searches (kept on the device).
+JAV pages have no search box of their own: the search field in the top bar becomes a JAV search with suggestions (`src/components/jav/HeaderSearch.tsx`, built on `SearchBox.tsx`), following the page you're on. ↑ and ↓ move through the suggestions, Enter picks, Esc closes, and an empty field lists recent searches (kept on the device, per kind).
 
-| Page | Searches | Suggestions |
+| Page | The top bar searches | Suggestions |
 |---|---|---|
-| News | post titles and summaries, filtering the posts loaded so far (the site can't search its posts) | the loaded posts, instantly |
-| Latest, Movies | movies, kept to the kind shown (`/api/jav/search?kind=`) | the first 8 results of the site's search, 300 ms after typing stops; a DVD ID adds "Go to SAVR-1268" |
-| Idols | idols by name | the first 8 results of the site's idol search, with photos |
-| Genres | genre names, filtering the page | every genre, instantly |
-| Search | movies (All, Censored or Uncensored) or idols | as above |
+| News, a news post | post titles and summaries; on News it filters the posts loaded so far as you type (`/jav?q=`), since the site can't search its posts | the loaded posts, instantly |
+| Latest, Movies, a movie, a studio or director list | movies, kept to the kind shown (`/api/jav/search?kind=`) | the first 8 results of the site's search, 300 ms after typing stops; a DVD ID adds "Go to SAVR-1268" |
+| Idols, an idol | idols by name | the first 8 results of the site's idol search, with photos |
+| Genres, a genre list | genre names; on Genres it filters the page as you type (`/jav/genres?q=`) | every genre, instantly |
+| Search | the tab picked there (Movies with All, Censored or Uncensored, or Idols) | as above |
 
-Searching for the text (Enter, or "Search for …") opens the Search page from Latest, Movies and Idols, and filters the page on News and Genres.
+Searching for the text (Enter, or "Search for …") opens the Search page's results, or filters News and Genres.
 
 Breadcrumbs go in `src/lib/crumbs.tsx`. The music player becomes the `MiniPlayer` on `/jav` pages, as on `/manga` pages (MANGA.md 6.4).
 
