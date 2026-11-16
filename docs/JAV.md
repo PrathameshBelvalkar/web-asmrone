@@ -403,7 +403,7 @@ Added to `src/App.tsx`, inside `<Shell/>`:
 
 | Route | Page |
 |---|---|
-| `jav` | `JavNewsPage`: category chips (All, Top Movies, New Debuts, Top Idols, Idol Updates, Site Updates), then a list of news cards (image, title, date, summary) with infinite scroll |
+| `jav` | `JavNewsPage`: category chips (All, Top Movies, New Debuts, Top Idols, Idol Updates, Site Updates) and a layout switch, remembered on the device: **Magazine** (default: the newest post large across two columns and rows, the next ones stacked beside it, the rest in a grid that fills top to bottom), **Grid** (even cards across the full width) or **List** (one post per row). Infinite scroll. |
 | `jav/news/:yyyy/:mm/:dd/:slug` | `JavNewsPostPage`: title, date, intro, then the ranked list as numbered movie or idol cards. A **Read on site** link for posts without a ranked list. |
 | `jav/latest` | `JavLatestPage`: an **Upcoming** shelf (a horizontal row, the soonest first, each with a date badge), then a **Censored / Uncensored** switch and the released movies in a grid |
 | `jav/movies` | `JavMoviesPage`: **Censored / Uncensored** switch, sort (Newest, Most favourited, Top rated), grid. `?kind=` and `?sort=` keep the choice in the address. |

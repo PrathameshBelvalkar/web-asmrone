@@ -45,12 +45,14 @@ export const isRefused = (error: unknown) => error instanceof ApiError && error.
  * (the first page's in place of the grid, a later page's under it).
  */
 export function InfiniteGrid<T, P extends { items: T[] }>({
-  list, items, itemKey, render, className, skeleton, emptyText,
+  list, items, itemKey, render, itemClassName, className, skeleton, emptyText,
 }: {
   list: UseInfiniteQueryResult<{ pages: P[] }>;
   items: T[];
   itemKey: (item: T) => string;
   render: (item: T, index: number) => ReactNode;
+  /** Extra classes on an item's grid cell, for example to let a lead item span two columns. */
+  itemClassName?: (item: T, index: number) => string;
   className: string;
   skeleton: ReactNode;
   emptyText: string;
@@ -67,7 +69,7 @@ export function InfiniteGrid<T, P extends { items: T[] }>({
     <div>
       <div className={`stagger ${className}`}>
         {items.map((item, i) => (
-          <div key={itemKey(item)} style={{ '--i': i % 24 } as React.CSSProperties} className="min-w-0">
+          <div key={itemKey(item)} style={{ '--i': i % 24 } as React.CSSProperties} className={`min-w-0 ${itemClassName?.(item, i) ?? ''}`}>
             {render(item, i)}
           </div>
         ))}

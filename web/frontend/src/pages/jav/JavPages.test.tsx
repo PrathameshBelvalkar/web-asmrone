@@ -6,9 +6,10 @@ import { api, ApiError } from "../../api/client";
 import type { JavMovie } from "../../api/types";
 import { JavIdolsPage } from "./JavIdolsPage";
 import { JavMoviePage } from "./JavMoviePage";
+import { JavNewsPage } from "./JavNewsPage";
 
 vi.mock("../../api/client", () => ({
-  api: { jav: { idols: vi.fn(), movie: vi.fn() } },
+  api: { jav: { idols: vi.fn(), movie: vi.fn(), news: vi.fn() } },
   proxyUrl: (url: string) => `/api/proxy?url=${url}`,
   ApiError: class ApiError extends Error {
     constructor(
@@ -130,5 +131,35 @@ describe("JavMoviePage", () => {
     expect(within(viewer).getByText("2 / 3")).toBeInTheDocument();
     fireEvent.keyDown(window, { key: "Escape" });
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+});
+
+describe("JavNewsPage", () => {
+  const post = (n: number) => ({
+    path: `2026/11/${String(n).padStart(2, "0")}/post-${n}`,
+    url: `https://www.javdatabase.com/2026/11/${n}/post-${n}/`,
+    title: `Post ${n}`,
+    date: "2026-11-13",
+    categories: [],
+    summary: "",
+    image: null,
+  });
+
+  beforeEach(() => {
+    localStorage.clear();
+    vi.mocked(api.jav.news).mockReset().mockResolvedValue({ items: [post(1), post(2), post(3)], page: 1, lastPage: 1, hasMore: false });
+  });
+
+  it("leads with a large story in Magazine, and remembers the layout picked", async () => {
+    const first = renderAt("/jav", "/jav", <JavNewsPage />);
+    const lead = (await screen.findByText("Post 1")).closest("a")!.parentElement!;
+    expect(lead.className).toContain("md:col-span-2");
+    expect(screen.getByRole("radio", { name: "Magazine" })).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(screen.getByRole("radio", { name: "List" }));
+    expect((await screen.findByText("Post 1")).closest("a")!.parentElement!.className).not.toContain("col-span");
+    first.unmount();
+
+    renderAt("/jav", "/jav", <JavNewsPage />);
+    expect(screen.getByRole("radio", { name: "List" })).toHaveAttribute("aria-checked", "true");
   });
 });
