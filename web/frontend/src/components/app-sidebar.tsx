@@ -1,4 +1,4 @@
-import { BookOpen, Clapperboard, History, House, Library, MonitorPlay, Newspaper, Palette, Search, Settings, Sparkles, Tags, Users } from 'lucide-react';
+import { BookOpen, CalendarRange, Clapperboard, Film, History, House, LayoutGrid, Library, MonitorPlay, Newspaper, Palette, Search, Settings, Sparkles, Tags, Users } from 'lucide-react';
 import appIcon from '../assets/echo-icon.png';
 import type { LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -82,6 +82,24 @@ function javActive(item: NavItem, pathname: string): boolean {
   return section === item.url;
 }
 
+const HANIME: NavItem[] = [
+  { title: 'Home', url: '/hanime', icon: House, end: true },
+  { title: 'Browse', url: '/hanime/browse', icon: LayoutGrid },
+  { title: 'All titles', url: '/hanime/titles', icon: Film },
+  { title: 'Seasons', url: '/hanime/seasons', icon: CalendarRange },
+  { title: 'Search', url: '/hanime/search', icon: Search },
+];
+
+/** Which Hanime item a page belongs to: a title goes with All titles. */
+function hanimeActive(item: NavItem, pathname: string): boolean {
+  const section = pathname.startsWith('/hanime/title/')
+    ? '/hanime/titles'
+    : pathname === '/hanime' || pathname === '/hanime/'
+      ? '/hanime'
+      : (HANIME.find((i) => i.url !== '/hanime' && pathname.startsWith(i.url))?.url ?? null);
+  return section === item.url;
+}
+
 /** App navigation. Collapses to icons on desktop and becomes a sheet on phones. */
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const me = useQuery(meOptions());
@@ -158,6 +176,27 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   asChild
                   tooltip={`JAV: ${item.title}`}
                   isActive={javActive(item, pathname)}
+                  className={NAV_ITEM}
+                >
+                  <NavLink to={item.url} end={item.end}>
+                    <item.icon aria-hidden />
+                    <span>{item.title}</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Hanime</SidebarGroupLabel>
+          <SidebarMenu>
+            {HANIME.map((item) => (
+              <SidebarMenuItem key={item.url}>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={`Hanime: ${item.title}`}
+                  isActive={hanimeActive(item, pathname)}
                   className={NAV_ITEM}
                 >
                   <NavLink to={item.url} end={item.end}>

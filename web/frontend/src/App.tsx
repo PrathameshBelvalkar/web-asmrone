@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { Shell } from './components/Shell';
 import { HomePage } from './pages/HomePage';
 import { SearchPage } from './pages/SearchPage';
@@ -25,6 +25,10 @@ import { JavIdolPage, JavIdolsPage } from './pages/jav/JavIdolsPage';
 import { JavGenresPage } from './pages/jav/JavGenresPage';
 import { JavSearchPage } from './pages/jav/JavSearchPage';
 import { JavLibraryPage } from './pages/jav/JavLibraryPage';
+import { HanimeHomePage } from './pages/hanime/HanimeHomePage';
+import { HanimeBrowsePage } from './pages/hanime/HanimeBrowsePage';
+import { HanimeGalleryPage, HanimeRandomPage, HanimeSeasonsPage } from './pages/hanime/HanimeGalleryPage';
+import { HanimeTitlePage } from './pages/hanime/HanimeTitlePage';
 
 export default function App() {
   return (
@@ -57,6 +61,15 @@ export default function App() {
         <Route path="jav/genres" element={<JavGenresPage />} />
         <Route path="jav/search" element={<JavSearchPage />} />
         <Route path="jav/library" element={<JavLibraryPage />} />
+        <Route path="hanime" element={<HanimeHomePage />} />
+        <Route path="hanime/browse" element={<HanimeGalleryPage />} />
+        <Route path="hanime/titles" element={<HanimeBrowsePage />} />
+        <Route path="hanime/seasons" element={<HanimeSeasonsPage />} />
+        <Route path="hanime/random" element={<HanimeRandomPage />} />
+        <Route path="hanime/search" element={<HanimeBrowsePage key="search" search />} />
+        <Route path="hanime/tags" element={<Navigate to="/hanime/browse#tags" replace />} />
+        <Route path="hanime/studios" element={<Navigate to="/hanime/browse#studios" replace />} />
+        <Route path="hanime/title/:slug" element={<HanimeTitlePage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

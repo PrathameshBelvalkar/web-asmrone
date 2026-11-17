@@ -67,14 +67,14 @@ describe("AppSidebar", () => {
     expect(on).toEqual([active]);
   });
 
-  it("shows JAV between Manga & Doujinshi and Account", async () => {
+  it("shows JAV between Manga & Doujinshi and Hanime", async () => {
     renderSidebar("/jav/movie/censored/savr-1268");
     const label = await screen.findByText("JAV");
     // A label's name is its first element when it has one (JAV is followed by a Beta tag).
     const labels = [...document.querySelectorAll('[data-sidebar="group-label"]')].map(
       (el) => el.firstElementChild?.textContent ?? el.textContent,
     );
-    expect(labels).toEqual(["Browse", "Manga & Doujinshi", "JAV", "Account"]);
+    expect(labels).toEqual(["Browse", "Manga & Doujinshi", "JAV", "Hanime", "Account"]);
     expect(within(label.closest('[data-sidebar="group-label"]') as HTMLElement).getByText("Beta")).toBeInTheDocument();
     const group = label.closest('[data-sidebar="group"]') as HTMLElement;
     expect(within(group).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual([
@@ -101,6 +101,35 @@ describe("AppSidebar", () => {
   ])("marks JAV %s as %s", async (path, active) => {
     renderSidebar(path);
     const group = (await screen.findByText("JAV")).closest('[data-sidebar="group"]') as HTMLElement;
+    const on = within(group)
+      .getAllByRole("link")
+      .filter((a) => a.getAttribute("data-active") === "true")
+      .map((a) => a.textContent);
+    expect(on).toEqual([active]);
+  });
+
+  it("shows Hanime between JAV and Account, with its five pages", async () => {
+    renderSidebar("/hanime");
+    const group = (await screen.findByText("Hanime")).closest('[data-sidebar="group"]') as HTMLElement;
+    expect(within(group).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual([
+      "/hanime",
+      "/hanime/browse",
+      "/hanime/titles",
+      "/hanime/seasons",
+      "/hanime/search",
+    ]);
+  });
+
+  it.each([
+    ["/hanime", "Home"],
+    ["/hanime/browse?q=yuri", "Browse"],
+    ["/hanime/titles?tags=yuri", "All titles"],
+    ["/hanime/title/ane-koi-1", "All titles"],
+    ["/hanime/seasons?year=2014", "Seasons"],
+    ["/hanime/search?q=ane", "Search"],
+  ])("marks Hanime %s as %s", async (path, active) => {
+    renderSidebar(path);
+    const group = (await screen.findByText("Hanime")).closest('[data-sidebar="group"]') as HTMLElement;
     const on = within(group)
       .getAllByRole("link")
       .filter((a) => a.getAttribute("data-active") === "true")

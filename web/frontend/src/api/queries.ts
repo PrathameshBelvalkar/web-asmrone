@@ -3,6 +3,7 @@ import { api } from './client';
 import type {
   Album,
   Artist,
+  HanimeBrowse,
   JavIdolQuery,
   JavKind,
   JavMovieQuery,
@@ -270,3 +271,63 @@ export const javGenresOptions = () =>
     queryFn: () => api.jav.genres(),
     staleTime: 24 * 60 * MIN,
   });
+
+/** Hanime: the server answers from its own copy of the catalog, so nothing here is slow or rate-limited. */
+const hanimeRetry = (count: number, error: Error) =>
+  count < 2 && !('status' in error && [400, 404, 451].includes((error as { status: number }).status));
+
+export const hanimeHomeOptions = () =>
+  queryOptions({ queryKey: ['hanime', 'home'], queryFn: () => api.hanime.home(), staleTime: STALE.content, retry: hanimeRetry });
+
+/** Browse and search: every filter, sort and page comes from the server's copy. */
+export const hanimeTitlesOptions = (browse: HanimeBrowse) =>
+  infiniteQueryOptions({
+    queryKey: ['hanime', 'titles', browse],
+    queryFn: ({ pageParam }) => api.hanime.titles(browse, pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.hasMore ? last.page + 1 : undefined),
+    staleTime: STALE.content,
+    retry: hanimeRetry,
+  });
+
+export const hanimeTitleOptions = (slug: string) =>
+  queryOptions({ queryKey: ['hanime', 'title', slug], queryFn: () => api.hanime.title(slug), staleTime: STALE.content, retry: hanimeRetry });
+
+/** The title page's Preview storyboard, length and other names: read from the site, so slower. */
+export const hanimeDetailsOptions = (slug: string) =>
+  queryOptions({
+    queryKey: ['hanime', 'details', slug],
+    queryFn: () => api.hanime.details(slug),
+    staleTime: 60 * MIN,
+    // Like JAV pages: a refused, missing or busy (503) answer isn't asked again.
+    retry: javRetry,
+  });
+
+export const hanimeSeasonsOptions = (year: number | null) =>
+  queryOptions({
+    queryKey: ['hanime', 'seasons', year],
+    queryFn: () => api.hanime.seasons(year),
+    staleTime: STALE.content,
+    retry: hanimeRetry,
+    placeholderData: keepPreviousData,
+  });
+
+export const hanimeTagsOptions = () =>
+  queryOptions({ queryKey: ['hanime', 'tags'], queryFn: () => api.hanime.tags(), staleTime: STALE.content, retry: hanimeRetry });
+
+export const hanimeStudiosOptions = () =>
+  queryOptions({ queryKey: ['hanime', 'studios'], queryFn: () => api.hanime.studios(), staleTime: STALE.content, retry: hanimeRetry });
+
+/** Suggestions as you type. Each new query keeps the last ones on screen until its own arrive. */
+export const hanimeSuggestOptions = (q: string) =>
+  queryOptions({
+    queryKey: ['hanime', 'suggest', q.toLowerCase()],
+    queryFn: () => api.hanime.suggest(q),
+    staleTime: STALE.content,
+    enabled: q.length >= 1,
+    placeholderData: keepPreviousData,
+    retry: false,
+  });
+
+export const hanimeStatusOptions = () =>
+  queryOptions({ queryKey: ['hanime', 'status'], queryFn: () => api.hanime.status(), staleTime: STALE.live, refetchInterval: 60_000 });

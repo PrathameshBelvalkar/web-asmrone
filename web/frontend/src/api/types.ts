@@ -478,3 +478,151 @@ export interface JavIdolFilters {
 
 /** What an idol grid shows. */
 export type JavIdolQuery = { by: "all"; sort: JavIdolSort; filters: JavIdolFilters } | { by: "search"; q: string };
+
+// Hanime (docs/HANIME.md) ---------------------------------------------------------------
+
+/** A tag or a studio. `count` is how many titles have it, on lists that give it. */
+export interface HanimeRef {
+  slug: string;
+  name: string;
+  count?: number | null;
+}
+
+export type HanimeCensorship = "censored" | "uncensored";
+
+export interface HanimeCard {
+  id: number;
+  slug: string;
+  name: string;
+  poster: string;
+  cover: string;
+  studio: HanimeRef;
+  /** ISO dates. */
+  releasedAt: string;
+  uploadedAt: string;
+  views: number;
+  likes: number;
+  censorship: HanimeCensorship | null;
+  /** The episode number, when the title is part of a series. */
+  episode: number | null;
+  /** Uploaded in the last 7 days. */
+  isNew: boolean;
+}
+
+export interface HanimeTitle extends HanimeCard {
+  altTitles: string[];
+  description: string[];
+  tags: HanimeRef[];
+  dislikes: number;
+  downloads: number;
+  /** likes ÷ (likes + dislikes); null without votes. */
+  rating: number | null;
+  series: { key: string; name: string } | null;
+  episodes: HanimeCard[];
+  similar: HanimeCard[];
+  siteUrl: string;
+}
+
+export interface HanimeList {
+  items: HanimeCard[];
+  page: number;
+  lastPage: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export interface HanimeShelf {
+  key: string;
+  title: string;
+  /** Browse query values for "See all". */
+  browse: Record<string, string>;
+  items: HanimeCard[];
+}
+
+/** A tag on Browse, with the site's one-line description and tall picture. */
+export interface HanimeTagRef extends HanimeRef {
+  description: string | null;
+  image: string | null;
+}
+
+export interface HanimeTagGroup {
+  group: string;
+  tags: HanimeTagRef[];
+}
+
+/** The sprite the Preview frames are cut from: `columns` × `rows` frames, the first `tiles` used. */
+export interface HanimeStoryboard {
+  url: string;
+  columns: number;
+  rows: number;
+  tiles: number;
+}
+
+/** What only the title's page on the site has. */
+export interface HanimeDetails {
+  durationSec: number | null;
+  /** `FHD 1080p`, `23 min`, `Sub EN`. */
+  badges: string[];
+  altNames: string[];
+  synopsis: string[];
+  storyboard: HanimeStoryboard | null;
+}
+
+export type HanimeSeasonName = "Winter" | "Spring" | "Summer" | "Fall";
+
+export interface HanimeSeasons {
+  years: number[];
+  year: number;
+  seasons: { season: HanimeSeasonName; items: HanimeCard[] }[];
+}
+
+export type HanimeSuggestion =
+  | { type: "title"; card: HanimeCard }
+  | { type: "series"; key: string; name: string; count: number; poster: string }
+  | { type: "tag"; ref: HanimeRef }
+  | { type: "studio"; ref: HanimeRef };
+
+export interface HanimeChange {
+  at: string;
+  kind: "added" | "updated" | "removed";
+  id: number;
+  slug: string;
+  name: string;
+  poster: string;
+  fields: string[] | null;
+}
+
+export interface HanimeStatus {
+  titles: number;
+  lastCheckedAt: string | null;
+  lastChangedAt: string | null;
+  syncing: boolean;
+  paused: boolean;
+  error: string | null;
+}
+
+export type HanimeSort =
+  | "uploaded"
+  | "released"
+  | "views"
+  | "likes"
+  | "rating"
+  | "downloads"
+  | "trending"
+  | "name"
+  | "relevance";
+
+/** Browse's filters and sort, as the address keeps them. */
+export interface HanimeBrowse {
+  q?: string;
+  tags: string[];
+  tagMode: "and" | "or";
+  exclude: string[];
+  studios: string[];
+  censored: "all" | HanimeCensorship;
+  /** `2015,2026` or `2024`. */
+  year?: string;
+  series?: string;
+  sort: HanimeSort;
+  order: "asc" | "desc";
+}
