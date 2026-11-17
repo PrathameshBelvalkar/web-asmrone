@@ -54,6 +54,65 @@ writes the release notes from [`.github/release-notes.md`](../.github/release-no
 changes since the last version, and SHA-256 checksums. Open the draft on GitHub, test one installer, replace the
 "Highlights" placeholder with a few lines about the release, and publish.
 
+## Android app
+
+A native Kotlin app in `apps/android/`. The plan is [`ANDROID.md`](ANDROID.md).
+
+### Requirements
+
+- **Android Studio** (latest stable). It installs the SDK, the emulator and a JDK.
+- **A JDK to run Gradle.** On the command line, use Android Studio's:
+  `export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"`. The code itself is compiled
+  with a **JDK 17 toolchain**, which Gradle downloads once if the machine doesn't have one.
+- **`apps/android/local.properties`** with `sdk.dir=/Users/<you>/Library/Android/sdk`. Android Studio writes it when
+  you open the project; it is not committed. Setting `ANDROID_HOME` works too.
+- An emulator: Device Manager → **Pixel 8**, newest stable image, arm64-v8a on Apple chips ([`ANDROID.md` §5](ANDROID.md#5-emulator-first-can-we-skip-a-real-phone)).
+
+### Build and run
+
+Open `apps/android` in Android Studio and press Run, or:
+
+```bash
+cd apps/android
+./gradlew test                      # all JVM tests: :core, :services and every :source-* module
+./gradlew :source-javguru:test      # one source
+./gradlew installDebug              # emulator or connected phone
+./gradlew lint assembleDebug
+./gradlew test -PliveTests          # also the @Tag("live") checks against the real sites (by hand, not in CI)
+```
+
+Starting the emulator without Android Studio:
+
+```bash
+~/Library/Android/sdk/emulator/emulator -avd Pixel_8 &
+~/Library/Android/sdk/platform-tools/adb devices
+```
+
+### Layout
+
+| Module | Folder | What |
+|---|---|---|
+| `:core` | `core/` | Models, HTTP lanes, cache, back-off, content rules. `testFixtures` has `Fixtures`, the test helper for the shared fixtures. |
+| `:source-<id>` | `sources/<id>/` | One per site: `asmrone`, `hasmr`, `jasmr`, `jnet`, `threehentai`, `javdatabase`, `javguru` |
+| `:services` | `services/` | `AsmrService`, `MangaService`, `JavService`, `JavStreamService`, `SourceRouter` |
+| `:app` | `app/` | The Android app (Compose, Material 3) |
+| | `build-logic/` | The `echo.jvm.library` Gradle plugin that every backend module applies |
+| | `gradle/libs.versions.toml` | Every library version |
+
+The backend modules are plain Kotlin/JVM with no Android code, so their tests run on the JVM without an emulator.
+
+### Shared fixtures
+
+The Kotlin parser tests read the same recorded pages as the TypeScript tests, from
+`web/backend-express/tests/fixtures/`. The path is set once in `apps/android/gradle.properties` (`echoFixtures`) and
+reaches tests as the `echo.fixtures` system property:
+
+```kotlin
+val html = Fixtures.read("javguru", "post-dldss-575.html")   // testImplementation(testFixtures(project(":core")))
+```
+
+When a site changes, re-record the fixture once and fix both versions of the scraper.
+
 ## Echo Web (the browser version)
 
 A browser version of Echo that plays only the **asmr.one** extension

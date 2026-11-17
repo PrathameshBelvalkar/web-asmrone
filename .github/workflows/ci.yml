@@ -1,4 +1,4 @@
-# Tests on every push to main and every pull request. Three jobs run in parallel.
+# Tests on every push to main and every pull request. Four jobs run in parallel.
 name: ci
 
 on:
@@ -50,3 +50,18 @@ jobs:
             web/frontend/package-lock.json
             apps/desktop/package-lock.json
       - run: cd apps/desktop && npm ci && npm run typecheck && npm test
+
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      # The runner image has the Android SDK; AGP installs the platform it needs.
+      - run: ./gradlew lint test assembleDebug --console=plain

@@ -294,7 +294,7 @@ apps/android/
             ├── asmr/  manga/  manga/reader/  jav/  library/  settings/  player/
 ```
 
-Fixture paths are set once in a Gradle property (`echoFixtures = ../web/backend-express/tests/fixtures`), so tests
+Fixture paths are set once in a Gradle property (`echoFixtures=../../web/backend-express/tests/fixtures` in `apps/android/gradle.properties`), so tests
 don't hard-code relative paths.
 
 ---
@@ -736,8 +736,9 @@ Distribution: a **signed APK on GitHub Releases** (or Obtainium). Google Play wo
 ## 21. Phase 1 checklist
 
 **Setup**
-- [ ] Android Studio, phone and tablet emulators, `apps/android/` with `:core`, `:services`, 7 `:source-*` modules and `:app`
-- [ ] Fixture path to `web/backend-express/tests/fixtures`, CI for JVM tests, `DEVELOPMENT.md` Android section
+- [x] `apps/android/` with `:core`, `:services`, 7 `:source-*` modules and `:app`; Android Studio and the Pixel 8 emulator
+- [ ] Pixel Tablet emulator (create in Android Studio → Device Manager)
+- [x] Fixture path to `web/backend-express/tests/fixtures`, CI for JVM tests, `DEVELOPMENT.md` Android section
 
 **Kotlin backend**
 - [ ] `:core`: models, `RequestLane`, `BlockBackoff`, `TtlLruCache`, errors, content rules (same values, tests)

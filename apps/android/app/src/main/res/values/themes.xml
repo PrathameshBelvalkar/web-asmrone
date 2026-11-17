@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Only the window before Compose draws. The real theme is EchoTheme (Compose Material 3). -->
+    <style name="Theme.Echo" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
