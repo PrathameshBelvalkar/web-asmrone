@@ -17,7 +17,12 @@ afterEach(async () => {
 
 describe('startServer', () => {
   it('starts on a free port, serves the API, and stops on close()', async () => {
-    running = await startServer({ PORT: '0', ECHO_WEB_DATA: data.dir, LOG_LEVEL: 'silent' });
+    running = await startServer({
+      PORT: '0',
+      ECHO_WEB_DATA: data.dir,
+      LOG_LEVEL: 'silent',
+      ECHO_HANIME_SYNC: '0',
+    });
     expect(running.port).toBeGreaterThan(0);
     expect(running.url).toBe(`http://127.0.0.1:${running.port}`);
 
@@ -31,9 +36,19 @@ describe('startServer', () => {
   });
 
   it('rejects when the port is already in use', async () => {
-    running = await startServer({ PORT: '0', ECHO_WEB_DATA: data.dir, LOG_LEVEL: 'silent' });
+    running = await startServer({
+      PORT: '0',
+      ECHO_WEB_DATA: data.dir,
+      LOG_LEVEL: 'silent',
+      ECHO_HANIME_SYNC: '0',
+    });
     await expect(
-      startServer({ PORT: String(running.port), ECHO_WEB_DATA: data.dir, LOG_LEVEL: 'silent' }),
+      startServer({
+        PORT: String(running.port),
+        ECHO_WEB_DATA: data.dir,
+        LOG_LEVEL: 'silent',
+        ECHO_HANIME_SYNC: '0',
+      }),
     ).rejects.toThrow();
   });
 });

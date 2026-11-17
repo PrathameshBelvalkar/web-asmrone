@@ -54,4 +54,15 @@ export const LIMITS = {
   javguruMissTtlMs: 24 * 60 * 60_000,
   javguruServersTtlMs: 24 * 60 * 60_000,
   javguruStreamTtlMs: 60 * 60_000,
+  /**
+   * hanime (Hanime catalog): timeouts, how often the catalog is downloaded (Cloudflare keeps it for
+   * an hour, so more often only returns the same copy), and the shortest gap between manual refreshes.
+   */
+  hanimeConnectTimeoutMs: 10_000,
+  hanimeResponseTimeoutMs: 60_000,
+  hanimeSyncIntervalMs: 30 * 60_000,
+  hanimeManualSyncGapMs: 5 * 60_000,
+  /** Title pages (Preview, length, other names) and the Browse page: one at a time, this far apart, kept a day. */
+  hanimePageGapMs: 1_000,
+  hanimeDetailsTtlMs: 24 * 60 * 60_000,
 } as const;

@@ -5,6 +5,7 @@ import type { AppConfig } from './config/env.js';
 import { LIMITS } from './config/limits.js';
 import { AuthController } from './controllers/auth.controller.js';
 import { FeedController } from './controllers/feed.controller.js';
+import { HanimeController } from './controllers/hanime.controller.js';
 import { JavController } from './controllers/jav.controller.js';
 import { MangaController } from './controllers/manga.controller.js';
 import { MediaController } from './controllers/media.controller.js';
@@ -25,6 +26,11 @@ import { HasmrExtension } from './extension/hasmr/hasmr.extension.js';
 import { ThreehentaiExtension } from './extension/threehentai/threehentai.extension.js';
 import { JavdatabaseExtension } from './extension/javdatabase/javdatabase.extension.js';
 import { JavguruClient } from './extension/javguru/javguru.client.js';
+import { HanimeClient } from './extension/hanime/hanime.client.js';
+import { HANIME_IMAGE_PREFIX } from './extension/hanime/constants.js';
+import { HanimeRepository } from './repositories/hanime.repository.js';
+import { HanimeService } from './services/hanime.service.js';
+import { HanimeSyncService } from './services/hanime/sync.service.js';
 import { SourceRouter } from './extension/source-router.js';
 import { SettingsRepository } from './repositories/settings.repository.js';
 import { UserRepository } from './repositories/user.repository.js';
@@ -83,6 +89,9 @@ export interface ContainerOptions {
   readonly javguruDispatcher?: Dispatcher;
   /** The JAV area's clock, which decides which movies are still to come. */
   readonly javClock?: Clock;
+  /** hanime's catalog host, sitemap and home page. */
+  readonly hanimeDispatcher?: Dispatcher;
+  readonly hanimeClock?: Clock;
   /** AI subtitles for tracks without lyrics; null turns them off. Defaults to local Whisper. */
   readonly aiSubtitles?: AiSubtitleService | null;
 }
@@ -171,6 +180,14 @@ export function createContainer(
       { connectMs: LIMITS.javguruConnectTimeoutMs, responseMs: LIMITS.javguruResponseTimeoutMs },
       0,
     );
+
+  const ownHanime = options.hanimeDispatcher === undefined;
+  const hanimeDispatcher: Dispatcher =
+    options.hanimeDispatcher ??
+    createDispatcher({
+      connectMs: LIMITS.hanimeConnectTimeoutMs,
+      responseMs: LIMITS.hanimeResponseTimeoutMs,
+    });
 
   const asmrExtension: MusicExtension = options.extension ?? new AsmrOneExtension(asmrDispatcher);
   const jasmrExtension: MusicExtension = new JasmrExtension(jasmrDispatcher, {
@@ -281,6 +298,27 @@ export function createContainer(
       now: () => javClock.now(),
     },
   );
+  const hanimeClock = options.hanimeClock ?? systemClock;
+  const hanimeClient = new HanimeClient(hanimeDispatcher, {
+    pageGapMs: LIMITS.hanimePageGapMs,
+    now: () => hanimeClock.now(),
+  });
+  const hanimeSync = new HanimeSyncService(
+    hanimeClient,
+    new HanimeRepository(join(config.dataDir, 'hanime')),
+    {
+      intervalMs: LIMITS.hanimeSyncIntervalMs,
+      manualGapMs: LIMITS.hanimeManualSyncGapMs,
+      now: () => hanimeClock.now(),
+      logger,
+    },
+  );
+  const hanimeService = new HanimeService(hanimeSync, hanimeClient, {
+    detailsTtlMs: LIMITS.hanimeDetailsTtlMs,
+    now: () => hanimeClock.now(),
+  });
+  // Covers, posters, storyboards and tag pictures load in the browser; the proxy is their fallback.
+  issued.allowPrefix(HANIME_IMAGE_PREFIX);
   const storageService = new StorageService({
     subtitles: subtitleRepo,
     settings: settingsRepo,
@@ -302,6 +340,7 @@ export function createContainer(
     storage: new StorageController(storageService),
     manga: new MangaController(mangaService),
     jav: new JavController(javService, javStreamService),
+    hanime: new HanimeController(hanimeService, hanimeSync),
   };
 
   return {
@@ -315,9 +354,11 @@ export function createContainer(
       await extension.onExtensionSelected();
       await authService.restore();
       await tools.init();
+      if (config.hanimeSync) hanimeSync.start();
     },
     async close() {
       tools.close();
+      hanimeSync.stop();
       await Promise.all([
         ownAsmr ? asmrDispatcher.close() : undefined,
         ownProxy ? proxyDispatcher.close() : undefined,
@@ -327,6 +368,7 @@ export function createContainer(
         ownThreehentai ? threehentaiDispatcher.close() : undefined,
         ownJavdatabase ? javdatabaseDispatcher.close() : undefined,
         ownJavguru ? javguruDispatcher.close() : undefined,
+        ownHanime ? hanimeDispatcher.close() : undefined,
         aiSubtitles?.close(),
       ]);
     },

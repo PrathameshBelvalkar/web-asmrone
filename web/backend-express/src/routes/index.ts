@@ -1,6 +1,7 @@
 import { Router, type RequestHandler } from 'express';
 import type { AuthController } from '../controllers/auth.controller.js';
 import type { FeedController } from '../controllers/feed.controller.js';
+import type { HanimeController } from '../controllers/hanime.controller.js';
 import type { JavController } from '../controllers/jav.controller.js';
 import type { MangaController } from '../controllers/manga.controller.js';
 import type { MediaController } from '../controllers/media.controller.js';
@@ -24,6 +25,7 @@ export interface Controllers {
   readonly storage: StorageController;
   readonly manga: MangaController;
   readonly jav: JavController;
+  readonly hanime: HanimeController;
 }
 
 interface RouteSpec extends RouteMeta {
@@ -112,6 +114,21 @@ function routeTable(c: Controllers): RouteSpec[] {
     { method: 'GET', path: '/jav/idol/:slug', handler: c.jav.idol },
     { method: 'GET', path: '/jav/genres', handler: c.jav.genres },
     { method: 'GET', path: '/jav/search', handler: c.jav.search },
+
+    // Hanime (answered from the catalog Echo keeps; docs/HANIME.md)
+    { method: 'GET', path: '/hanime/home', handler: c.hanime.home },
+    { method: 'GET', path: '/hanime/titles', handler: c.hanime.titles },
+    { method: 'GET', path: '/hanime/title/:slug', handler: c.hanime.title },
+    { method: 'GET', path: '/hanime/title/:slug/details', handler: c.hanime.details },
+    { method: 'GET', path: '/hanime/seasons', handler: c.hanime.seasons },
+    { method: 'GET', path: '/hanime/random', handler: c.hanime.random },
+    { method: 'GET', path: '/hanime/tags', handler: c.hanime.tags },
+    { method: 'GET', path: '/hanime/studios', handler: c.hanime.studios },
+    { method: 'GET', path: '/hanime/suggest', handler: c.hanime.suggest },
+    { method: 'GET', path: '/hanime/changes', handler: c.hanime.changes },
+    { method: 'GET', path: '/hanime/status', handler: c.hanime.status },
+    { method: 'GET', path: '/hanime/events', handler: c.hanime.events },
+    { method: 'POST', path: '/hanime/sync', handler: c.hanime.syncNow },
   ];
 }
 
