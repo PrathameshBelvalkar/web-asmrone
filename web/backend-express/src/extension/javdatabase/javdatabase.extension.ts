@@ -16,7 +16,14 @@ import type {
   JavSource,
 } from '../../models/jav.js';
 import { JavdatabaseClient, type JavdatabaseClientOptions } from './api/javdatabase.client.js';
-import { IDOL_SORT, KIND_PATH, LIST_BY_PATH, MOVIE_SORT } from './constants.js';
+import {
+  IDOL_SORT,
+  KIND_PATH,
+  LIST_BY_PATH,
+  MOVIE_SORT,
+  MULTI_CAST_TITLE,
+  SOLO_GENRE,
+} from './constants.js';
 import { parseIdolList, parseMovieList } from './parsers/cards.js';
 import { parseGenresPage, parseIdolPage, parseMoviePage } from './parsers/details.js';
 import { parseNewsList, parseNewsPost } from './parsers/news.js';
@@ -45,11 +52,15 @@ export class JavdatabaseExtension implements JavSource {
     return parseIdolList(await this.client.page(searchAddress(q, 'idols', page)), page);
   }
 
-  async idol(slug: string, page: number): Promise<JavIdol> {
-    const html = await this.client.page(`/idols/${slug}/${page > 1 ? `?ipage=${page}` : ''}`);
-    const idol = parseIdolPage(html, slug, page);
-    if (idol.photoFull === null && idol.movies.items.length === 0) throw HttpError.notFound();
-    return idol;
+  async idol(slug: string, page: number, solo = false): Promise<JavIdol> {
+    const idol = parseIdolPage(await this.client.page(idolAddress(slug, page, solo)), slug, page);
+    if (!solo) {
+      if (idol.photoFull === null && idol.movies.items.length === 0) throw HttpError.notFound();
+      return idol;
+    }
+    // Filtered, an empty page only means she has no solo movies.
+    const items = idol.movies.items.filter((m) => !MULTI_CAST_TITLE.test(m.title));
+    return { ...idol, movies: { ...idol.movies, items } };
   }
 
   async genres(): Promise<JavGenreGroup[]> {
@@ -96,6 +107,14 @@ export function movieListAddress(query: JavMovieQuery): string {
   }
   // Slugs are checked by the controller (letters, digits, `-`, `_`, `.`, `%`), so they go in as is.
   return `/${LIST_BY_PATH[query.by]}/${query.slug}/${pagePart(query.page)}`;
+}
+
+/** An idol's page; with `solo`, filtered to her Featured Actress movies. */
+export function idolAddress(slug: string, page: number, solo: boolean): string {
+  const parts: string[] = [];
+  if (solo) parts.push(`_genre=${SOLO_GENRE}`);
+  if (page > 1) parts.push(`ipage=${page}`);
+  return `/idols/${slug}/${parts.length > 0 ? `?${parts.join('&')}` : ''}`;
 }
 
 /** The site address for an idol list query. Facet values were checked against the allow-list. */

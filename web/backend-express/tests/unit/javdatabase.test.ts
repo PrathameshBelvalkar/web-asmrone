@@ -6,7 +6,9 @@ import {
   isAllowedAddress,
   JavdatabaseClient,
 } from '../../src/extension/javdatabase/api/javdatabase.client.js';
+import { MULTI_CAST_TITLE } from '../../src/extension/javdatabase/constants.js';
 import {
+  idolAddress,
   idolListAddress,
   movieListAddress,
 } from '../../src/extension/javdatabase/javdatabase.extension.js';
@@ -191,6 +193,33 @@ describe('javdatabase.com detail parsers', () => {
     expect(idol.related.every((r) => r.slug !== 'hikaru-nagi')).toBe(true);
   });
 
+  it('reads an idol page filtered to her Featured Actress movies, with its paging', () => {
+    const idol = parseIdolPage(fixture('idol-yua-mikami-featured.html'), 'yua-mikami', 2);
+    expect(idol.name).toBe('Yua Mikami');
+    expect(idol.movies.items).toHaveLength(18);
+    expect(idol.movies.items[0]).toMatchObject({ dvdId: 'SSIS-448' });
+    expect(idol.movies).toMatchObject({ page: 2, lastPage: 7, hasMore: true });
+  });
+
+  it('spots titles with a cast of several, and keeps her own best-of', () => {
+    for (const title of [
+      'The Hottest Beauties: Handjob AV - 49 Women, 8 Hours, BEST',
+      'S1 Omnibus 2026',
+      'Harem Soapland With Three Idols',
+      'Co-starring Aoi And Yua',
+      'Lesbian Kiss Special',
+    ]) {
+      expect(MULTI_CAST_TITLE.test(title)).toBe(true);
+    }
+    for (const title of [
+      "Top Of AV Star. Yua Mikami's Debut, PREMIUM BEST. Latest 12 Titles",
+      'Cohabitation LOVE STORY Yua Mikami',
+      "Yua Mikami's last best AV work 12 hours",
+    ]) {
+      expect(MULTI_CAST_TITLE.test(title)).toBe(false);
+    }
+  });
+
   it('reads the genre groups', () => {
     const groups = parseGenresPage(fixture('genres.html'));
     expect(groups.map((g) => g.name)).toEqual([
@@ -276,6 +305,7 @@ describe('javdatabase.com addresses', () => {
     expect(ok('/genres/creampie/page/3/')).toBe(true);
     expect(ok('/studios/kawaii/')).toBe(true);
     expect(ok('/idols/hikaru-nagi/?ipage=2')).toBe(true);
+    expect(ok('/idols/yua-mikami/?_genre=featured-actress&ipage=2')).toBe(true);
     expect(ok('/idols/page/2/?_cup_size=d%2Ce&_age_group=twenties&_sort_=most_favorited')).toBe(
       true,
     );
@@ -296,6 +326,8 @@ describe('javdatabase.com addresses', () => {
     expect(ok('/idols/?_body_type=loli')).toBe(false);
     expect(ok('/idols/?_body_type=slim%2Cloli')).toBe(false);
     expect(ok('/movies/?_cup_size=d')).toBe(false);
+    expect(ok('/idols/yua-mikami/?_genre=creampie')).toBe(false);
+    expect(ok('/idols/?_genre=featured-actress')).toBe(false);
     expect(ok('/movies/?_sort_=random')).toBe(false);
     expect(ok('/genres/../login/')).toBe(false);
     expect(isAllowedAddress(new URL('https://evil.example/movies/'))).toBe(false);
@@ -324,6 +356,12 @@ describe('javdatabase.com addresses', () => {
     ).toBe('/idols/page/2/?_cup_size=d%2Ce&_debut_year=2024.00%2C2026.00&_sort_=most_favorited');
     expect(idolListAddress({ sort: 'debut', facets: {}, debutYear: null, page: 1 })).toBe(
       '/idols/',
+    );
+    expect(idolAddress('yua-mikami', 1, false)).toBe('/idols/yua-mikami/');
+    expect(idolAddress('yua-mikami', 2, false)).toBe('/idols/yua-mikami/?ipage=2');
+    expect(idolAddress('yua-mikami', 1, true)).toBe('/idols/yua-mikami/?_genre=featured-actress');
+    expect(idolAddress('yua-mikami', 3, true)).toBe(
+      '/idols/yua-mikami/?_genre=featured-actress&ipage=3',
     );
     expect(movieListAddress({ by: 'search', q: 'aoi', kind: 'uncensored', page: 1 })).toBe(
       '/?s=aoi&post_type=uncensored',

@@ -5,7 +5,7 @@ import { Mutex } from '../../../lib/mutex.js';
 import { httpCall } from '../../../lib/http-client.js';
 import { HttpError } from '../../../models/errors.js';
 import { JAV_IDOL_FACETS } from '../../../models/jav.js';
-import { APP_USER_AGENT, JAVDATABASE_SITE } from '../constants.js';
+import { APP_USER_AGENT, JAVDATABASE_SITE, SOLO_GENRE } from '../constants.js';
 
 export interface JavdatabaseClientOptions {
   /** Minimum gap between two requests to the site. */
@@ -50,7 +50,8 @@ const BUSY = 'javdatabase.com is limiting requests right now. Try again later.';
 
 /**
  * Only these addresses are ever requested: the blog and its posts, the movie, idol, genre, studio
- * and director pages, and search, with their paging, sort and idol filter options. Anything else
+ * and director pages, and search, with their paging, sort and idol filter options, and an idol
+ * page's Featured Actress filter. Anything else
  * (the REST API, admin-ajax, login, comments, favourites) is refused before a request is made.
  */
 export function isAllowedAddress(url: URL): boolean {
@@ -59,6 +60,7 @@ export function isAllowedAddress(url: URL): boolean {
   // Search lives at the site root (`/?s=…`, `/page/2/?s=…`); the root is allowed for nothing else.
   const isRoot = /^\/(?:page\/\d+\/)?$/.test(url.pathname);
   const isIdols = /^\/idols\/(?:page\/\d+\/)?$/.test(url.pathname);
+  const isIdol = !isIdols && /^\/idols\/[^/]+\/$/.test(url.pathname);
   if (isRoot && !url.searchParams.has('s')) return false;
   for (const [key, value] of url.searchParams) {
     if (key === 's' && isRoot && value.length <= 200) continue;
@@ -67,6 +69,7 @@ export function isAllowedAddress(url: URL): boolean {
     if (key === '_sort_' && SORTS.has(value)) continue;
     if (isIdols && key.startsWith('_') && isAllowedFacet(key.slice(1), value)) continue;
     if (isIdols && key === '_debut_year' && RANGE.test(value)) continue;
+    if (isIdol && key === '_genre' && value === SOLO_GENRE) continue;
     return false;
   }
   return true;

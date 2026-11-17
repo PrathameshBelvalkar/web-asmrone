@@ -144,8 +144,8 @@ export class JavService {
     return { ...list, items: this.issuedIdols(list.items) };
   }
 
-  async idol(slug: string, page: number): Promise<JavIdol> {
-    const idol = await this.source.idol(slug, page);
+  async idol(slug: string, page: number, solo = false): Promise<JavIdol> {
+    const idol = await this.source.idol(slug, page, solo);
     this.issue(idol.photo);
     this.issue(idol.photoFull);
     return {

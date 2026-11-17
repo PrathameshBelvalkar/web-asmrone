@@ -144,7 +144,10 @@ export class JavController {
   idol = async (req: Request, res: Response): Promise<void> => {
     const slug = paramString(req, 'slug');
     if (!SLUG.test(slug)) throw HttpError.notFound();
-    res.json(javIdolView(await this.jav.idol(slug, pageParam(req))));
+    const solo = queryString(req, 'solo');
+    if (solo !== undefined && solo !== '1' && solo !== '0')
+      throw HttpError.badRequest('solo must be 1 or 0');
+    res.json(javIdolView(await this.jav.idol(slug, pageParam(req), solo === '1')));
   };
 
   genres = async (_req: Request, res: Response): Promise<void> => {

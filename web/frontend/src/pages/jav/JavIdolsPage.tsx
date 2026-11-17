@@ -60,8 +60,16 @@ export function JavIdolsPage() {
 }
 
 /** An idol: photo, names and profile, a short biography, their movies, and related idols. */
+const CASTS: { value: 'all' | 'her'; label: string }[] = [
+  { value: 'all', label: 'All movies' },
+  { value: 'her', label: 'Only her' },
+];
+
 export function JavIdolPage() {
   const { slug = '' } = useParams();
+  // "Only her" lives in the address, so Back and shared links keep it.
+  const [params, setParams] = useSearchParams();
+  const solo = params.get('only') === 'her';
   const idol = useQuery(javIdolOptions(slug));
   const i = idol.data;
   useDetailCrumbs(i?.name ?? slug.replace(/-/g, ' '), [JAV_HOME, { label: 'Idols', to: '/jav/idols' }]);
@@ -106,8 +114,25 @@ export function JavIdolPage() {
       {i.bio && <Bio text={i.bio} />}
 
       <section className="mb-12">
-        <h2 className="mb-5 text-2xl font-semibold md:text-[28px]">Movies</h2>
-        <MovieGrid key={slug} query={{ by: 'idol', slug }} />
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-2xl font-semibold md:text-[28px]">Movies</h2>
+          <Segmented<'all' | 'her'>
+            label="Cast"
+            value={solo ? 'her' : 'all'}
+            onChange={(v) => setParams(v === 'her' ? { only: 'her' } : {}, { replace: true })}
+            options={CASTS}
+          />
+        </div>
+        {solo && (
+          <p className="-mt-2 mb-5 text-sm text-muted-foreground">
+            Her single-actress releases, without compilations and group scenes.
+          </p>
+        )}
+        <MovieGrid
+          key={`${slug}:${solo}`}
+          query={{ by: 'idol', slug, solo }}
+          emptyText={solo ? `No movies with ${i.name} alone.` : undefined}
+        />
       </section>
 
       {i.related.length > 0 && (

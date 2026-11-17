@@ -276,6 +276,26 @@ describe('/api/jav', () => {
     expect(idol.body.movies.items.length).toBeGreaterThan(0);
   });
 
+  it('serves only the movies where the idol is alone', async () => {
+    // One title in the Featured Actress page says it has a cast of several; it is left out.
+    const page = fixture('idol-yua-mikami-featured.html').replace(
+      'Cohabitation LOVE STORY Yua Mikami',
+      'Cohabitation LOVE STORY With 3 Women',
+    );
+    site()
+      .intercept({ path: '/idols/yua-mikami/?_genre=featured-actress&ipage=2', method: 'GET' })
+      .reply(200, page);
+    const idol = await request(t.app)
+      .get('/api/jav/idol/yua-mikami')
+      .query({ page: 2, solo: 1 })
+      .expect(200);
+    expect(idol.body.movies.items).toHaveLength(17);
+    expect(idol.body.movies.items[0].dvdId).toBe('SSIS-419');
+    expect(idol.body.movies).toMatchObject({ page: 2, hasMore: true });
+
+    await request(t.app).get('/api/jav/idol/yua-mikami').query({ solo: 'yes' }).expect(400);
+  });
+
   it('serves the news and a weekly post', async () => {
     site()
       .intercept({ path: '/blog/?paged=2', method: 'GET' })

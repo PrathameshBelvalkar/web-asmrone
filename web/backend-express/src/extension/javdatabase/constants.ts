@@ -43,3 +43,17 @@ export const IDOL_SORT: Readonly<Record<JavIdolSort, string | null>> = {
   most_favorited: 'most_favorited',
   newest: 'newest',
 };
+
+/**
+ * "Only her" on an idol page: the site's Featured Actress genre marks single-actress releases. The
+ * idol page filters by it (`?_genre=featured-actress`) and pages the result with `ipage`.
+ */
+export const SOLO_GENRE = 'featured-actress';
+
+/**
+ * Featured Actress releases whose title says they have a cast of several: "49 Women", "Omnibus",
+ * "Harem", "Threesome". The site gives no cast count in its lists, so this catches the ones the
+ * genre lets through. Her own best-of collections stay, since she is still alone in them.
+ */
+export const MULTI_CAST_TITLE =
+  /\b(?:\d+\s*(?:women|girls|actresses|ladies|idols|people|performers)\b|omnibus|harem|orgy|gangbang|threesome|foursome|lesbian|co-?star(?:ring)?|all[- ]stars?|several (?:women|girls|actresses))/i;

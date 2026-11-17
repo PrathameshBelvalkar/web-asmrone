@@ -248,7 +248,8 @@ export interface JavSource {
   movie(kind: JavKind, slug: string): Promise<JavMovie>;
   idols(query: JavIdolQuery): Promise<JavList<JavIdolCard>>;
   searchIdols(q: string, page: number): Promise<JavList<JavIdolCard>>;
-  idol(slug: string, page: number): Promise<JavIdol>;
+  /** `solo`: only the movies where she is the one actress. */
+  idol(slug: string, page: number, solo?: boolean): Promise<JavIdol>;
   genres(): Promise<JavGenreGroup[]>;
   news(category: JavNewsCategory | null, page: number): Promise<JavList<JavNewsItem>>;
   newsPost(path: string): Promise<JavNewsPost>;

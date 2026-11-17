@@ -461,7 +461,8 @@ export type JavMovieQuery =
   | { by: JavListBy; slug: string }
   /** `kind` limits a search to censored or uncensored movies. */
   | { by: "search"; q: string; kind?: JavKind }
-  | { by: "idol"; slug: string };
+  /** `solo`: only the movies where she is the one actress. */
+  | { by: "idol"; slug: string; solo?: boolean };
 
 /** Idol filters, by Echo's query names. Values are the site's facet values. */
 export interface JavIdolFilters {
