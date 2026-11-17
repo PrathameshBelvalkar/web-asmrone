@@ -74,25 +74,36 @@ export function MovieGrid({ query, emptyText = 'No movies found.' }: { query: Ja
   const list = useInfiniteQuery(javMoviesOptions(query));
   // The Upcoming list is the one place announced movies are always shown.
   const hideUpcoming = useJavPrefs((s) => s.hideUpcoming) && query.by !== 'upcoming';
-  const items = useMemo(() => {
+  const all = useMemo(() => {
     // The site's pages can overlap when new movies arrive while you scroll.
     const seen = new Set<string>();
     return (list.data?.pages.flatMap((p) => p.items) ?? []).filter((c) => {
       const key = `${c.kind}:${c.slug}`;
-      return !(hideUpcoming && c.upcoming) && !seen.has(key) && !!seen.add(key);
+      return !seen.has(key) && !!seen.add(key);
     });
-  }, [list.data, hideUpcoming]);
+  }, [list.data]);
+  const released = useMemo(() => (hideUpcoming ? all.filter((c) => !c.upcoming) : all), [all, hideUpcoming]);
+  // A new idol may have only announced movies. Rather than an empty page, show those once every
+  // page is in and nothing released turned up.
+  const onlyUpcoming =
+    query.by === 'idol' && hideUpcoming && released.length === 0 && all.length > 0 && list.isSuccess && !list.hasNextPage;
+  const items = onlyUpcoming ? all : released;
   useHeaderWash(mangaHolder(items[0]?.cover));
   return (
-    <InfiniteGrid
-      list={list}
-      items={items}
-      itemKey={(c) => `${c.kind}:${c.slug}`}
-      render={(c) => <MovieCard card={c} />}
-      className={MOVIE_GRID}
-      skeleton={<GridSkeletons className={MOVIE_GRID} aspect="aspect-[147/200]" />}
-      emptyText={emptyText}
-    />
+    <>
+      {onlyUpcoming && (
+        <p className="-mt-2 mb-5 text-sm text-muted-foreground">Nothing released yet. These are coming soon.</p>
+      )}
+      <InfiniteGrid
+        list={list}
+        items={items}
+        itemKey={(c) => `${c.kind}:${c.slug}`}
+        render={(c) => <MovieCard card={c} />}
+        className={MOVIE_GRID}
+        skeleton={<GridSkeletons className={MOVIE_GRID} aspect="aspect-[147/200]" />}
+        emptyText={emptyText}
+      />
+    </>
   );
 }
 

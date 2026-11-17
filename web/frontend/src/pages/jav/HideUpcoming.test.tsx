@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { api } from "../../api/client";
 import type { JavMovieCard } from "../../api/types";
 import { useJavPrefs } from "../../lib/jav-prefs";
+import { MovieGrid } from "../../components/jav/cards";
 import { JavMoviesPage } from "./JavMoviesPage";
 
 vi.mock("../../api/client", () => ({
@@ -78,5 +79,40 @@ describe("Hide upcoming movies", () => {
     );
     expect(await screen.findByText("ABC-2")).toBeInTheDocument();
     expect(screen.queryByText("ABC-1")).toBeNull();
+  });
+
+  it("shows an idol's announced movies when she has nothing released yet", async () => {
+    vi.mocked(api.jav.movies).mockResolvedValue({
+      items: [card("new-1", true), card("new-2", true)],
+      page: 1,
+      lastPage: 1,
+      hasMore: false,
+    });
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter>
+          <MovieGrid query={{ by: "idol", slug: "new-idol" }} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByText("NEW-1")).toBeInTheDocument();
+    expect(screen.getByText("NEW-2")).toBeInTheDocument();
+    expect(screen.getByText(/Nothing released yet/)).toBeInTheDocument();
+    expect(screen.queryByText("No movies found.")).toBeNull();
+  });
+
+  it("still hides an idol's announced movies when she has released ones", async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter>
+          <MovieGrid query={{ by: "idol", slug: "abc" }} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByText("ABC-2")).toBeInTheDocument();
+    expect(screen.queryByText("ABC-1")).toBeNull();
+    expect(screen.queryByText(/Nothing released yet/)).toBeNull();
   });
 });
