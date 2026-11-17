@@ -330,3 +330,151 @@ export type MangaListQuery =
   | { by: "browse"; sort: "new" | "popular" }
   | { by: "search"; q: string }
   | { by: MangaTagKind; slug: string; sort: MangaSort };
+
+// JAV -------------------------------------------------------------------------
+
+export type JavKind = "censored" | "uncensored";
+export type JavListBy = "genre" | "studio" | "director";
+export type JavMovieSort = "release" | "most_favorited" | "top_rated";
+export type JavIdolSort = "debut" | "name" | "top_rated" | "most_favorited" | "newest";
+export type JavNewsCategory = "top-jav-movies" | "new-jav-debuts" | "top-jav-idols" | "idol-updates" | "site-updates";
+
+/** A genre, studio, director, series or news category. */
+export interface JavRef {
+  slug: string;
+  name: string;
+}
+
+export interface JavMovieCard {
+  slug: string;
+  kind: JavKind;
+  /** `SAVR-1268`. Uncensored movies have none. */
+  dvdId: string | null;
+  title: string;
+  /** `YYYY-MM-DD`. */
+  releaseDate: string | null;
+  /** Not out yet in Japan. */
+  upcoming: boolean;
+  cover: string | null;
+  studio: JavRef | null;
+}
+
+export interface JavMovie extends JavMovieCard {
+  contentId: string | null;
+  coverFull: string | null;
+  runtimeMin: number | null;
+  series: JavRef | null;
+  director: JavRef | null;
+  genres: JavRef[];
+  idols: JavIdolCard[];
+  samples: { thumb: string; full: string }[];
+  /** On the studio's or DMM's host; the browser loads it directly. */
+  trailer: string | null;
+  similar: JavMovieCard[];
+}
+
+/** A full movie's HLS stream. Load `master` through the proxy; its segments load from their host. */
+export interface JavStream {
+  server: "sb";
+  master: string;
+  /** Epoch ms after which the stream should be asked for again. */
+  expiresAt: number;
+}
+
+export interface JavIdolCard {
+  slug: string;
+  name: string;
+  photo: string | null;
+  age: number | null;
+}
+
+export interface JavIdol extends JavIdolCard {
+  photoFull: string | null;
+  nameJapanese: string | null;
+  altNames: string[];
+  dob: string | null;
+  debut: string | null;
+  debutAge: number | null;
+  birthplace: string | null;
+  sign: string | null;
+  blood: string | null;
+  measurements: string | null;
+  cup: string | null;
+  heightCm: number | null;
+  shoeSize: string | null;
+  hairLength: string[];
+  hairColor: string[];
+  tags: string[];
+  bio: string | null;
+  censoredCount: number | null;
+  uncensoredCount: number | null;
+  movies: JavList<JavMovieCard>;
+  related: JavIdolCard[];
+}
+
+export interface JavList<T> {
+  items: T[];
+  page: number;
+  lastPage: number | null;
+  hasMore: boolean;
+}
+
+export interface JavMovieList extends JavList<JavMovieCard> {
+  /** On a genre, studio or director list: its name. */
+  heading?: string | null;
+}
+
+export interface JavGenreGroup {
+  name: string;
+  genres: JavRef[];
+}
+
+export interface JavNewsItem {
+  /** `2026/11/13/slug`. */
+  path: string;
+  url: string;
+  title: string;
+  date: string;
+  categories: JavRef[];
+  summary: string;
+  image: string | null;
+}
+
+export type JavRankedEntry =
+  | { rank: number; type: "movie"; movie: JavMovieCard }
+  | { rank: number; type: "idol"; idol: JavIdolCard };
+
+export interface JavNewsPost {
+  path: string;
+  url: string;
+  title: string;
+  date: string;
+  intro: string;
+  ranked: JavRankedEntry[];
+}
+
+/** What a movie grid shows. */
+export type JavMovieQuery =
+  | { by: "movies"; kind: JavKind; sort: JavMovieSort }
+  | { by: "latest"; kind: JavKind }
+  | { by: "upcoming"; kind: JavKind }
+  | { by: JavListBy; slug: string }
+  /** `kind` limits a search to censored or uncensored movies. */
+  | { by: "search"; q: string; kind?: JavKind }
+  /** `solo`: only the movies where she is the one actress. */
+  | { by: "idol"; slug: string; solo?: boolean };
+
+/** Idol filters, by Echo's query names. Values are the site's facet values. */
+export interface JavIdolFilters {
+  content?: string[];
+  age?: string[];
+  cup?: string[];
+  body?: string[];
+  hairLength?: string[];
+  hairColor?: string[];
+  /** `2024` or `2020-2026`. */
+  debutYear?: string;
+}
+
+/** What an idol grid shows. */
+export type JavIdolQuery = { by: "all"; sort: JavIdolSort; filters: JavIdolFilters } | { by: "search"; q: string };

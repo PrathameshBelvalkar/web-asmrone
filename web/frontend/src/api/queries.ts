@@ -1,6 +1,21 @@
-import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
+import { infiniteQueryOptions, keepPreviousData, queryOptions } from '@tanstack/react-query';
 import { api } from './client';
-import type { Album, Artist, Lyrics, MangaIndexKind, MangaListQuery, MediaItem, Playlist, SourceId, ToolsStatus, Track } from './types';
+import type {
+  Album,
+  Artist,
+  JavIdolQuery,
+  JavKind,
+  JavMovieQuery,
+  JavNewsCategory,
+  Lyrics,
+  MangaIndexKind,
+  MangaListQuery,
+  MediaItem,
+  Playlist,
+  SourceId,
+  ToolsStatus,
+  Track,
+} from './types';
 import { usePlayer } from '../player/store';
 
 /** Shared cache times. Content is long-lived; user-specific data is shorter. */
@@ -169,4 +184,89 @@ export const mangaGalleryOptions = (id: string) =>
     queryFn: () => api.manga.gallery(id),
     staleTime: Infinity,
     retry: (count, error) => count < 2 && !('status' in error && [404, 451].includes((error as { status: number }).status)),
+  });
+
+/** A refused (451) or missing (404) JAV page isn't retried, nor one asked while the server backs off (503). */
+const javRetry = (count: number, error: Error) =>
+  count < 2 && !('status' in error && [404, 451, 503].includes((error as { status: number }).status));
+
+/** News posts, newest first, one site page per query page. */
+export const javNewsOptions = (category: JavNewsCategory | null) =>
+  infiniteQueryOptions({
+    queryKey: ['jav', 'news', category],
+    queryFn: ({ pageParam }) => api.jav.news(category, pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.hasMore ? last.page + 1 : undefined),
+    staleTime: STALE.content,
+  });
+
+export const javNewsPostOptions = (path: string) =>
+  queryOptions({
+    queryKey: ['jav', 'newsPost', path],
+    queryFn: () => api.jav.newsPost(path),
+    staleTime: 60 * MIN,
+    retry: javRetry,
+  });
+
+/** A movie list: Movies, Latest, Upcoming, a genre, studio or director, a search, or an idol's movies. */
+export const javMoviesOptions = (query: JavMovieQuery) =>
+  infiniteQueryOptions({
+    queryKey: ['jav', 'movies', query],
+    queryFn: ({ pageParam }) => api.jav.movies(query, pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.hasMore ? last.page + 1 : undefined),
+    staleTime: STALE.content,
+    retry: javRetry,
+    enabled: query.by !== 'search' || query.q.length > 0,
+  });
+
+export const javMovieOptions = (kind: string, slug: string) =>
+  queryOptions({
+    queryKey: ['jav', 'movie', kind, slug],
+    queryFn: () => api.jav.movie(kind, slug),
+    staleTime: 60 * MIN,
+    retry: javRetry,
+  });
+
+/**
+ * Search suggestions: the first few results of a movie or idol search. Each new query keeps the last
+ * suggestions on screen until its own arrive.
+ */
+export const javSuggestOptions = (type: 'movies' | 'idols', q: string, kind?: JavKind) =>
+  queryOptions({
+    queryKey: ['jav', 'suggest', type, kind ?? 'all', q.toLowerCase()],
+    queryFn: async () =>
+      type === 'idols'
+        ? { movies: [], idols: (await api.jav.idols({ by: 'search', q }, 1)).items.slice(0, 8) }
+        : { movies: (await api.jav.movies({ by: 'search', q, kind }, 1)).items.slice(0, 8), idols: [] },
+    staleTime: STALE.content,
+    enabled: q.length >= 2,
+    placeholderData: keepPreviousData,
+    retry: false,
+  });
+
+export const javIdolsOptions = (query: JavIdolQuery) =>
+  infiniteQueryOptions({
+    queryKey: ['jav', 'idols', query],
+    queryFn: ({ pageParam }) => api.jav.idols(query, pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.hasMore ? last.page + 1 : undefined),
+    staleTime: STALE.content,
+    enabled: query.by !== 'search' || query.q.length > 0,
+  });
+
+export const javIdolOptions = (slug: string) =>
+  queryOptions({
+    queryKey: ['jav', 'idol', slug],
+    queryFn: () => api.jav.idol(slug),
+    staleTime: 60 * MIN,
+    retry: javRetry,
+  });
+
+/** The genre list changes rarely. */
+export const javGenresOptions = () =>
+  queryOptions({
+    queryKey: ['jav', 'genres'],
+    queryFn: () => api.jav.genres(),
+    staleTime: 24 * 60 * MIN,
   });

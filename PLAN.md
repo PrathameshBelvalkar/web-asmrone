@@ -707,6 +707,10 @@ The UI gets an `ApiTransport` setting: **HTTP** on the desktop, **in-process** o
 
 The decision is **Capacitor**. With one developer, one copy of each source scraper beats two.
 
+> **Changed:** the Android app is now planned as **native Kotlin + Jetpack Compose (Material 3)**, with every
+> scraper rewritten in Kotlin and running on the phone (no Node, no computer needed). See
+> [`docs/ANDROID.md`](docs/ANDROID.md).
+
 ### 10.2 Inside the Android app
 
 The full app after Phase 6. This phase builds the UI, core, Http, Image and Player parts; Discovery comes in Phase 5 and Decoder/Whisper in Phase 6.
@@ -991,7 +995,7 @@ These choices affect the work. The ✅ option is assumed in this plan unless we 
 |---|---|---|---|
 | 1 | Public release? | Phase 1 | Decides whether we must publish source now (see licence risk) |
 | 2 | Remote access outside home | Phase 2 | ✅ Same Wi-Fi + Tailscale · Build our own relay server (more work, costs money) |
-| 3 | Android framework | Phase 3 | ✅ Capacitor + shared core · Native Kotlin/Compose (would make Phase 3 unnecessary) |
+| 3 | Android framework | Phase 3 | ~~Capacitor + shared core~~ · ✅ Native Kotlin/Compose: decided, see [`docs/ANDROID.md`](docs/ANDROID.md) |
 | 4 | "Media libraries" on Android | Phase 4 | ✅ Online sources first, phone files in Phase 7 · Both from the start |
 | 5 | Android audio decoding | Phase 6 | ✅ Our own small FFmpeg · Android MediaCodec |
 

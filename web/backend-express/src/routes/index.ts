@@ -1,6 +1,7 @@
 import { Router, type RequestHandler } from 'express';
 import type { AuthController } from '../controllers/auth.controller.js';
 import type { FeedController } from '../controllers/feed.controller.js';
+import type { JavController } from '../controllers/jav.controller.js';
 import type { MangaController } from '../controllers/manga.controller.js';
 import type { MediaController } from '../controllers/media.controller.js';
 import type { PlaylistController } from '../controllers/playlist.controller.js';
@@ -22,6 +23,7 @@ export interface Controllers {
   readonly tools: ToolsController;
   readonly storage: StorageController;
   readonly manga: MangaController;
+  readonly jav: JavController;
 }
 
 interface RouteSpec extends RouteMeta {
@@ -96,6 +98,20 @@ function routeTable(c: Controllers): RouteSpec[] {
     { method: 'GET', path: '/manga/index/:kind/search', handler: c.manga.indexSearch },
     { method: 'GET', path: '/manga/gallery/:id', handler: c.manga.gallery },
     { method: 'GET', path: '/manga/:kind/:slug', handler: c.manga.byTag },
+
+    // JAV (the fixed paths come before /jav/movies/:by/:slug)
+    { method: 'GET', path: '/jav/news', handler: c.jav.news },
+    { method: 'GET', path: '/jav/news/:yyyy/:mm/:dd/:slug', handler: c.jav.newsPost },
+    { method: 'GET', path: '/jav/latest', handler: c.jav.latest },
+    { method: 'GET', path: '/jav/upcoming', handler: c.jav.upcoming },
+    { method: 'GET', path: '/jav/movies', handler: c.jav.movies },
+    { method: 'GET', path: '/jav/movies/:by/:slug', handler: c.jav.moviesBy },
+    { method: 'GET', path: '/jav/movie/:kind/:slug', handler: c.jav.movie },
+    { method: 'GET', path: '/jav/movie/:kind/:slug/stream', handler: c.jav.stream },
+    { method: 'GET', path: '/jav/idols', handler: c.jav.idols },
+    { method: 'GET', path: '/jav/idol/:slug', handler: c.jav.idol },
+    { method: 'GET', path: '/jav/genres', handler: c.jav.genres },
+    { method: 'GET', path: '/jav/search', handler: c.jav.search },
   ];
 }
 

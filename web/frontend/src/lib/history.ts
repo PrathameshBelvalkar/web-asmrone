@@ -3,8 +3,9 @@ import type { ImageHolder, MangaGallery, Track } from '../api/types';
 import { artistsOf, titleOf } from './media';
 
 /**
- * What you listened to and read, newest first. One entry per work and per gallery: listening to
- * another track of a work, or turning a page, moves that entry to the top. Kept in this browser.
+ * What you listened to, read and watched, newest first. One entry per work, gallery and movie:
+ * listening to another track of a work, turning a page, or watching on moves that entry to the top.
+ * Kept in this browser.
  */
 
 export interface ListenEntry {
@@ -32,7 +33,23 @@ export interface ReadEntry {
   at: number;
 }
 
-export type HistoryEntry = ListenEntry | ReadEntry;
+export interface WatchEntry {
+  kind: 'jav';
+  /** `{censored|uncensored}/{slug}`. */
+  id: string;
+  movieKind: string;
+  slug: string;
+  dvdId: string | null;
+  title: string;
+  /** The landscape cover. */
+  cover: string | null;
+  /** Seconds watched and the movie's length, in seconds. */
+  position: number;
+  duration: number;
+  at: number;
+}
+
+export type HistoryEntry = ListenEntry | ReadEntry | WatchEntry;
 
 const KEY = 'echo:history';
 /** Per kind. */
@@ -42,7 +59,7 @@ function load(): HistoryEntry[] {
   try {
     const raw = localStorage.getItem(KEY);
     const data: unknown = raw ? JSON.parse(raw) : [];
-    return Array.isArray(data) ? (data as HistoryEntry[]).filter((e) => e && (e.kind === 'asmr' || e.kind === 'manga')) : [];
+    return Array.isArray(data) ? (data as HistoryEntry[]).filter((e) => e && (e.kind === 'asmr' || e.kind === 'manga' || e.kind === 'jav')) : [];
   } catch {
     return [];
   }
@@ -110,6 +127,50 @@ export function recordRead(g: MangaGallery, page: number, now = Date.now()): voi
     pages: g.pages.length,
     at: now,
   });
+}
+
+/** The movie being watched, as the player records it. */
+export interface WatchedMovie {
+  kind: string;
+  slug: string;
+  dvdId: string | null;
+  title: string;
+  cover: string | null;
+}
+
+export const watchId = (kind: string, slug: string) => `${kind}/${slug}`;
+
+/** Records how far into [movie] you are. */
+export function recordWatch(movie: WatchedMovie, position: number, duration: number, now = Date.now()): void {
+  push({
+    kind: 'jav',
+    id: watchId(movie.kind, movie.slug),
+    movieKind: movie.kind,
+    slug: movie.slug,
+    dvdId: movie.dvdId,
+    title: movie.title,
+    cover: movie.cover,
+    position: Math.max(0, Math.floor(position)),
+    duration: Math.max(0, Math.floor(duration)),
+    at: now,
+  });
+}
+
+/** Within the last two minutes (or 5%) counts as watched to the end. */
+export function isFinished(e: Pick<WatchEntry, 'position' | 'duration'>): boolean {
+  return e.duration > 0 && (e.position >= e.duration - 120 || e.position >= e.duration * 0.95);
+}
+
+/** Where to pick a movie up again, in seconds; null when it's barely started or finished. */
+export function resumeAt(e: WatchEntry | undefined): number | null {
+  if (!e || e.position < 30 || isFinished(e)) return null;
+  return e.position;
+}
+
+/** The watch entry for a movie, kept up to date. */
+export function useWatchEntry(kind: string, slug: string): WatchEntry | undefined {
+  const id = watchId(kind, slug);
+  return useHistory((s) => s.entries.find((e): e is WatchEntry => e.kind === 'jav' && e.id === id));
 }
 
 export function removeEntry(kind: HistoryEntry['kind'], id: string): void {

@@ -33,4 +33,25 @@ export const LIMITS = {
   threehentaiListingTtlMs: 5 * 60_000,
   threehentaiGalleryTtlMs: 60 * 60_000,
   threehentaiIndexTtlMs: 24 * 60 * 60_000,
+  /** javdatabase.com (JAV): timeouts, the gap between requests, and how long pages are kept. */
+  javdatabaseConnectTimeoutMs: 10_000,
+  javdatabaseResponseTimeoutMs: 30_000,
+  javdatabaseRequestGapMs: 1_000,
+  javdatabaseListingTtlMs: 10 * 60_000,
+  javdatabaseDetailTtlMs: 6 * 60 * 60_000,
+  javdatabaseStaticTtlMs: 24 * 60 * 60_000,
+  /** How long the page where released movies start is remembered (Latest and Upcoming). */
+  javBoundaryTtlMs: 60 * 60_000,
+  /**
+   * jav.guru (JAV streams): timeouts, the gap between requests to jav.guru and to the embed host,
+   * and how long each step's answer is kept. Search is rate-limited on the site, so the gap is wide.
+   */
+  javguruConnectTimeoutMs: 10_000,
+  javguruResponseTimeoutMs: 30_000,
+  javguruRequestGapMs: 2_000,
+  javguruEmbedGapMs: 1_000,
+  javguruPostTtlMs: 7 * 24 * 60 * 60_000,
+  javguruMissTtlMs: 24 * 60 * 60_000,
+  javguruServersTtlMs: 24 * 60 * 60_000,
+  javguruStreamTtlMs: 60 * 60_000,
 } as const;

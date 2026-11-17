@@ -16,6 +16,15 @@ import { MangaTagsPage } from './pages/manga/MangaTagsPage';
 import { MangaListPage } from './pages/manga/MangaListPage';
 import { MangaGalleryPage } from './pages/manga/MangaGalleryPage';
 import { MangaReaderPage } from './pages/manga/MangaReaderPage';
+import { JavNewsPage } from './pages/jav/JavNewsPage';
+import { JavNewsPostPage } from './pages/jav/JavNewsPostPage';
+import { JavLatestPage } from './pages/jav/JavLatestPage';
+import { JavMovieListPage, JavMoviesPage } from './pages/jav/JavMoviesPage';
+import { JavMoviePage } from './pages/jav/JavMoviePage';
+import { JavIdolPage, JavIdolsPage } from './pages/jav/JavIdolsPage';
+import { JavGenresPage } from './pages/jav/JavGenresPage';
+import { JavSearchPage } from './pages/jav/JavSearchPage';
+import { JavLibraryPage } from './pages/jav/JavLibraryPage';
 
 export default function App() {
   return (
@@ -37,6 +46,17 @@ export default function App() {
         <Route path="manga/g/:id" element={<MangaGalleryPage />} />
         <Route path="manga/g/:id/read/:page?" element={<MangaReaderPage />} />
         <Route path="manga/:kind/:slug" element={<MangaListPage />} />
+        <Route path="jav" element={<JavNewsPage />} />
+        <Route path="jav/news/:yyyy/:mm/:dd/:slug" element={<JavNewsPostPage />} />
+        <Route path="jav/latest" element={<JavLatestPage />} />
+        <Route path="jav/movies" element={<JavMoviesPage />} />
+        <Route path="jav/movies/:by/:slug" element={<JavMovieListPage />} />
+        <Route path="jav/movie/:kind/:slug" element={<JavMoviePage />} />
+        <Route path="jav/idols" element={<JavIdolsPage />} />
+        <Route path="jav/idol/:slug" element={<JavIdolPage />} />
+        <Route path="jav/genres" element={<JavGenresPage />} />
+        <Route path="jav/search" element={<JavSearchPage />} />
+        <Route path="jav/library" element={<JavLibraryPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

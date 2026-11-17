@@ -3,6 +3,18 @@ import type {
   Artist,
   EditableDto,
   FeedDto,
+  JavGenreGroup,
+  JavIdol,
+  JavIdolCard,
+  JavIdolQuery,
+  JavList,
+  JavMovie,
+  JavMovieList,
+  JavMovieQuery,
+  JavNewsCategory,
+  JavNewsItem,
+  JavNewsPost,
+  JavStream,
   Lyrics,
   LoginForm,
   MangaGallery,
@@ -177,6 +189,49 @@ export const api = {
     searchIndex: (kind: MangaIndexKind, q: string) =>
       req<{ items: MangaTag[] }>("GET", `/manga/index/${kind}/search?q=${enc(q)}`),
     gallery: (id: string) => req<MangaGallery>("GET", `/manga/gallery/${enc(id)}`),
+  },
+
+  jav: {
+    news: (category: JavNewsCategory | null, page: number) =>
+      req<JavList<JavNewsItem>>("GET", `/jav/news?category=${category ?? "all"}&page=${page}`),
+    /** `path` is `2026/11/13/slug`; its parts go in as path segments. */
+    newsPost: (path: string) =>
+      req<JavNewsPost>("GET", `/jav/news/${path.split("/").map(enc).join("/")}`),
+    movies: async (query: JavMovieQuery, page: number): Promise<JavMovieList> => {
+      switch (query.by) {
+        case "movies":
+          return req<JavMovieList>("GET", `/jav/movies?kind=${query.kind}&sort=${query.sort}&page=${page}`);
+        case "latest":
+        case "upcoming":
+          return req<JavMovieList>("GET", `/jav/${query.by}?kind=${query.kind}&page=${page}`);
+        case "search":
+          return req<JavMovieList>(
+            "GET",
+            `/jav/search?type=movies&q=${enc(query.q)}&page=${page}${query.kind ? `&kind=${query.kind}` : ""}`,
+          );
+        case "idol":
+          return (
+            await req<JavIdol>("GET", `/jav/idol/${enc(query.slug)}?page=${page}${query.solo ? "&solo=1" : ""}`)
+          ).movies;
+        default:
+          return req<JavMovieList>("GET", `/jav/movies/${query.by}/${enc(query.slug)}?page=${page}`);
+      }
+    },
+    movie: (kind: string, slug: string) => req<JavMovie>("GET", `/jav/movie/${enc(kind)}/${enc(slug)}`),
+    stream: (kind: string, slug: string) =>
+      req<JavStream>("GET", `/jav/movie/${enc(kind)}/${enc(slug)}/stream?server=sb`),
+    idols: (query: JavIdolQuery, page: number) => {
+      if (query.by === "search")
+        return req<JavList<JavIdolCard>>("GET", `/jav/search?type=idols&q=${enc(query.q)}&page=${page}`);
+      const params = new URLSearchParams({ sort: query.sort, page: String(page) });
+      for (const [key, value] of Object.entries(query.filters)) {
+        const text = Array.isArray(value) ? value.join(",") : value;
+        if (text) params.set(key, text);
+      }
+      return req<JavList<JavIdolCard>>("GET", `/jav/idols?${params.toString()}`);
+    },
+    idol: (slug: string) => req<JavIdol>("GET", `/jav/idol/${enc(slug)}`),
+    genres: () => req<{ groups: JavGenreGroup[] }>("GET", "/jav/genres"),
   },
 };
 

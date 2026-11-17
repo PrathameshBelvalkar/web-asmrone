@@ -66,4 +66,45 @@ describe("AppSidebar", () => {
       .map((a) => a.textContent);
     expect(on).toEqual([active]);
   });
+
+  it("shows JAV between Manga & Doujinshi and Account", async () => {
+    renderSidebar("/jav/movie/censored/savr-1268");
+    const label = await screen.findByText("JAV");
+    // A label's name is its first element when it has one (JAV is followed by a Beta tag).
+    const labels = [...document.querySelectorAll('[data-sidebar="group-label"]')].map(
+      (el) => el.firstElementChild?.textContent ?? el.textContent,
+    );
+    expect(labels).toEqual(["Browse", "Manga & Doujinshi", "JAV", "Account"]);
+    expect(within(label.closest('[data-sidebar="group-label"]') as HTMLElement).getByText("Beta")).toBeInTheDocument();
+    const group = label.closest('[data-sidebar="group"]') as HTMLElement;
+    expect(within(group).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual([
+      "/jav",
+      "/jav/latest",
+      "/jav/movies",
+      "/jav/idols",
+      "/jav/genres",
+      "/jav/search",
+      "/jav/library",
+    ]);
+  });
+
+  it.each([
+    ["/jav", "News"],
+    ["/jav/news/2026/11/13/top-jav-movies", "News"],
+    ["/jav/latest?show=upcoming", "Latest"],
+    ["/jav/movie/censored/savr-1268", "Movies"],
+    ["/jav/movies/studio/kawaii", "Movies"],
+    ["/jav/movies/genre/creampie", "Genres"],
+    ["/jav/idol/hikaru-nagi", "Idols"],
+    ["/jav/search?q=aoi", "Search"],
+    ["/jav/library", "Library"],
+  ])("marks JAV %s as %s", async (path, active) => {
+    renderSidebar(path);
+    const group = (await screen.findByText("JAV")).closest('[data-sidebar="group"]') as HTMLElement;
+    const on = within(group)
+      .getAllByRole("link")
+      .filter((a) => a.getAttribute("data-active") === "true")
+      .map((a) => a.textContent);
+    expect(on).toEqual([active]);
+  });
 });
