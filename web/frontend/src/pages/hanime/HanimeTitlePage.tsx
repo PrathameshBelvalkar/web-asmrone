@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Check, Copy, Download, ExternalLink, Eye, ThumbsUp } from 'lucide-react';
+import { Check, Copy, Download, ExternalLink, Eye, Play, ThumbsUp } from 'lucide-react';
 import { ApiError } from '../../api/client';
 import { hanimeDetailsOptions, hanimeTitleOptions } from '../../api/queries';
 import type { HanimeDetails, HanimeTitle } from '../../api/types';
 import { DetailHero } from '../../components/DetailHero';
 import { HanimeCard, POSTER_GRID } from '../../components/hanime/cards';
+import { HanimeTheater } from '../../components/hanime/HanimeTheater';
 import { PreviewFrames } from '../../components/hanime/PreviewFrames';
 import { isRefused, Unavailable } from '../../components/jav/grid';
 import { JavImage } from '../../components/jav/JavImage';
@@ -18,16 +19,20 @@ import { formatDay, HANIME_HOME, seriesRoute, studioRoute, tagLabel, tagRoute } 
 import { formatCount, mangaHolder } from '../../lib/manga';
 import { NotFoundPage } from '../NotFoundPage';
 
+const PRIMARY =
+  'inline-flex h-11 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-[filter,transform] duration-150 hover:brightness-110 active:scale-[0.97]';
 const OUTLINE =
   'inline-flex h-11 items-center gap-2 rounded-full border border-white/15 px-5 text-sm font-medium text-foreground/90 transition-colors hover:border-white/30 hover:bg-white/10';
 
 /**
  * A title, laid out like hanime.tv's: the cover and details, then Synopsis, Alternate Names, Preview
  * (frames from the storyboard), tags, the other episodes and similar titles. The Preview, length and
- * other names come from the title's page on the site, so they arrive a moment after the rest. No player yet.
+ * other names come from the title's page on the site, so they arrive a moment after the rest.
+ * `?play=1` opens the player above it all (the video comes from hentaibros.net), so Back closes it.
  */
 export function HanimeTitlePage() {
   const { slug = '' } = useParams();
+  const [params, setParams] = useSearchParams();
   const title = useQuery(hanimeTitleOptions(slug));
   const t = title.data;
   const details = useQuery({ ...hanimeDetailsOptions(slug), enabled: !!t });
@@ -39,8 +44,12 @@ export function HanimeTitlePage() {
   if (title.error) return <ErrorState error={title.error} onRetry={() => void title.refetch()} />;
   if (!t) return <TitleSkeleton />;
 
+  const playing = params.get('play') === '1';
   return (
     <article>
+      {playing && (
+        <HanimeTheater key={t.slug} slug={t.slug} title={t.name} poster={t.poster || undefined} onClose={() => setParams({}, { replace: true })} />
+      )}
       <DetailHero
         cover={mangaHolder(t.poster || t.cover)}
         art={
@@ -58,6 +67,11 @@ export function HanimeTitlePage() {
         meta={<Details title={t} details={d} />}
         actions={
           <>
+            {!playing && (
+              <button type="button" onClick={() => setParams({ play: '1' })} className={PRIMARY}>
+                <Play size={17} fill="currentColor" aria-hidden /> Watch
+              </button>
+            )}
             <CopyName name={t.name} />
             <a href={t.siteUrl} target="_blank" rel="noreferrer noopener" className={OUTLINE}>
               <ExternalLink size={16} aria-hidden /> Open on hanime.tv

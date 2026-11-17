@@ -195,3 +195,13 @@ export interface HanimeQuery {
   readonly page: number;
   readonly size: number;
 }
+
+/** A title's video on hentaibros.net (docs/HANIME.md section 12). */
+export interface HanimeStream {
+  /** The MP4 (or HLS playlist) the browser plays from its host. */
+  readonly file: string;
+  /** The episode page it was read from. */
+  readonly page: string;
+  /** The page's heading. */
+  readonly title: string;
+}

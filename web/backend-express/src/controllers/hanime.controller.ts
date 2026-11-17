@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { HttpError } from '../models/errors.js';
 import { isHanimeSort, type HanimeQuery } from '../models/hanime.js';
 import type { HanimeService } from '../services/hanime.service.js';
+import type { HanimeStreamService } from '../services/hanime/stream.service.js';
 import type { HanimeSyncService } from '../services/hanime/sync.service.js';
 import {
   hanimeCardView,
@@ -12,6 +13,7 @@ import {
   hanimeRefsView,
   hanimeSeasonsView,
   hanimeStatusView,
+  hanimeStreamView,
   hanimeSuggestView,
   hanimeTagsView,
   hanimeTitleView,
@@ -23,11 +25,15 @@ const SLUG_LIST = /^[a-z0-9-]+(?:,[a-z0-9-]+)*$/;
 /** A comment line every so often keeps the event stream open through idle timeouts. */
 const KEEP_ALIVE_MS = 25_000;
 
-/** Hanime: Home, Browse (filters and sorts), titles, tags, studios, suggestions, changes and sync. */
+/**
+ * Hanime: Home, Browse (filters and sorts), titles, tags, studios, suggestions, changes and sync,
+ * and a title's video.
+ */
 export class HanimeController {
   constructor(
     private readonly hanime: HanimeService,
     private readonly sync: HanimeSyncService,
+    private readonly streams: HanimeStreamService,
   ) {}
 
   home = async (_req: Request, res: Response): Promise<void> => {
@@ -49,6 +55,13 @@ export class HanimeController {
     const slug = paramString(req, 'slug');
     if (!SLUG.test(slug)) throw HttpError.notFound();
     res.json(hanimeDetailsView(await this.hanime.titleDetails(slug.toLowerCase())));
+  };
+
+  /** The title's video from hentaibros.net. */
+  stream = async (req: Request, res: Response): Promise<void> => {
+    const slug = paramString(req, 'slug');
+    if (!SLUG.test(slug)) throw HttpError.notFound();
+    res.json(hanimeStreamView(await this.streams.stream(slug.toLowerCase())));
   };
 
   seasons = async (req: Request, res: Response): Promise<void> => {

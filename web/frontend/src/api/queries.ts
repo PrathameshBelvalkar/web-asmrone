@@ -331,3 +331,12 @@ export const hanimeSuggestOptions = (q: string) =>
 
 export const hanimeStatusOptions = () =>
   queryOptions({ queryKey: ['hanime', 'status'], queryFn: () => api.hanime.status(), staleTime: STALE.live, refetchInterval: 60_000 });
+
+/** A title's video from hentaibros.net. The server keeps it for a week; a missing one isn't asked again. */
+export const hanimeStreamOptions = (slug: string) =>
+  queryOptions({
+    queryKey: ['hanime', 'stream', slug],
+    queryFn: () => api.hanime.stream(slug),
+    staleTime: 60 * MIN,
+    retry: javRetry,
+  });

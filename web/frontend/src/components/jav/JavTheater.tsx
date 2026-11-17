@@ -13,7 +13,7 @@ import { recordWatch, resumeAt, useWatchEntry, type WatchedMovie } from '../../l
 /** How often the position is saved while playing. */
 const SAVE_EVERY_MS = 5_000;
 /** Edge to edge, no corners; a very wide window letterboxes rather than growing past the screen. */
-const BOX = 'aspect-video max-h-[calc(100svh-4rem)] w-full overflow-hidden bg-black';
+export const THEATER_BOX = 'aspect-video max-h-[calc(100svh-4rem)] w-full overflow-hidden bg-black';
 
 export type TheaterSource = { type: 'movie' } | { type: 'trailer'; url: string };
 
@@ -73,7 +73,7 @@ function MovieStream({ movie, poster, fromStart }: { movie: WatchedMovie; poster
   }
   if (!stream.data) {
     return (
-      <div className={`${BOX} grid place-items-center`} role="status">
+      <div className={`${THEATER_BOX} grid place-items-center`} role="status">
         <div className="flex flex-col items-center gap-3 text-sm text-white/70">
           <span className="size-8 animate-spin rounded-full border-2 border-white/20 border-t-primary" aria-hidden />
           Finding the stream…
@@ -92,7 +92,8 @@ function MovieStream({ movie, poster, fromStart }: { movie: WatchedMovie; poster
   );
 }
 
-function Player({
+/** The Vidstack player in the theater box. Hanime's title page uses it too. */
+export function Player({
   src, title, poster, start = null, movie, failText = 'This stream could not be played.',
 }: {
   src: PlayerSrc;
@@ -141,7 +142,7 @@ function Player({
   return (
     <MediaPlayer
       ref={player}
-      className={`${BOX} jav-theater`}
+      className={`${THEATER_BOX} jav-theater`}
       style={{ '--video-brand': 'var(--primary)', '--video-border-radius': '0px' }}
       title={title}
       src={src}
@@ -173,9 +174,10 @@ function Player({
   );
 }
 
-function Notice({ title, action }: { title: string; action?: ReactNode }) {
+/** A message in place of the player. */
+export function Notice({ title, action }: { title: string; action?: ReactNode }) {
   return (
-    <div className={`${BOX} grid place-items-center p-6`} role="status">
+    <div className={`${THEATER_BOX} grid place-items-center p-6`} role="status">
       <div className="flex max-w-sm flex-col items-center gap-4 text-center">
         <TriangleAlert size={26} className="text-white/60" aria-hidden />
         <p className="text-sm text-white/80">{title}</p>

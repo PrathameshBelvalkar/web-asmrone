@@ -12,6 +12,7 @@ import type {
   HanimeSeasons,
   HanimeShelf,
   HanimeStatus,
+  HanimeStream,
   HanimeSuggestion,
   HanimeTagGroup,
   HanimeTitle,
@@ -260,6 +261,7 @@ export const api = {
     changes: () => req<HanimeChange[]>("GET", "/hanime/changes?limit=50"),
     status: () => req<HanimeStatus>("GET", "/hanime/status"),
     sync: () => req<HanimeStatus>("POST", "/hanime/sync"),
+    stream: (slug: string) => req<HanimeStream>("GET", `/hanime/title/${enc(slug)}/stream`),
   },
 };
 

@@ -4,7 +4,7 @@ This plan adds a **Hanime** section to Echo. It sits in the sidebar below **JAV*
 
 The source is **hanime.tv**. We have a licence from the site to use its data. The site serves its **whole catalog as one JSON file** (section 3.2), so Echo doesn't read HTML pages as it does for JAV. Echo downloads the catalog, keeps it on the computer, and answers every list, filter and search from its own copy.
 
-Echo shows **listings only**: titles, posters, covers, descriptions, tags, studios, dates and counts. **Playing videos is out of scope for now** (section 10).
+Echo lists the catalog: titles, posters, covers, descriptions, tags, studios, dates and counts. A title page's **Watch** plays the title's video from its episode page on **hentaibros.net** (section 12).
 
 > **Diagrams.** The diagrams use [Mermaid](https://mermaid.js.org/). GitHub shows them as pictures. In VS Code, install the
 > "Markdown Preview Mermaid Support" extension to see them in the preview.
@@ -24,6 +24,7 @@ Echo shows **listings only**: titles, posters, covers, descriptions, tags, studi
 9. [Phases](#9-phases)
 10. [Testing](#10-testing)
 11. [Open questions and risks](#11-open-questions-and-risks)
+12. [Watching (hentaibros.net)](#12-watching-hentaibrosnet)
 
 ---
 
@@ -140,7 +141,7 @@ So the freshest data anyone outside the site can get is **up to 1 hour old**. Ch
 
 - The site and the catalog host are behind Cloudflare (Cloudflare name servers, `server: cloudflare`, `cf-ray`). The catalog, the sitemap and the title pages load with no bot check.
 - **Video data is protected.** `guest.freeanimehentai.net/api/v8/video` and `/api/v11/video` answer **403 "Attention Required! | Cloudflare"**. The player asks for streams with a CSRF token, an `x-signature` / `x-time` pair made by WebAssembly code in the page (`x-signature-version: web2`), a "handshake" call, and playlist links that expire. Turnstile is on the page.
-- Echo **does not** reverse the signature or get past Turnstile. If playing is wanted later, the way in is the licence: ask hanime for an API key, a partner feed or an allow-listed server (section 11).
+- Echo **does not** reverse the signature or get past Turnstile. hanime's own download menu also refuses an automated browser (a Cloudflare check on the title page, and sessions ended). Videos come from hentaibros.net instead (section 12).
 
 ### 3.6 The title page
 
@@ -518,10 +519,60 @@ Reuse `Segmented.tsx` for the switches and sort chips.
 ## 11. Open questions and risks
 
 - **`ECHO_HANIME_SYNC=0`** turns the timer off. Tests use it; the app never sets it.
-- **Video (not now).** The stream endpoints are behind Cloudflare and a signed request scheme (3.5). Echo won't work around them. Since we have a licence, ask hanime for API access to streams (a key or an allow-listed server). Until then there's no Watch button.
+- **Video.** hanime's stream endpoints are behind Cloudflare and a signed request scheme (3.5), and Echo won't work around them. Watch uses hentaibros.net (section 12); about a third of the catalog has no page there.
 - **Faster updates.** 30-minute checks against a 1-hour cache are as fresh as public data gets. For anything faster, ask hanime for a webhook or a "changed since" feed.
 - **The catalog address changes.** `v11` and the `freeanimehentai.net` host can change. If the URL starts answering 404, the client reads `window.AppConfig.search_hvs_url` from the hanime.tv home page once, and uses that if it's on an allowed host. A failure shows in `/status` and the UI, and the last catalog keeps working.
 - **The catalog stops being complete.** The daily sitemap check (5.4) logs it.
 - **Cloudflare.** Today there's no bot check on the catalog. If one appears, Echo backs off and keeps its copy. It doesn't try to get around it.
 - **Licence on file.** Keep a copy. It should cover downloading the catalog regularly, keeping a copy, and hot-linking `hanime-cdn.com/images/`.
 - **Android.** The catalog, index and filters are plain TypeScript with no Node-only parts except the file reads, so they can move into the shared core (PLAN.md, phase 3) as they are.
+
+---
+
+## 12. Watching (hentaibros.net)
+
+Added 2026-11-17. The rights to stream these files are covered (decided 2026-11-17). Mapped with curl and Playwright on the live site.
+
+### 12.1 The site
+
+- WordPress behind Cloudflare, as a cache only (`cf-cache-status: HIT`): no bot check on pages or videos, and plain requests with Echo's `EchoASMR/1.0` user agent get the real pages. `robots.txt` allows everything.
+- `sitemap_index.xml` lists four post sitemaps (`post-sitemap.xml` … `post-sitemap4.xml`) with 3,199 posts: 2,695 are `{name}-episode-{n}`, the rest one-offs (3D, ASMR, motion anime). Newest change 2026-11-10.
+- An episode page's player is an FV Player box with the video as JSON in `data-item`: `{"sources":[{"src":"https://cdn.vintageporno.stream/Can%20Can%20Bunny%2002%20Sub.mp4","type":"video/mp4"}]}`. One MP4 per episode, English subtitles burned in. The other `<video>`s on the page (`bkcdn.net`, `bxcdn.net`, 10–30 s) are ads.
+- 13 sampled pages, old and new: all had the `data-item` player, no iframes. Hosts: `cdn.vintageporno.stream` (11) and `povblowjob.net` (2); one address had unescaped spaces (`/1Ldk 08 Sub.mp4`).
+- The files are plain MP4s on Cloudflare (157–505 MB in the sample) that answer byte ranges (206) with or without a Referer: no hotlink check. They play and seek in Echo's player straight from the host.
+
+### 12.2 What Echo does
+
+`GET /api/hanime/title/{slug}/stream` → `{ file, page, title }`.
+
+1. The title goes through the catalog first, so the content rules apply (451) and unknown titles answer 404.
+2. The site's post list is read from the four post sitemaps (one request a second) and kept for a day; a failed refresh keeps the old list.
+3. The title is matched to a post by name and episode (12.3). No match answers 404 "hentaibros.net has no video for this title."
+4. The post's slug and the page's heading go through the content rules again (`BLOCKED_SERIES`, `BLOCKED_WORD`): 451.
+5. The episode page is read and the `data-item` source taken (https, `.mp4` or `.m3u8` only).
+6. The answer is kept for a week, a miss for 6 hours; requests for one title at once share one lookup.
+
+A 403, 429, 503 or Cloudflare check page pauses all requests to the site (`BlockBackoff`: 15 minutes, doubling to 2 hours). Echo never tries to get past one.
+
+The title page's **Watch** (`?play=1`) opens the JAV theater's Vidstack player across the top with the file, plus **Source** (the episode page) and **Close**. The first lookup after a start takes about 8 s (the sitemaps); later ones about 1 s.
+
+### 12.3 Matching titles
+
+The two sites spell titles differently (`boku-ni-sefure-ga-dekita-riyuu-3` and `boku-ni-sexfriend-ga-dekita-riyuu-episode-3`; `luna` and `runa`; an added subtitle; "the animation"). `src/services/hanime/stream-match.ts`:
+
+- The episode number must be equal: `-episode-N` on the post; the trailing number (`-3`, `-ep-3`) of the title's slug or name. No number counts as 1.
+- Names (the title's slug, name and other titles, against the post's slug) become word sets without filler words (`the`, `animation`, `ova`, `no`, `ga`, …). The score is shared words ÷ all words; one name containing the other whole counts 0.85.
+- The best post at 0.6 or more wins. Tuned on the whole catalog: **2,322 of 3,462 titles** find a page. Every match checked between 0.6 and 0.75 was right (other romanisations); below 0.6 they weren't. Matching takes about 0.2 ms a title.
+- About a third of the catalog isn't on the site at all (for example *Romance wa Tsurugi no Kagayaki*), and the site has titles hanime doesn't (*Reginetta-san no Bouken*); those aren't listed.
+
+### 12.4 Files
+
+| File | What |
+|---|---|
+| `src/extension/hentaibros/hentaibros.client.ts` | Sitemaps and episode pages, one at a time, 1 s apart, `BlockBackoff` |
+| `src/extension/hentaibros/parsers.ts` | Post sitemaps, post slugs, the player's `data-item` video |
+| `src/services/hanime/stream-match.ts` | Title → post (12.3) |
+| `src/services/hanime/stream.service.ts` | 12.2, with its caches |
+| `web/frontend/src/components/hanime/HanimeTheater.tsx` | The player on the title page |
+| Tests | `tests/unit/hentaibros.test.ts`, `tests/integration/hanime-stream.test.ts`, `HanimePages.test.tsx` |
+

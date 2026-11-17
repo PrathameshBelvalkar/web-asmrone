@@ -28,8 +28,10 @@ import { JavdatabaseExtension } from './extension/javdatabase/javdatabase.extens
 import { JavguruClient } from './extension/javguru/javguru.client.js';
 import { HanimeClient } from './extension/hanime/hanime.client.js';
 import { HANIME_IMAGE_PREFIX } from './extension/hanime/constants.js';
+import { HentaibrosClient } from './extension/hentaibros/hentaibros.client.js';
 import { HanimeRepository } from './repositories/hanime.repository.js';
 import { HanimeService } from './services/hanime.service.js';
+import { HanimeStreamService } from './services/hanime/stream.service.js';
 import { HanimeSyncService } from './services/hanime/sync.service.js';
 import { SourceRouter } from './extension/source-router.js';
 import { SettingsRepository } from './repositories/settings.repository.js';
@@ -92,6 +94,8 @@ export interface ContainerOptions {
   /** hanime's catalog host, sitemap and home page. */
   readonly hanimeDispatcher?: Dispatcher;
   readonly hanimeClock?: Clock;
+  /** hentaibros.net, where a Hanime title's video is found. */
+  readonly hentaibrosDispatcher?: Dispatcher;
   /** AI subtitles for tracks without lyrics; null turns them off. Defaults to local Whisper. */
   readonly aiSubtitles?: AiSubtitleService | null;
 }
@@ -187,6 +191,14 @@ export function createContainer(
     createDispatcher({
       connectMs: LIMITS.hanimeConnectTimeoutMs,
       responseMs: LIMITS.hanimeResponseTimeoutMs,
+    });
+
+  const ownHentaibros = options.hentaibrosDispatcher === undefined;
+  const hentaibrosDispatcher: Dispatcher =
+    options.hentaibrosDispatcher ??
+    createDispatcher({
+      connectMs: LIMITS.hentaibrosConnectTimeoutMs,
+      responseMs: LIMITS.hentaibrosResponseTimeoutMs,
     });
 
   const asmrExtension: MusicExtension = options.extension ?? new AsmrOneExtension(asmrDispatcher);
@@ -317,6 +329,16 @@ export function createContainer(
     detailsTtlMs: LIMITS.hanimeDetailsTtlMs,
     now: () => hanimeClock.now(),
   });
+  const hanimeStreams = new HanimeStreamService(
+    hanimeService,
+    new HentaibrosClient(hentaibrosDispatcher, { gapMs: LIMITS.hentaibrosGapMs }),
+    {
+      postsTtlMs: LIMITS.hentaibrosPostsTtlMs,
+      streamTtlMs: LIMITS.hentaibrosStreamTtlMs,
+      missTtlMs: LIMITS.hentaibrosMissTtlMs,
+      now: () => hanimeClock.now(),
+    },
+  );
   // Covers, posters, storyboards and tag pictures load in the browser; the proxy is their fallback.
   issued.allowPrefix(HANIME_IMAGE_PREFIX);
   const storageService = new StorageService({
@@ -340,7 +362,7 @@ export function createContainer(
     storage: new StorageController(storageService),
     manga: new MangaController(mangaService),
     jav: new JavController(javService, javStreamService),
-    hanime: new HanimeController(hanimeService, hanimeSync),
+    hanime: new HanimeController(hanimeService, hanimeSync, hanimeStreams),
   };
 
   return {
@@ -369,6 +391,7 @@ export function createContainer(
         ownJavdatabase ? javdatabaseDispatcher.close() : undefined,
         ownJavguru ? javguruDispatcher.close() : undefined,
         ownHanime ? hanimeDispatcher.close() : undefined,
+        ownHentaibros ? hentaibrosDispatcher.close() : undefined,
         aiSubtitles?.close(),
       ]);
     },

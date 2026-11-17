@@ -19,6 +19,7 @@ vi.mock("../../api/client", () => ({
       tags: vi.fn(),
       studios: vi.fn(),
       suggest: vi.fn(),
+      stream: vi.fn(),
     },
   },
   proxyUrl: (url: string) => `/api/proxy?url=${url}`,
@@ -31,6 +32,18 @@ vi.mock("../../api/client", () => ({
       super(message);
     }
   },
+}));
+
+// Vidstack needs a real browser; the theater's player is a plain <video> here.
+vi.mock("../../components/jav/JavTheater", () => ({
+  THEATER_BOX: "",
+  Player: ({ src, title }: { src: { src: string }; title: string }) => <video aria-label={title} src={src.src} />,
+  Notice: ({ title, action }: { title: string; action?: React.ReactNode }) => (
+    <div role="status">
+      {title}
+      {action}
+    </div>
+  ),
 }));
 
 // The grid loads more as you scroll; jsdom has no IntersectionObserver.
@@ -164,6 +177,29 @@ describe("HanimeTitlePage", () => {
     expect(await screen.findByText("Based on a manga.")).toBeInTheDocument();
     expect(await screen.findByText("The preview couldn’t be loaded from hanime.tv.")).toBeInTheDocument();
     expect(screen.getByText("姉恋")).toBeInTheDocument();
+  });
+
+  it("plays the video from Watch, links its source, and closes", async () => {
+    vi.mocked(api.hanime.title).mockResolvedValue(title);
+    vi.mocked(api.hanime.details).mockRejectedValue(new ApiError(503, "upstream", "busy"));
+    const file = "https://cdn.vintageporno.stream/Ane%20Koi%2001%20Sub.mp4";
+    vi.mocked(api.hanime.stream).mockResolvedValue({ file, page: "https://hentaibros.net/ane-koi-episode-1/", title: "Ane Koi episode 1" });
+    renderAt("/hanime/title/ane-koi-1", [["/hanime/title/:slug", <HanimeTitlePage />]]);
+    fireEvent.click(await screen.findByRole("button", { name: "Watch" }));
+    expect(screen.getByTestId("where")).toHaveTextContent("/hanime/title/ane-koi-1?play=1");
+    expect(await screen.findByLabelText("Ane Koi 1")).toHaveAttribute("src", file);
+    expect(screen.getByRole("link", { name: /Source/ })).toHaveAttribute("href", "https://hentaibros.net/ane-koi-episode-1/");
+    fireEvent.click(screen.getByRole("button", { name: /Close/ }));
+    expect(screen.getByTestId("where")).toHaveTextContent(/^\/hanime\/title\/ane-koi-1$/);
+  });
+
+  it("says so when hentaibros.net has no video for the title", async () => {
+    vi.mocked(api.hanime.title).mockResolvedValue(title);
+    vi.mocked(api.hanime.details).mockRejectedValue(new ApiError(503, "upstream", "busy"));
+    vi.mocked(api.hanime.stream).mockRejectedValue(new ApiError(404, "not_found", "none"));
+    renderAt("/hanime/title/ane-koi-1?play=1", [["/hanime/title/:slug", <HanimeTitlePage />]]);
+    expect(await screen.findByText("hentaibros.net has no video for this title.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Try again/ })).toBeNull();
   });
 
   it("says a refused title isn't available, and an unknown one isn't found", async () => {

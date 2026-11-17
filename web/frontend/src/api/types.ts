@@ -592,6 +592,13 @@ export interface HanimeChange {
   fields: string[] | null;
 }
 
+/** A title's video, read from its episode page on hentaibros.net. */
+export interface HanimeStream {
+  file: string;
+  page: string;
+  title: string;
+}
+
 export interface HanimeStatus {
   titles: number;
   lastCheckedAt: string | null;

@@ -120,6 +120,7 @@ function routeTable(c: Controllers): RouteSpec[] {
     { method: 'GET', path: '/hanime/titles', handler: c.hanime.titles },
     { method: 'GET', path: '/hanime/title/:slug', handler: c.hanime.title },
     { method: 'GET', path: '/hanime/title/:slug/details', handler: c.hanime.details },
+    { method: 'GET', path: '/hanime/title/:slug/stream', handler: c.hanime.stream },
     { method: 'GET', path: '/hanime/seasons', handler: c.hanime.seasons },
     { method: 'GET', path: '/hanime/random', handler: c.hanime.random },
     { method: 'GET', path: '/hanime/tags', handler: c.hanime.tags },

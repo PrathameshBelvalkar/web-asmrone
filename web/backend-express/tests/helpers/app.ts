@@ -31,6 +31,7 @@ export async function makeTestApp(
     javClock?: Clock;
     hanimeDispatcher?: Dispatcher;
     hanimeClock?: Clock;
+    hentaibrosDispatcher?: Dispatcher;
     /** Off unless a test turns it on. */
     hanimeSync?: boolean;
     distDir?: string | null;

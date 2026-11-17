@@ -8,6 +8,7 @@ import type {
   HanimeSeasons,
   HanimeShelf,
   HanimeStatus,
+  HanimeStream,
   HanimeSuggestion,
   HanimeTagGroup,
   HanimeTitle,
@@ -136,4 +137,10 @@ export const hanimeStatusView = (s: HanimeStatus): JsonObject => ({
   syncing: s.syncing,
   paused: s.paused,
   error: s.error,
+});
+
+export const hanimeStreamView = (s: HanimeStream): JsonObject => ({
+  file: s.file,
+  page: s.page,
+  title: s.title,
 });

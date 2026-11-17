@@ -65,4 +65,15 @@ export const LIMITS = {
   /** Title pages (Preview, length, other names) and the Browse page: one at a time, this far apart, kept a day. */
   hanimePageGapMs: 1_000,
   hanimeDetailsTtlMs: 24 * 60 * 60_000,
+  /**
+   * hentaibros.net (a title's video; docs/HANIME.md section 12): timeouts, the gap between
+   * requests, how long its list of posts is used, and how long a title's video, or the lack of one,
+   * is remembered.
+   */
+  hentaibrosConnectTimeoutMs: 10_000,
+  hentaibrosResponseTimeoutMs: 30_000,
+  hentaibrosGapMs: 1_000,
+  hentaibrosPostsTtlMs: 24 * 60 * 60_000,
+  hentaibrosStreamTtlMs: 7 * 24 * 60 * 60_000,
+  hentaibrosMissTtlMs: 6 * 60 * 60_000,
 } as const;
