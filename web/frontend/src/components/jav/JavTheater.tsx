@@ -87,14 +87,14 @@ function MovieStream({ movie, poster, fromStart }: { movie: WatchedMovie; poster
       title={movie.dvdId ?? movie.title}
       poster={poster}
       start={start}
-      movie={movie}
+      onSave={(position, duration, now) => recordWatch(movie, position, duration, now)}
     />
   );
 }
 
 /** The Vidstack player in the theater box. Hanime's title page uses it too. */
 export function Player({
-  src, title, poster, start = null, movie, failText = 'This stream could not be played.',
+  src, title, poster, start = null, onSave, failText = 'This stream could not be played.',
 }: {
   src: PlayerSrc;
   title: string;
@@ -102,8 +102,8 @@ export function Player({
   start?: number | null;
   /** Shown in place of the player when the video can't be loaded or played. */
   failText?: string;
-  /** Given for the full movie: its position is saved. */
-  movie?: WatchedMovie;
+  /** Given when the position should be saved (the full movie, a hentai episode). */
+  onSave?: (position: number, duration: number, now: number) => void;
 }) {
   const player = useRef<MediaPlayerInstance>(null);
   const savedAt = useRef(0);
@@ -112,13 +112,13 @@ export function Player({
 
   const save = (force = false) => {
     const p = player.current;
-    if (!movie || !p) return;
+    if (!onSave || !p) return;
     const { currentTime, duration } = p.state;
     if (!(duration > 0) || currentTime <= 0) return;
     const now = Date.now();
     if (!force && now - savedAt.current < SAVE_EVERY_MS) return;
     savedAt.current = now;
-    recordWatch(movie, currentTime, duration, now);
+    onSave(currentTime, duration, now);
   };
   // Save the last position when the player closes.
   const saveRef = useRef(save);

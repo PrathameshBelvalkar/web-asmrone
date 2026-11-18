@@ -21,7 +21,7 @@ export function useHanimeEvents(enabled: boolean): void {
       void client.invalidateQueries({ queryKey: ['hanime'] });
       try {
         const data = JSON.parse(e.data) as CatalogEvent;
-        if (data.added > 0) toast(data.added === 1 ? '1 new title on Hanime' : `${data.added} new titles on Hanime`);
+        if (data.added > 0) toast(data.added === 1 ? '1 new hentai title' : `${data.added} new hentai titles`);
       } catch {
         // A malformed event still refreshed the lists.
       }

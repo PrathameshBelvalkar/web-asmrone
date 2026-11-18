@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ExternalLink, RotateCw, X } from 'lucide-react';
 import { ApiError } from '../../api/client';
 import { hanimeStreamOptions } from '../../api/queries';
+import { recordHentaiWatch, resumeAt, useHentaiEntry } from '../../lib/history';
 import { Notice, Player, THEATER_BOX } from '../jav/JavTheater';
 
 const BUTTON =
@@ -10,10 +11,24 @@ const BUTTON =
 
 /**
  * The player across the top of a Hanime title page (docs/HANIME.md section 12). The server finds the
- * title's episode page on hentaibros.net and reads its MP4, which plays from its host.
+ * title's episode page on hentaibros.net and reads its MP4, which plays from its host. It picks up
+ * where you left off (unless [fromStart]) and saves your place for the Library.
  */
-export function HanimeTheater({ slug, title, poster, onClose }: { slug: string; title: string; poster?: string; onClose: () => void }) {
+export function HanimeTheater({
+  slug, title, poster, cover, fromStart = false, onClose,
+}: {
+  slug: string;
+  title: string;
+  poster?: string;
+  /** The portrait cover, kept with your place for the Library. */
+  cover: string | null;
+  fromStart?: boolean;
+  onClose: () => void;
+}) {
   const stream = useQuery(hanimeStreamOptions(slug));
+  const entry = useHentaiEntry(slug);
+  // Read once: later saves must not move the start point.
+  const [start] = useState(() => (fromStart ? null : resumeAt(entry)));
   const top = useRef<HTMLElement>(null);
   useEffect(() => {
     top.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
@@ -41,6 +56,8 @@ export function HanimeTheater({ slug, title, poster, onClose }: { slug: string; 
           src={{ src: stream.data.file, type: /\.m3u8$/i.test(stream.data.file) ? 'application/x-mpegurl' : 'video/mp4' }}
           title={title}
           poster={poster}
+          start={start}
+          onSave={(position, duration, now) => recordHentaiWatch({ slug, title, cover }, position, duration, now)}
           failText="The video host didn’t send this video. Try again later."
         />
       )}

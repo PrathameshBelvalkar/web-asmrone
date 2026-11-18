@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Check, Copy, Download, ExternalLink, Eye, Play, ThumbsUp } from 'lucide-react';
+import { Check, Copy, Download, ExternalLink, Eye, Play, RotateCcw, ThumbsUp } from 'lucide-react';
 import { ApiError } from '../../api/client';
 import { hanimeDetailsOptions, hanimeTitleOptions } from '../../api/queries';
 import type { HanimeDetails, HanimeTitle } from '../../api/types';
@@ -15,7 +15,8 @@ import { JavImage } from '../../components/jav/JavImage';
 import { ErrorState } from '../../components/States';
 import { Skeleton } from '../../components/ui';
 import { useDetailCrumbs } from '../../lib/crumbs';
-import { formatDay, HANIME_HOME, seriesRoute, studioRoute, tagLabel, tagRoute } from '../../lib/hanime';
+import { resumeAt, useHentaiEntry } from '../../lib/history';
+import { duration, formatDay, HANIME_HOME, seriesRoute, studioRoute, tagLabel, tagRoute } from '../../lib/hanime';
 import { formatCount, mangaHolder } from '../../lib/manga';
 import { NotFoundPage } from '../NotFoundPage';
 
@@ -28,7 +29,8 @@ const OUTLINE =
  * A title, laid out like hanime.tv's: the cover and details, then Synopsis, Alternate Names, Preview
  * (frames from the storyboard), tags, the other episodes and similar titles. The Preview, length and
  * other names come from the title's page on the site, so they arrive a moment after the rest.
- * `?play=1` opens the player above it all (the video comes from hentaibros.net), so Back closes it.
+ * `?play=1` opens the player above it all (the video comes from hentaibros.net), so Back closes it
+ * and the Library can link straight to it; `&from=start` ignores the saved place.
  */
 export function HanimeTitlePage() {
   const { slug = '' } = useParams();
@@ -37,7 +39,8 @@ export function HanimeTitlePage() {
   const t = title.data;
   const details = useQuery({ ...hanimeDetailsOptions(slug), enabled: !!t });
   const d = details.data;
-  useDetailCrumbs(t?.name ?? slug.replace(/-/g, ' '), [HANIME_HOME, { label: 'All titles', to: '/hanime/titles' }]);
+  const watched = useHentaiEntry(slug);
+  useDetailCrumbs(t?.name ?? slug.replace(/-/g, ' '), [HANIME_HOME, { label: 'All titles', to: '/hentai/titles' }]);
 
   if (isRefused(title.error)) return <Unavailable what="This title" />;
   if (title.error instanceof ApiError && title.error.status === 404) return <NotFoundPage />;
@@ -45,10 +48,20 @@ export function HanimeTitlePage() {
   if (!t) return <TitleSkeleton />;
 
   const playing = params.get('play') === '1';
+  const fromStart = params.get('from') === 'start';
+  const resume = resumeAt(watched);
   return (
     <article>
       {playing && (
-        <HanimeTheater key={t.slug} slug={t.slug} title={t.name} poster={t.poster || undefined} onClose={() => setParams({}, { replace: true })} />
+        <HanimeTheater
+          key={`${t.slug}:${fromStart}`}
+          slug={t.slug}
+          title={t.name}
+          poster={t.poster || undefined}
+          cover={t.cover || t.poster || null}
+          fromStart={fromStart}
+          onClose={() => setParams({}, { replace: true })}
+        />
       )}
       <DetailHero
         cover={mangaHolder(t.poster || t.cover)}
@@ -62,14 +75,20 @@ export function HanimeTitlePage() {
         }
         eyebrow={[t.censorship === 'uncensored' ? 'Uncensored' : t.censorship === 'censored' ? 'Censored' : null, t.episode !== null ? `Episode ${t.episode}` : null]
           .filter(Boolean)
-          .join(' · ') || 'Hanime'}
+          .join(' · ') || 'Hentai'}
         title={t.name}
         meta={<Details title={t} details={d} />}
         actions={
           <>
             {!playing && (
               <button type="button" onClick={() => setParams({ play: '1' })} className={PRIMARY}>
-                <Play size={17} fill="currentColor" aria-hidden /> Watch
+                <Play size={17} fill="currentColor" aria-hidden />
+                {resume !== null ? `Resume ${duration(resume)}` : 'Watch'}
+              </button>
+            )}
+            {!playing && resume !== null && (
+              <button type="button" onClick={() => setParams({ play: '1', from: 'start' })} className={OUTLINE}>
+                <RotateCcw size={16} aria-hidden /> Start over
               </button>
             )}
             <CopyName name={t.name} />

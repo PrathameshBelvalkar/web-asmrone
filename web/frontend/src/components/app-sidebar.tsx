@@ -83,20 +83,21 @@ function javActive(item: NavItem, pathname: string): boolean {
 }
 
 const HANIME: NavItem[] = [
-  { title: 'Home', url: '/hanime', icon: House, end: true },
-  { title: 'Browse', url: '/hanime/browse', icon: LayoutGrid },
-  { title: 'All titles', url: '/hanime/titles', icon: Film },
-  { title: 'Seasons', url: '/hanime/seasons', icon: CalendarRange },
-  { title: 'Search', url: '/hanime/search', icon: Search },
+  { title: 'Home', url: '/hentai', icon: House, end: true },
+  { title: 'Browse', url: '/hentai/browse', icon: LayoutGrid },
+  { title: 'All titles', url: '/hentai/titles', icon: Film },
+  { title: 'Seasons', url: '/hentai/seasons', icon: CalendarRange },
+  { title: 'Search', url: '/hentai/search', icon: Search },
+  { title: 'Library', url: '/hentai/library', icon: MonitorPlay },
 ];
 
-/** Which Hanime item a page belongs to: a title goes with All titles. */
+/** Which Hentai item a page belongs to: a title goes with All titles. */
 function hanimeActive(item: NavItem, pathname: string): boolean {
-  const section = pathname.startsWith('/hanime/title/')
-    ? '/hanime/titles'
-    : pathname === '/hanime' || pathname === '/hanime/'
-      ? '/hanime'
-      : (HANIME.find((i) => i.url !== '/hanime' && pathname.startsWith(i.url))?.url ?? null);
+  const section = pathname.startsWith('/hentai/title/')
+    ? '/hentai/titles'
+    : pathname === '/hentai' || pathname === '/hentai/'
+      ? '/hentai'
+      : (HANIME.find((i) => i.url !== '/hentai' && pathname.startsWith(i.url))?.url ?? null);
   return section === item.url;
 }
 
@@ -189,13 +190,13 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Hanime</SidebarGroupLabel>
+          <SidebarGroupLabel>Hentai</SidebarGroupLabel>
           <SidebarMenu>
             {HANIME.map((item) => (
               <SidebarMenuItem key={item.url}>
                 <SidebarMenuButton
                   asChild
-                  tooltip={`Hanime: ${item.title}`}
+                  tooltip={`Hentai: ${item.title}`}
                   isActive={hanimeActive(item, pathname)}
                   className={NAV_ITEM}
                 >

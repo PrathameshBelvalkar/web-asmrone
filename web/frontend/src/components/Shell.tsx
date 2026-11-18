@@ -44,12 +44,12 @@ function ShellInner() {
   const scrolled = useScrolled();
   useScrollToTopOnNavigate();
   // Manga, JAV and Hanime pages get the small floating player instead of the full bar.
-  const manga = /^\/(?:manga|jav|hanime)(?:\/|$)/.test(location.pathname);
+  const manga = /^\/(?:manga|jav|hentai)(?:\/|$)/.test(location.pathname);
   const area = location.pathname.startsWith('/manga')
     ? 'manga'
     : location.pathname.startsWith('/jav')
       ? 'jav'
-      : location.pathname.startsWith('/hanime')
+      : location.pathname.startsWith('/hentai')
         ? 'hanime'
         : 'music';
   useHanimeEvents(area === 'hanime');

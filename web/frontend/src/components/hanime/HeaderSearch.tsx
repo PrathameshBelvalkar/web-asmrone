@@ -9,8 +9,8 @@ type Area = 'browse' | 'search' | 'catalog';
 
 /** Which search a Hanime page's top bar offers. */
 export function hanimeSearchArea(pathname: string): Area {
-  if (pathname === '/hanime/browse') return 'browse';
-  if (pathname === '/hanime/search') return 'search';
+  if (pathname === '/hentai/browse') return 'browse';
+  if (pathname === '/hentai/search') return 'search';
   return 'catalog';
 }
 
@@ -59,7 +59,7 @@ export function HanimeHeaderSearch() {
     navigate(searchRoute(q));
   };
 
-  const placeholder = { browse: 'Search tags and studios', search: 'Search Hanime', catalog: 'Search Hanime' }[area];
+  const placeholder = { browse: 'Search tags and studios', search: 'Search hentai', catalog: 'Search hentai' }[area];
   const initial = filtersPage || area === 'search' ? (params.get('q') ?? '') : '';
 
   return (

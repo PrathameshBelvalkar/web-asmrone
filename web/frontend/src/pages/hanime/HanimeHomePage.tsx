@@ -7,11 +7,11 @@ import { useCrumbs } from '../../lib/crumbs';
 
 /** New uploads, Trending, Most viewed, Top rated, and the most used tags, as rows. */
 export function HanimeHomePage() {
-  useCrumbs([{ label: 'Hanime' }]);
+  useCrumbs([{ label: 'Hentai' }]);
   const home = useQuery(hanimeHomeOptions());
   return (
     <>
-      <PageHeader title="Hanime" meta={<StatusLine />} />
+      <PageHeader title="Hentai" meta={<StatusLine />} />
       {home.error && <ErrorState error={home.error} onRetry={() => void home.refetch()} />}
       {home.isPending && Array.from({ length: 3 }).map((_, i) => <ShelfSkeleton key={i} />)}
       {home.data?.map((shelf) => <Shelf key={shelf.key} shelf={shelf} />)}

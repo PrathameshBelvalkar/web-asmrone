@@ -20,7 +20,7 @@ const ART = 'https://hanime-cdn.com/images';
 const FEATURES: { title: string; text: string; to: string; image: string; icon: LucideIcon }[] = [
   { title: 'Trending', text: 'The most watched right now', to: browseRoute({ sort: 'trending' }), image: `${ART}/bg-trending.min.jpg`, icon: TrendingUp },
   { title: 'Seasons', text: 'Releases season by season', to: seasonsRoute(), image: `${ART}/bg-seasons.min.jpg`, icon: CalendarRange },
-  { title: 'Random', text: 'Feeling lucky?', to: '/hanime/random', image: `${ART}/bg-random.min.jpg`, icon: Dices },
+  { title: 'Random', text: 'Feeling lucky?', to: '/hentai/random', image: `${ART}/bg-random.min.jpg`, icon: Dices },
   { title: 'All titles', text: 'Every title, with filters', to: browseRoute(), image: `${ART}/bg-images.min.jpg`, icon: Film },
 ];
 
@@ -181,7 +181,7 @@ export function HanimeSeasonsPage() {
   const year = Number.isInteger(raw) && raw > 1900 ? raw : null;
   const seasons = useQuery(hanimeSeasonsOptions(year));
   const shown = seasons.data?.year ?? year;
-  useCrumbs([HANIME_HOME, { label: 'Browse', to: '/hanime/browse' }, { label: shown ? `Seasons · ${shown}` : 'Seasons' }]);
+  useCrumbs([HANIME_HOME, { label: 'Browse', to: '/hentai/browse' }, { label: shown ? `Seasons · ${shown}` : 'Seasons' }]);
 
   return (
     <>

@@ -1,11 +1,11 @@
 import type { HanimeBrowse, HanimeSort } from '../api/types';
 
-export const HANIME_HOME = { label: 'Hanime', to: '/hanime' };
+export const HANIME_HOME = { label: 'Hentai', to: '/hentai' };
 
-export const titleRoute = (slug: string) => `/hanime/title/${encodeURIComponent(slug)}`;
+export const titleRoute = (slug: string) => `/hentai/title/${encodeURIComponent(slug)}`;
 
 /** The title list with the given filters and sort. Only values that differ from the defaults go in the address. */
-export function browseRoute(values: Partial<Record<keyof HanimeBrowse, string>> = {}, base = '/hanime/titles'): string {
+export function browseRoute(values: Partial<Record<keyof HanimeBrowse, string>> = {}, base = '/hentai/titles'): string {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(values)) if (value) params.set(key, value);
   const qs = params.toString();
@@ -14,8 +14,8 @@ export function browseRoute(values: Partial<Record<keyof HanimeBrowse, string>> 
 export const tagRoute = (slug: string) => browseRoute({ tags: slug });
 export const studioRoute = (slug: string) => browseRoute({ studios: slug });
 export const seriesRoute = (key: string) => browseRoute({ series: key, sort: 'name' });
-export const searchRoute = (q: string) => browseRoute({ q }, '/hanime/search');
-export const seasonsRoute = (year?: number) => `/hanime/seasons${year === undefined ? '' : `?year=${year}`}`;
+export const searchRoute = (q: string) => browseRoute({ q }, '/hentai/search');
+export const seasonsRoute = (year?: number) => `/hentai/seasons${year === undefined ? '' : `?year=${year}`}`;
 
 /** "23:14", "1:02:05". */
 export function duration(seconds: number): string {

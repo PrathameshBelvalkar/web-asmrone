@@ -38,7 +38,7 @@ describe("hanime browse address", () => {
   });
 
   it("builds links and relative times", () => {
-    expect(browseRoute({ tags: "yuri", sort: "trending" })).toBe("/hanime/titles?tags=yuri&sort=trending");
+    expect(browseRoute({ tags: "yuri", sort: "trending" })).toBe("/hentai/titles?tags=yuri&sort=trending");
     const now = Date.parse("2026-11-17T12:00:00Z");
     expect(timeAgo("2026-11-17T11:48:00Z", now)).toBe("12 min ago");
     expect(timeAgo("2026-11-17T09:00:00Z", now)).toBe("3 h ago");

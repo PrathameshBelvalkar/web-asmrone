@@ -8,6 +8,8 @@ import { HanimeHeaderSearch } from "../../components/hanime/HeaderSearch";
 import { HanimeBrowsePage } from "./HanimeBrowsePage";
 import { HanimeGalleryPage, HanimeSeasonsPage } from "./HanimeGalleryPage";
 import { HanimeTitlePage } from "./HanimeTitlePage";
+import { HanimeLibraryPage } from "./HanimeLibraryPage";
+import { useHistory, type HentaiEntry } from "../../lib/history";
 
 vi.mock("../../api/client", () => ({
   api: {
@@ -103,6 +105,7 @@ const title: HanimeTitle = {
 };
 
 beforeEach(() => {
+  useHistory.setState({ entries: [] });
   vi.mocked(api.hanime.tags).mockResolvedValue([
     {
       group: "Story",
@@ -118,7 +121,7 @@ beforeEach(() => {
 
 describe("HanimeBrowsePage", () => {
   it("asks for the filters in the address, names a one-tag list after the tag, and shows the total", async () => {
-    renderAt("/hanime/titles?tags=yuri&sort=views", [["/hanime/titles", <HanimeBrowsePage />]]);
+    renderAt("/hentai/titles?tags=yuri&sort=views", [["/hentai/titles", <HanimeBrowsePage />]]);
     expect(await screen.findByText("Ane Koi 1")).toBeInTheDocument();
     expect(vi.mocked(api.hanime.titles).mock.calls[0]?.[0]).toMatchObject({ tags: ["yuri"], sort: "views", order: "desc" });
     expect(await screen.findByRole("heading", { name: "Yuri" })).toBeInTheDocument();
@@ -126,16 +129,16 @@ describe("HanimeBrowsePage", () => {
   });
 
   it("keeps a chosen sort and censorship in the address", async () => {
-    renderAt("/hanime/titles", [["/hanime/titles", <HanimeBrowsePage />]]);
+    renderAt("/hentai/titles", [["/hentai/titles", <HanimeBrowsePage />]]);
     fireEvent.click(await screen.findByRole("tab", { name: "Top rated" }));
     fireEvent.click(screen.getByRole("tab", { name: "Uncensored" }));
-    await waitFor(() => expect(screen.getByTestId("where")).toHaveTextContent("/hanime/titles?censored=uncensored&sort=rating"));
+    await waitFor(() => expect(screen.getByTestId("where")).toHaveTextContent("/hentai/titles?censored=uncensored&sort=rating"));
   });
 
   it("removes a filter from its chip", async () => {
-    renderAt("/hanime/titles?tags=yuri&exclude=ntr", [["/hanime/titles", <HanimeBrowsePage />]]);
+    renderAt("/hentai/titles?tags=yuri&exclude=ntr", [["/hentai/titles", <HanimeBrowsePage />]]);
     fireEvent.click(await screen.findByRole("button", { name: "Remove Not Ntr" }));
-    await waitFor(() => expect(screen.getByTestId("where")).toHaveTextContent("/hanime/titles?tags=yuri"));
+    await waitFor(() => expect(screen.getByTestId("where")).toHaveTextContent("/hentai/titles?tags=yuri"));
   });
 });
 
@@ -149,10 +152,10 @@ describe("HanimeTitlePage", () => {
       synopsis: ["From the site."],
       storyboard: { url: "https://hanime-cdn.com/images/storyboards/a.jpg", columns: 5, rows: 36, tiles: 180 },
     });
-    renderAt("/hanime/title/ane-koi-1", [["/hanime/title/:slug", <HanimeTitlePage />]]);
+    renderAt("/hentai/title/ane-koi-1", [["/hentai/title/:slug", <HanimeTitlePage />]]);
     expect(await screen.findByRole("heading", { name: "Ane Koi 1" })).toBeInTheDocument();
     expect(screen.getByText("Censored · Episode 1")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Vanilla" })).toHaveAttribute("href", "/hanime/titles?tags=vanilla");
+    expect(screen.getByRole("link", { name: "Vanilla" })).toHaveAttribute("href", "/hentai/titles?tags=vanilla");
     expect(await screen.findByText("From the site.")).toBeInTheDocument();
     expect(screen.getByText("FHD 1080p")).toBeInTheDocument();
     expect(screen.getByText("Ane Koi: Suki Kirai Daisuki.")).toBeInTheDocument();
@@ -173,7 +176,7 @@ describe("HanimeTitlePage", () => {
   it("uses the catalog's description and says so when the site's page can't be read", async () => {
     vi.mocked(api.hanime.title).mockResolvedValue(title);
     vi.mocked(api.hanime.details).mockRejectedValue(new ApiError(503, "upstream", "busy"));
-    renderAt("/hanime/title/ane-koi-1", [["/hanime/title/:slug", <HanimeTitlePage />]]);
+    renderAt("/hentai/title/ane-koi-1", [["/hentai/title/:slug", <HanimeTitlePage />]]);
     expect(await screen.findByText("Based on a manga.")).toBeInTheDocument();
     expect(await screen.findByText("The preview couldn’t be loaded from hanime.tv.")).toBeInTheDocument();
     expect(screen.getByText("姉恋")).toBeInTheDocument();
@@ -184,32 +187,70 @@ describe("HanimeTitlePage", () => {
     vi.mocked(api.hanime.details).mockRejectedValue(new ApiError(503, "upstream", "busy"));
     const file = "https://cdn.vintageporno.stream/Ane%20Koi%2001%20Sub.mp4";
     vi.mocked(api.hanime.stream).mockResolvedValue({ file, page: "https://hentaibros.net/ane-koi-episode-1/", title: "Ane Koi episode 1" });
-    renderAt("/hanime/title/ane-koi-1", [["/hanime/title/:slug", <HanimeTitlePage />]]);
+    renderAt("/hentai/title/ane-koi-1", [["/hentai/title/:slug", <HanimeTitlePage />]]);
     fireEvent.click(await screen.findByRole("button", { name: "Watch" }));
-    expect(screen.getByTestId("where")).toHaveTextContent("/hanime/title/ane-koi-1?play=1");
+    expect(screen.getByTestId("where")).toHaveTextContent("/hentai/title/ane-koi-1?play=1");
     expect(await screen.findByLabelText("Ane Koi 1")).toHaveAttribute("src", file);
     expect(screen.getByRole("link", { name: /Source/ })).toHaveAttribute("href", "https://hentaibros.net/ane-koi-episode-1/");
     fireEvent.click(screen.getByRole("button", { name: /Close/ }));
-    expect(screen.getByTestId("where")).toHaveTextContent(/^\/hanime\/title\/ane-koi-1$/);
+    expect(screen.getByTestId("where")).toHaveTextContent(/^\/hentai\/title\/ane-koi-1$/);
   });
 
   it("says so when hentaibros.net has no video for the title", async () => {
     vi.mocked(api.hanime.title).mockResolvedValue(title);
     vi.mocked(api.hanime.details).mockRejectedValue(new ApiError(503, "upstream", "busy"));
     vi.mocked(api.hanime.stream).mockRejectedValue(new ApiError(404, "not_found", "none"));
-    renderAt("/hanime/title/ane-koi-1?play=1", [["/hanime/title/:slug", <HanimeTitlePage />]]);
+    renderAt("/hentai/title/ane-koi-1?play=1", [["/hentai/title/:slug", <HanimeTitlePage />]]);
     expect(await screen.findByText("hentaibros.net has no video for this title.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Try again/ })).toBeNull();
   });
 
   it("says a refused title isn't available, and an unknown one isn't found", async () => {
     vi.mocked(api.hanime.title).mockRejectedValueOnce(new ApiError(451, "forbidden", "No"));
-    const first = renderAt("/hanime/title/x", [["/hanime/title/:slug", <HanimeTitlePage />]]);
+    const first = renderAt("/hentai/title/x", [["/hentai/title/:slug", <HanimeTitlePage />]]);
     expect(await screen.findByText("Not available")).toBeInTheDocument();
     first.unmount();
     vi.mocked(api.hanime.title).mockRejectedValueOnce(new ApiError(404, "not_found", "No"));
-    renderAt("/hanime/title/y", [["/hanime/title/:slug", <HanimeTitlePage />]]);
+    renderAt("/hentai/title/y", [["/hentai/title/:slug", <HanimeTitlePage />]]);
     expect(await screen.findByText(/not found/i)).toBeInTheDocument();
+  });
+});
+
+describe("Hentai library", () => {
+  const watched = (slug: string, position: number): HentaiEntry => ({
+    kind: "hanime",
+    id: slug,
+    title: slug.replace(/-/g, " "),
+    cover: null,
+    position,
+    duration: 1500,
+    at: Date.now(),
+  });
+
+  it("offers Resume and Start over on a title you're part way through", async () => {
+    useHistory.setState({ entries: [watched("ane-koi-1", 600)] });
+    vi.mocked(api.hanime.title).mockResolvedValue(title);
+    vi.mocked(api.hanime.details).mockRejectedValue(new ApiError(503, "upstream", "busy"));
+    renderAt("/hentai/title/ane-koi-1", [["/hentai/title/:slug", <HanimeTitlePage />]]);
+    expect(await screen.findByRole("button", { name: "Resume 10:00" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Start over/ }));
+    expect(screen.getByTestId("where")).toHaveTextContent("/hentai/title/ane-koi-1?play=1&from=start");
+  });
+
+  it("lists titles to continue and titles finished, and removes one", () => {
+    useHistory.setState({ entries: [watched("ane-koi-1", 600), watched("ane-koi-2", 1490)] });
+    renderAt("/hentai/library", [["/hentai/library", <HanimeLibraryPage />]]);
+    expect(screen.getByText("2 titles")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Continue ane koi 1" })).toHaveAttribute("href", "/hentai/title/ane-koi-1?play=1");
+    expect(screen.getByText("15 min left")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "ane koi 2" })).toHaveAttribute("href", "/hentai/title/ane-koi-2");
+    fireEvent.click(screen.getByRole("button", { name: "Remove ane koi 2 from your library" }));
+    expect(screen.queryByRole("link", { name: "ane koi 2" })).toBeNull();
+  });
+
+  it("says nothing has been watched yet", () => {
+    renderAt("/hentai/library", [["/hentai/library", <HanimeLibraryPage />]]);
+    expect(screen.getByText("Nothing watched yet")).toBeInTheDocument();
   });
 });
 
@@ -221,8 +262,8 @@ describe("HanimeHeaderSearch", () => {
       { type: "tag", ref: { slug: "vanilla", name: "vanilla", count: 400 } },
       { type: "studio", ref: { slug: "pink-pineapple", name: "Pink Pineapple", count: 507 } },
     ]);
-    renderAt("/hanime", [["/hanime", <HanimeHeaderSearch />], ["*", null]]);
-    const box = screen.getByRole("combobox", { name: "Search Hanime" });
+    renderAt("/hentai", [["/hentai", <HanimeHeaderSearch />], ["*", null]]);
+    const box = screen.getByRole("combobox", { name: "Search hentai" });
     fireEvent.focus(box);
     fireEvent.change(box, { target: { value: "ane" } });
     expect(await screen.findByText("Series · 2 episodes")).toBeInTheDocument();
@@ -230,32 +271,32 @@ describe("HanimeHeaderSearch", () => {
     expect(screen.getByText("Studio · 507 titles")).toBeInTheDocument();
     expect(api.hanime.suggest).toHaveBeenCalledWith("ane");
     fireEvent.mouseDown(screen.getByText("Ane Koi 1"));
-    await waitFor(() => expect(screen.getByTestId("where")).toHaveTextContent("/hanime/title/ane-koi-1"));
+    await waitFor(() => expect(screen.getByTestId("where")).toHaveTextContent("/hentai/title/ane-koi-1"));
   });
 
   it("opens the Search page on Enter", async () => {
     vi.mocked(api.hanime.suggest).mockResolvedValue([]);
-    renderAt("/hanime/titles", [["/hanime/titles", <HanimeHeaderSearch />], ["*", null]]);
-    const box = screen.getByRole("combobox", { name: "Search Hanime" });
+    renderAt("/hentai/titles", [["/hentai/titles", <HanimeHeaderSearch />], ["*", null]]);
+    const box = screen.getByRole("combobox", { name: "Search hentai" });
     fireEvent.change(box, { target: { value: "tentacle" } });
     fireEvent.submit(box.closest("form") as HTMLFormElement);
-    await waitFor(() => expect(screen.getByTestId("where")).toHaveTextContent("/hanime/search?q=tentacle"));
+    await waitFor(() => expect(screen.getByTestId("where")).toHaveTextContent("/hentai/search?q=tentacle"));
   });
 });
 
 describe("HanimeGalleryPage", () => {
   it("shows the big cards, a picture card per tag and the studios, all linking to the title list", async () => {
-    renderAt("/hanime/browse", [["/hanime/browse", <HanimeGalleryPage />]]);
-    expect(screen.getByRole("link", { name: /Trending/ })).toHaveAttribute("href", "/hanime/titles?sort=trending");
-    expect(screen.getByRole("link", { name: /Seasons/ })).toHaveAttribute("href", "/hanime/seasons");
+    renderAt("/hentai/browse", [["/hentai/browse", <HanimeGalleryPage />]]);
+    expect(screen.getByRole("link", { name: /Trending/ })).toHaveAttribute("href", "/hentai/titles?sort=trending");
+    expect(screen.getByRole("link", { name: /Seasons/ })).toHaveAttribute("href", "/hentai/seasons");
     const yuri = await screen.findByRole("link", { name: /Yuri.*Girls in love\./ });
-    expect(yuri).toHaveAttribute("href", "/hanime/titles?tags=yuri");
+    expect(yuri).toHaveAttribute("href", "/hentai/titles?tags=yuri");
     expect(yuri.querySelector("img")).toHaveAttribute("src", "https://hanime-cdn.com/images/tags/yuri-vertical.min.jpg");
-    expect(await screen.findByRole("link", { name: /Pink Pineapple/ })).toHaveAttribute("href", "/hanime/titles?studios=pink-pineapple");
+    expect(await screen.findByRole("link", { name: /Pink Pineapple/ })).toHaveAttribute("href", "/hentai/titles?studios=pink-pineapple");
   });
 
   it("narrows the tags and studios to the top bar's text", async () => {
-    renderAt("/hanime/browse?q=ntr", [["/hanime/browse", <HanimeGalleryPage />]]);
+    renderAt("/hentai/browse?q=ntr", [["/hentai/browse", <HanimeGalleryPage />]]);
     expect(await screen.findByRole("link", { name: /Ntr/ })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Yuri/ })).toBeNull();
     expect(screen.queryByRole("link", { name: /Trending/ })).toBeNull();
@@ -265,10 +306,10 @@ describe("HanimeGalleryPage", () => {
 describe("HanimeSeasonsPage", () => {
   it("lists a year by season and switches year", async () => {
     vi.mocked(api.hanime.seasons).mockResolvedValue({ years: [2026, 2025], year: 2026, seasons: [{ season: "Fall", items: [card] }] });
-    renderAt("/hanime/seasons", [["/hanime/seasons", <HanimeSeasonsPage />]]);
+    renderAt("/hentai/seasons", [["/hentai/seasons", <HanimeSeasonsPage />]]);
     expect(await screen.findByRole("heading", { name: /Fall 2026/ })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: "2025" }));
-    await waitFor(() => expect(screen.getByTestId("where")).toHaveTextContent("/hanime/seasons?year=2025"));
+    await waitFor(() => expect(screen.getByTestId("where")).toHaveTextContent("/hentai/seasons?year=2025"));
     await waitFor(() => expect(api.hanime.seasons).toHaveBeenCalledWith(2025));
   });
 });

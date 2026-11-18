@@ -117,7 +117,7 @@ export function StatusLine() {
     onSuccess: (s) => {
       client.setQueryData(hanimeStatusOptions().queryKey, s);
       void client.invalidateQueries({ queryKey: ['hanime'] });
-      toast(s.error ? s.error : 'Hanime catalog is up to date');
+      toast(s.error ? s.error : 'Hentai catalog is up to date');
     },
     onError: (e) => toast(messageFor(e)),
   });
