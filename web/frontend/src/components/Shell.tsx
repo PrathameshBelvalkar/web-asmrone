@@ -18,7 +18,7 @@ import { currentTrack, togglePlay } from '../player/engine';
 import { useAutoSubtitles } from '../hooks/use-auto-subtitles';
 import { useToolsReadyToast } from '../hooks/use-tools-ready-toast';
 import { usePlayerAccent } from '../hooks/use-player-accent';
-import { useScrolled } from '../hooks/use-scroll';
+import { useScrolled, useScrollToTopOnNavigate } from '../hooks/use-scroll';
 import { cn } from '@/lib/utils';
 
 /** App frame: sidebar, header with breadcrumbs, page content, and the player at the bottom. */
@@ -42,6 +42,7 @@ function ShellInner() {
   const nowPlayingOpen = usePlayer((s) => s.nowPlayingOpen);
   const setState = usePlayer((s) => s.setState);
   const scrolled = useScrolled();
+  useScrollToTopOnNavigate();
   // Manga, JAV and Hanime pages get the small floating player instead of the full bar.
   const manga = /^\/(?:manga|jav|hanime)(?:\/|$)/.test(location.pathname);
   const area = location.pathname.startsWith('/manga')
