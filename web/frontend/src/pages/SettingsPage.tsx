@@ -2,19 +2,19 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Clapperboard,
-  LogIn,
-  LogOut,
+  // LogIn,
+  // LogOut,
   Search,
   SlidersHorizontal,
-  UserRound,
+  // UserRound,
 } from "lucide-react";
-import { useLogin, useLogout, useSetSetting } from "../api/mutations";
-import { formsOptions, meOptions, settingsOptions } from "../api/queries";
-import type { FormField, LoginForm, SettingDto, SourceId } from "../api/types";
+import { /* useLogin, useLogout, */ useSetSetting } from "../api/mutations";
+import { /* formsOptions, meOptions, */ settingsOptions } from "../api/queries";
+import type { /* FormField, LoginForm, */ SettingDto, SourceId } from "../api/types";
 import { ErrorState, RowSkeletons } from "../components/States";
 import { AiSubtitlesCard } from "../components/AiSubtitlesCard";
 import { StorageCard } from "../components/StorageCard";
-import { Button, PageHeader, Toggle } from "../components/ui";
+import { /* Button, */ PageHeader, Toggle } from "../components/ui";
 import {
   Card,
   CardContent,
@@ -23,7 +23,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
+// import { Label } from "../components/ui/label";
 import { Badge } from "../components/ui/badge";
 import {
   Select,
@@ -45,11 +45,12 @@ const JASMR_SETTINGS = new Set(["jasmrTranslateTitles", "translationLanguage"]);
 
 export function SettingsPage() {
   useCrumbs([{ label: "Home", to: "/" }, { label: "Settings" }]);
-  const me = useQuery(meOptions());
-  const forms = useQuery({
-    ...formsOptions(),
-    enabled: me.isSuccess && !me.data,
-  });
+  // Hidden for now: the asmr.one login.
+  // const me = useQuery(meOptions());
+  // const forms = useQuery({
+  //   ...formsOptions(),
+  //   enabled: me.isSuccess && !me.data,
+  // });
   const source = useSource((s) => s.source);
   const settings = useQuery(settingsOptions());
   const shown = settings.data?.filter(
@@ -59,7 +60,7 @@ export function SettingsPage() {
         ? JASMR_SETTINGS.has(s.key)
         : s.key !== "jasmrTranslateTitles"),
   );
-  const logoutMutation = useLogout();
+  // const logoutMutation = useLogout();
 
   return (
     <>
@@ -68,6 +69,7 @@ export function SettingsPage() {
       {/* Two equal columns: the music account and preferences, then what lives on this computer. */}
       <div className="grid items-start gap-6 lg:grid-cols-2">
         <div className="flex min-w-0 flex-col gap-6">
+          {/* Hidden for now: the asmr.one login.
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -119,6 +121,7 @@ export function SettingsPage() {
               {forms.error && <ErrorState error={forms.error} />}
             </CardContent>
           </Card>
+          */}
 
           <Card>
             <CardHeader>
@@ -230,6 +233,7 @@ function MusicSourceRow() {
   );
 }
 
+/* Hidden for now: the asmr.one login.
 function LoginFormView({ form }: { form: LoginForm }) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
@@ -286,6 +290,7 @@ function LoginFormView({ form }: { form: LoginForm }) {
     </form>
   );
 }
+*/
 
 function SettingRow({ setting }: { setting: SettingDto }) {
   const [saving, setSaving] = useState(false);
