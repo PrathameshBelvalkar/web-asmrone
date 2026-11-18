@@ -7,14 +7,12 @@ import { LruCache } from '../../lib/lru-cache.js';
 import { HttpError } from '../../models/errors.js';
 import type { HanimeStream } from '../../models/hanime.js';
 import type { HanimeService } from '../hanime.service.js';
-import { matchPost, streamPost, type StreamPost } from './stream-match.js';
+import type { HanimeAvailability } from './availability.service.js';
 
 const NO_PAGE = 'hentaibros.net has no video for this title.';
 const UNAVAILABLE = 'This title isn’t available in Echo.';
 
 export interface HanimeStreamServiceOptions {
-  /** How long the list of hentaibros.net posts is used before it's read again. */
-  readonly postsTtlMs: number;
   /** How long a title's video, or the lack of one, is remembered. */
   readonly streamTtlMs: number;
   readonly missTtlMs: number;
@@ -29,18 +27,17 @@ interface Timed<T> {
 /**
  * A Hanime title's video, from its episode page on hentaibros.net (docs/HANIME.md section 12). The
  * title goes through the catalog first (content rules: 451, unknown: 404); its page is found among
- * the site's posts by name and episode (`stream-match.ts`); the page's player gives the MP4, which
+ * the site's posts by name and episode (`HanimeAvailability`); the page's player gives the MP4, which
  * the browser plays from its host. Every step is cached; requests for one title at once share them.
  */
 export class HanimeStreamService {
-  private posts: Timed<StreamPost[]> | null = null;
-  private postsPending: Promise<StreamPost[]> | null = null;
   private readonly streams = new LruCache<string, Timed<HanimeStream | null>>(1_000);
   private readonly pending = new Map<string, Promise<HanimeStream>>();
   private readonly now: () => number;
 
   constructor(
     private readonly hanime: HanimeService,
+    private readonly available: HanimeAvailability,
     private readonly client: HentaibrosClient,
     private readonly options: HanimeStreamServiceOptions,
   ) {
@@ -70,12 +67,8 @@ export class HanimeStreamService {
     return task;
   }
 
-  private async resolve(title: {
-    slug: string;
-    name: string;
-    altTitles: readonly string[];
-  }): Promise<HanimeStream | null> {
-    const post = matchPost(title, await this.postList());
+  private async resolve(title: { slug: string }): Promise<HanimeStream | null> {
+    const post = await this.available.post(title.slug);
     if (post === null) return null;
     // The content rules again, on the other site's names.
     if (BLOCKED_SERIES.test(post.slug.replace(/-/g, ' ')) || BLOCKED_WORD.test(post.slug)) {
@@ -87,28 +80,5 @@ export class HanimeStreamService {
       throw new HttpError(451, 'forbidden', UNAVAILABLE);
     }
     return { file: video.file, page: postUrl(post.slug), title: video.title };
-  }
-
-  /** The site's posts, read from its sitemaps at most once per `postsTtlMs`. */
-  private async postList(): Promise<StreamPost[]> {
-    if (this.posts !== null && this.now() - this.posts.at < this.options.postsTtlMs) {
-      return this.posts.value;
-    }
-    this.postsPending ??= this.client
-      .postSlugs()
-      .then((slugs) => {
-        const value = slugs.map(streamPost);
-        this.posts = { at: this.now(), value };
-        return value;
-      })
-      .catch((err: unknown) => {
-        // A failed refresh keeps using the list it has.
-        if (this.posts !== null) return this.posts.value;
-        throw err;
-      })
-      .finally(() => {
-        this.postsPending = null;
-      });
-    return this.postsPending;
   }
 }

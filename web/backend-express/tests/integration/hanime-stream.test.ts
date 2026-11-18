@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import request from 'supertest';
@@ -82,6 +83,32 @@ describe('/api/hanime/title/:slug/stream', () => {
     });
     await request(t.app).get('/api/hanime/title/ane-koi-1/stream').expect(200);
     expect(pageHits).toHaveLength(1);
+  });
+
+  it('lists only the titles with a video, everywhere', async () => {
+    const list = await request(t.app).get('/api/hanime/titles?size=60').expect(200);
+    expect(list.body.items.map((c: { slug: string }) => c.slug).sort()).toEqual([
+      'ane-koi-1',
+      'kotowari-1',
+    ]);
+    expect(list.body.total).toBe(2);
+    const status = await request(t.app).get('/api/hanime/status').expect(200);
+    expect(status.body.titles).toBe(2);
+    const suggest = await request(t.app).get('/api/hanime/suggest?q=ane').expect(200);
+    const titles = suggest.body.filter((s: { type: string }) => s.type === 'title');
+    expect(titles.map((s: { card: { slug: string } }) => s.card.slug)).toEqual(['ane-koi-1']);
+    // Its series has two episodes, but only one has a video.
+    const title = await request(t.app).get('/api/hanime/title/ane-koi-1').expect(200);
+    expect(title.body.episodes).toEqual([]);
+    const missing = await request(t.app).get('/api/hanime/title/ane-koi-2').expect(404);
+    expect(missing.body.message).toMatch(/no video/);
+  });
+
+  it('keeps the post list on disk, so a restart lists the same titles without asking the site', async () => {
+    const saved = JSON.parse(
+      await readFile(join(t.dataDir, 'hanime', 'hentaibros-posts.json'), 'utf8'),
+    ) as { slugs: string[] };
+    expect(saved.slugs.sort()).toEqual(['ane-koi-episode-1', 'kotowari-episode-1']);
   });
 
   it('answers 404 for a title the site doesn’t have, and applies the content rules', async () => {

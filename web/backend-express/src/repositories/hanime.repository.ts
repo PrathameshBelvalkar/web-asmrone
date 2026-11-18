@@ -65,6 +65,10 @@ const tagArtSchema = z.record(
 );
 export type TagArtFile = z.infer<typeof tagArtSchema>;
 
+/** hentaibros.net's post slugs, as its sitemaps last listed them (docs/HANIME.md section 12.5). */
+const postsFileSchema = z.object({ fetchedAt: z.string(), slugs: z.array(z.string()) });
+export type PostsFile = z.infer<typeof postsFileSchema>;
+
 export const MAX_CHANGES = 500;
 export const VIEW_DAYS = 14;
 
@@ -121,6 +125,14 @@ export class HanimeRepository {
 
   writeTagArt(art: TagArtFile): Promise<void> {
     return this.write('tags.json', art);
+  }
+
+  readPosts(): Promise<PostsFile | null> {
+    return this.read('hentaibros-posts.json', postsFileSchema);
+  }
+
+  writePosts(file: PostsFile): Promise<void> {
+    return this.write('hentaibros-posts.json', file);
   }
 
   writeState(state: HanimeState): Promise<void> {

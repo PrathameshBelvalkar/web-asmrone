@@ -33,6 +33,7 @@ const SITEMAP = gzipSync(
 
 describe('/api/hanime', () => {
   let agent: MockAgent;
+  let bros: MockAgent;
   let t: TestApp;
   let now = NOW;
 
@@ -50,7 +51,17 @@ describe('/api/hanime', () => {
       .intercept({ path: '/browse', method: 'GET' })
       .reply(200, page('browse.html'))
       .persist();
+    // hentaibros.net's post list can't be read, so every title is listed (the video filter has its
+    // own tests in hanime-stream.test.ts).
+    bros = new MockAgent();
+    bros.disableNetConnect();
+    bros
+      .get('https://hentaibros.net')
+      .intercept({ path: '/sitemap_index.xml', method: 'GET' })
+      .reply(200, '<sitemapindex></sitemapindex>')
+      .persist();
     t = await makeTestApp({
+      hentaibrosDispatcher: bros,
       hanimeDispatcher: agent,
       proxyDispatcher: agent,
       hanimeClock: { now: () => now },
@@ -60,6 +71,7 @@ describe('/api/hanime', () => {
   afterEach(async () => {
     await t.cleanup();
     await agent.close();
+    await bros.close();
   });
 
   const serve = (body: string | object, status = 200): void => {

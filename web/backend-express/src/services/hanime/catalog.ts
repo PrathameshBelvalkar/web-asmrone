@@ -84,6 +84,15 @@ export class HanimeCatalog {
       this.studioRefs.set(slug, { slug, name: s.name, count: s.count });
   }
 
+  /** The same catalog with only the titles [keep] accepts: counts, series, search and Trending follow. */
+  only(keep: (entry: Entry) => boolean): HanimeCatalog {
+    return new HanimeCatalog(
+      this.entries.filter(keep).map((e) => e.record),
+      this.blockedSlugs,
+      this.baseline,
+    );
+  }
+
   get size(): number {
     return this.entries.length;
   }

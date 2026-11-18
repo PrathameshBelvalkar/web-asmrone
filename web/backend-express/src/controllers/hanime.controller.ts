@@ -103,7 +103,7 @@ export class HanimeController {
   };
 
   status = async (_req: Request, res: Response): Promise<void> => {
-    res.json(hanimeStatusView(await this.sync.status()));
+    res.json(hanimeStatusView(await this.hanime.status()));
   };
 
   /** Runs a sync now, then answers with the status. */
@@ -112,7 +112,7 @@ export class HanimeController {
       // A failed download is reported in the status; only "too soon" is the caller's problem.
       if (err instanceof HttpError && err.status === 429) throw err;
     });
-    res.json(hanimeStatusView(await this.sync.status()));
+    res.json(hanimeStatusView(await this.hanime.status()));
   };
 
   /** Server-Sent Events: `catalog` with what changed, each time a sync changes something. */

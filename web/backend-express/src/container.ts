@@ -31,6 +31,7 @@ import { HANIME_IMAGE_PREFIX } from './extension/hanime/constants.js';
 import { HentaibrosClient } from './extension/hentaibros/hentaibros.client.js';
 import { HanimeRepository } from './repositories/hanime.repository.js';
 import { HanimeService } from './services/hanime.service.js';
+import { HanimeAvailability } from './services/hanime/availability.service.js';
 import { HanimeStreamService } from './services/hanime/stream.service.js';
 import { HanimeSyncService } from './services/hanime/sync.service.js';
 import { SourceRouter } from './extension/source-router.js';
@@ -315,25 +316,31 @@ export function createContainer(
     pageGapMs: LIMITS.hanimePageGapMs,
     now: () => hanimeClock.now(),
   });
-  const hanimeSync = new HanimeSyncService(
-    hanimeClient,
-    new HanimeRepository(join(config.dataDir, 'hanime')),
-    {
-      intervalMs: LIMITS.hanimeSyncIntervalMs,
-      manualGapMs: LIMITS.hanimeManualSyncGapMs,
-      now: () => hanimeClock.now(),
-      logger,
-    },
-  );
-  const hanimeService = new HanimeService(hanimeSync, hanimeClient, {
+  const hanimeRepo = new HanimeRepository(join(config.dataDir, 'hanime'));
+  const hanimeSync = new HanimeSyncService(hanimeClient, hanimeRepo, {
+    intervalMs: LIMITS.hanimeSyncIntervalMs,
+    manualGapMs: LIMITS.hanimeManualSyncGapMs,
+    now: () => hanimeClock.now(),
+    logger,
+  });
+  const hentaibrosClient = new HentaibrosClient(hentaibrosDispatcher, {
+    gapMs: LIMITS.hentaibrosGapMs,
+  });
+  const hanimeAvailability = new HanimeAvailability(hanimeSync, hentaibrosClient, hanimeRepo, {
+    postsTtlMs: LIMITS.hentaibrosPostsTtlMs,
+    retryMs: LIMITS.hentaibrosPostsRetryMs,
+    now: () => hanimeClock.now(),
+    logger,
+  });
+  const hanimeService = new HanimeService(hanimeSync, hanimeClient, hanimeAvailability, {
     detailsTtlMs: LIMITS.hanimeDetailsTtlMs,
     now: () => hanimeClock.now(),
   });
   const hanimeStreams = new HanimeStreamService(
     hanimeService,
-    new HentaibrosClient(hentaibrosDispatcher, { gapMs: LIMITS.hentaibrosGapMs }),
+    hanimeAvailability,
+    hentaibrosClient,
     {
-      postsTtlMs: LIMITS.hentaibrosPostsTtlMs,
       streamTtlMs: LIMITS.hentaibrosStreamTtlMs,
       missTtlMs: LIMITS.hentaibrosMissTtlMs,
       now: () => hanimeClock.now(),
@@ -376,7 +383,10 @@ export function createContainer(
       await extension.onExtensionSelected();
       await authService.restore();
       await tools.init();
-      if (config.hanimeSync) hanimeSync.start();
+      if (config.hanimeSync) {
+        hanimeSync.start();
+        void hanimeAvailability.warm();
+      }
     },
     async close() {
       tools.close();

@@ -22,11 +22,13 @@ import type {
   HanimeSeasons,
   HanimeShelf,
   HanimeSort,
+  HanimeStatus,
   HanimeSuggestion,
   HanimeTagGroup,
   HanimeTagRef,
   HanimeTitle,
 } from '../models/hanime.js';
+import type { HanimeAvailability } from './hanime/availability.service.js';
 import type { Entry, HanimeCatalog } from './hanime/catalog.js';
 import type { HanimeSyncService } from './hanime/sync.service.js';
 
@@ -36,6 +38,7 @@ const SIMILAR = 12;
 const MIN_VOTES = 100;
 const UNAVAILABLE = 'This title isn’t available in Echo.';
 const EMPTY = 'Echo is still getting hanime’s catalog. Try again in a moment.';
+const NO_VIDEO = 'hentaibros.net has no video for this title.';
 /** Seasons by release month (Jan–Mar is Winter), newest first. */
 const SEASONS: readonly { season: HanimeSeasonName; months: readonly number[] }[] = [
   { season: 'Fall', months: [9, 10, 11] },
@@ -51,8 +54,9 @@ export interface HanimeServiceOptions {
 }
 
 /**
- * Hanime: every list, filter, sort and search, answered from the catalog in memory. A title's
- * Preview, length and other names come from its page on the site, read when the title is opened.
+ * Hanime: every list, filter, sort and search, answered from the catalog in memory. Only titles with
+ * a video on hentaibros.net are listed (`HanimeAvailability`). A title's Preview, length and other
+ * names come from its page on the site, read when the title is opened.
  */
 export class HanimeService {
   private readonly details = new LruCache<string, { at: number; value: HanimeDetails }>(500);
@@ -62,6 +66,7 @@ export class HanimeService {
   constructor(
     private readonly sync: HanimeSyncService,
     private readonly client: HanimeClient,
+    private readonly available: HanimeAvailability,
     private readonly options: HanimeServiceOptions,
   ) {
     this.now = options.now ?? Date.now;
@@ -74,7 +79,23 @@ export class HanimeService {
       const status = await this.sync.status();
       throw new HttpError(503, 'upstream', status.error ?? EMPTY);
     }
-    return catalog;
+    return this.available.catalog();
+  }
+
+  /** A listed title. One the catalog has but without a video answers 404 saying so. */
+  private async entry(slug: string): Promise<{ c: HanimeCatalog; entry: Entry }> {
+    const c = await this.catalog();
+    if (c.isBlocked(slug)) throw new HttpError(451, 'forbidden', UNAVAILABLE);
+    const entry = c.get(slug);
+    if (entry !== undefined) return { c, entry };
+    if (this.sync.catalog.get(slug) !== undefined) throw new HttpError(404, 'not_found', NO_VIDEO);
+    throw HttpError.notFound();
+  }
+
+  /** The sync's status, counting the titles that are listed. */
+  async status(): Promise<HanimeStatus> {
+    const status = await this.sync.status();
+    return status.titles === 0 ? status : { ...status, titles: (await this.catalog()).size };
   }
 
   async home(): Promise<HanimeShelf[]> {
@@ -151,10 +172,7 @@ export class HanimeService {
   }
 
   async title(slug: string): Promise<HanimeTitle> {
-    const c = await this.catalog();
-    if (c.isBlocked(slug)) throw new HttpError(451, 'forbidden', UNAVAILABLE);
-    const entry = c.get(slug);
-    if (entry === undefined) throw HttpError.notFound();
+    const { c, entry } = await this.entry(slug);
     const now = this.now();
     const r = entry.record;
     const series = c.seriesOf(entry.seriesKey);
@@ -205,10 +223,7 @@ export class HanimeService {
    * names. Kept for `detailsTtlMs`; requests for the same title at once share one page read.
    */
   async titleDetails(slug: string): Promise<HanimeDetails> {
-    const c = await this.catalog();
-    if (c.isBlocked(slug)) throw new HttpError(451, 'forbidden', UNAVAILABLE);
-    const entry = c.get(slug);
-    if (entry === undefined) throw HttpError.notFound();
+    const { entry } = await this.entry(slug);
     const hit = this.details.get(entry.slug);
     if (hit !== undefined && this.now() - hit.at < this.options.detailsTtlMs) return hit.value;
     const running = this.pending.get(entry.slug);

@@ -74,6 +74,8 @@ export const LIMITS = {
   hentaibrosResponseTimeoutMs: 30_000,
   hentaibrosGapMs: 1_000,
   hentaibrosPostsTtlMs: 24 * 60 * 60_000,
+  /** After the post list couldn't be read, how long before asking again. */
+  hentaibrosPostsRetryMs: 15 * 60_000,
   hentaibrosStreamTtlMs: 7 * 24 * 60 * 60_000,
   hentaibrosMissTtlMs: 6 * 60 * 60_000,
 } as const;

@@ -563,7 +563,17 @@ The two sites spell titles differently (`boku-ni-sefure-ga-dekita-riyuu-3` and `
 - The episode number must be equal: `-episode-N` on the post; the trailing number (`-3`, `-ep-3`) of the title's slug or name. No number counts as 1.
 - Names (the title's slug, name and other titles, against the post's slug) become word sets without filler words (`the`, `animation`, `ova`, `no`, `ga`, …). The score is shared words ÷ all words; one name containing the other whole counts 0.85.
 - The best post at 0.6 or more wins. Tuned on the whole catalog: **2,322 of 3,462 titles** find a page. Every match checked between 0.6 and 0.75 was right (other romanisations); below 0.6 they weren't. Matching takes about 0.2 ms a title.
-- About a third of the catalog isn't on the site at all (for example *Romance wa Tsurugi no Kagayaki*), and the site has titles hanime doesn't (*Reginetta-san no Bouken*); those aren't listed.
+- About a third of the catalog isn't on the site at all (for example *Romance wa Tsurugi no Kagayaki*), and the site has titles hanime doesn't (*Reginetta-san no Bouken*); neither is listed (12.5).
+
+### 12.5 Only titles with a video are listed
+
+Added 2026-11-18. Echo lists only the titles that find a post (12.3), about 2,322 of 3,462.
+
+- `src/services/hanime/availability.service.ts` (`HanimeAvailability`) holds the post list and matches it against the catalog once for each new catalog or post list (about 0.7 s), giving a smaller `HanimeCatalog` (`catalog.only()`). Every answer comes from it: Home, Browse, the title list, search, suggestions, tags and their counts, studios, Seasons, Random, a series' episodes, Similar, and the title count in the status.
+- A title the catalog has but without a video answers **404** "hentaibros.net has no video for this title.", on its page and its stream.
+- The post list is saved in `~/.echo-web/hanime/hentaibros-posts.json`, so a restart lists the same titles at once. It is read again once a day in the background while the old one is used; at start-up when Echo syncs, it is loaded straight away.
+- **No list at all** (first start with the site down): every title is listed rather than none, and the site is asked again after 15 minutes (`hentaibrosPostsRetryMs`).
+- A match found here can still fail when the episode page is read (no player on the page): Watch then says there's no video. The page itself is only read when Watch is pressed.
 
 ### 12.4 Files
 
@@ -572,6 +582,7 @@ The two sites spell titles differently (`boku-ni-sefure-ga-dekita-riyuu-3` and `
 | `src/extension/hentaibros/hentaibros.client.ts` | Sitemaps and episode pages, one at a time, 1 s apart, `BlockBackoff` |
 | `src/extension/hentaibros/parsers.ts` | Post sitemaps, post slugs, the player's `data-item` video |
 | `src/services/hanime/stream-match.ts` | Title → post (12.3) |
+| `src/services/hanime/availability.service.ts` | The post list (saved on disk) and which titles have a video (12.5) |
 | `src/services/hanime/stream.service.ts` | 12.2, with its caches |
 | `web/frontend/src/components/hanime/HanimeTheater.tsx` | The player on the title page |
 | Tests | `tests/unit/hentaibros.test.ts`, `tests/integration/hanime-stream.test.ts`, `HanimePages.test.tsx` |
