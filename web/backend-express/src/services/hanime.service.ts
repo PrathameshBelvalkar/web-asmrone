@@ -36,8 +36,8 @@ const SHELF_SIZE = 12;
 const SIMILAR = 12;
 /** Titles with fewer votes than this rank below the rest by rating. */
 const MIN_VOTES = 100;
-const UNAVAILABLE = 'This title isn’t available in Echo.';
-const EMPTY = 'Echo is still getting hanime’s catalog. Try again in a moment.';
+const UNAVAILABLE = 'This title isn’t available in NekoHub.';
+const EMPTY = 'NekoHub is still getting hanime’s catalog. Try again in a moment.';
 const NO_VIDEO = 'hentaibros.net has no video for this title.';
 /** Seasons by release month (Jan–Mar is Winter), newest first. */
 const SEASONS: readonly { season: HanimeSeasonName; months: readonly number[] }[] = [

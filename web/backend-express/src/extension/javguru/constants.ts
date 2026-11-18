@@ -4,11 +4,11 @@ export const JAVGURU_SITE = 'https://jav.guru';
 export { APP_USER_AGENT } from '../threehentai/constants.js';
 
 /**
- * The StreamSB-style host that STREAM SB currently sends to. Echo goes straight to it and asks the
+ * The StreamSB-style host that STREAM SB currently sends to. NekoHub goes straight to it and asks the
  * site's gateway (`/searcho/`, which robots.txt disallows) only when this host stops answering.
  */
 export const DEFAULT_EMBED_HOST = 'javclan.com';
 
-/** The button label of each server Echo uses → the gateway parameter that carries its token. */
+/** The button label of each server NekoHub uses → the gateway parameter that carries its token. */
 export const SERVERS = { sb: { label: 'STREAM SB', param: 'xd' } } as const;
 export type JavguruServer = keyof typeof SERVERS;

@@ -151,7 +151,7 @@ export function Player({
       playsInline
       autoPlay
       onProviderChange={(provider) => {
-        // Echo's own hls.js, not a copy from a CDN.
+        // NekoHub's own hls.js, not a copy from a CDN.
         if (isHLSProvider(provider)) provider.library = Hls;
       }}
       onCanPlay={() => {
@@ -190,7 +190,7 @@ export function Notice({ title, action }: { title: string; action?: ReactNode })
 function errorText(error: Error): string {
   if (!(error instanceof ApiError)) return 'The stream could not be loaded.';
   if (error.status === 404) return error.message || 'No stream was found for this movie.';
-  if (error.status === 451) return "This title isn't available in Echo.";
+  if (error.status === 451) return "This title isn't available in NekoHub.";
   if (error.status === 503) return 'The stream source is busy. Try again later.';
   return 'The stream could not be found on its host.';
 }

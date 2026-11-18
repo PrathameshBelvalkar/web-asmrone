@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { clockTime, daysUntil, dvdIdSlug, filtersFromParams, timeLeft } from "./jav";
 
 describe("JAV helpers", () => {
-  it("reads idol filters from the address and drops values Echo doesn't offer", () => {
+  it("reads idol filters from the address and drops values NekoHub doesn't offer", () => {
     const params = new URLSearchParams("age=twenties&cup=d,e,zz&body=slim,loli&debutYear=2024-2026&hairColor=");
     expect(filtersFromParams(params)).toEqual({ age: ["twenties"], cup: ["d", "e"], body: ["slim"], debutYear: "2024-2026" });
     expect(filtersFromParams(new URLSearchParams("body=loli&debutYear=soon"))).toEqual({});

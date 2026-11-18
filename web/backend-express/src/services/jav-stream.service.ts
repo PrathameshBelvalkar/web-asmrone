@@ -81,7 +81,7 @@ export class JavStreamService {
     const post = await this.postOf(dvdId);
     if (post === null) throw noStream();
     if (BLOCKED_JAV_TITLE.test(post.title)) {
-      throw new HttpError(451, 'forbidden', 'This title is not available in Echo.');
+      throw new HttpError(451, 'forbidden', 'This title is not available in NekoHub.');
     }
     const token = (await this.tokensOf(post.url))[server];
     if (token === undefined) throw noStream(`This movie has no ${SERVERS[server].label} stream.`);

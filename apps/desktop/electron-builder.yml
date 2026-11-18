@@ -1,5 +1,5 @@
 appId: ai.airrived.echo
-productName: Echo
+productName: NekoHub
 directories:
   output: release
   buildResources: build
@@ -18,7 +18,7 @@ extraResources:
     to: licenses
   - from: build/icon.png
     to: icon.png
-artifactName: "Echo-${version}-${os}-${arch}.${ext}"
+artifactName: "NekoHub-${version}-${os}-${arch}.${ext}"
 mac:
   category: public.app-category.music
   target:

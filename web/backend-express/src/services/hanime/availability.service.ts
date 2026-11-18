@@ -25,7 +25,7 @@ interface Matched {
 /**
  * Which Hanime titles have a video on hentaibros.net (docs/HANIME.md section 12.5). The site's post
  * list (its sitemaps, read once a day and kept on disk) is matched against the catalog by name and
- * episode (`stream-match.ts`); Echo lists only the titles that find a post. The match is worked out
+ * episode (`stream-match.ts`); NekoHub lists only the titles that find a post. The match is worked out
  * once for each catalog and post list. Until the list is first read, and while the site can't be
  * reached with no saved copy, every title is listed rather than none.
  */

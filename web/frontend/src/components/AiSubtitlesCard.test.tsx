@@ -80,7 +80,7 @@ const FIXTURES = {
   off: status(),
   problem: status({
     enabled: true,
-    problem: "Part of the app is missing. Please reinstall Echo.",
+    problem: "Part of the app is missing. Please reinstall NekoHub.",
   }),
   downloading: status({
     enabled: true,
@@ -150,7 +150,7 @@ describe("AiSubtitlesCard", () => {
     renderCard(FIXTURES.problem);
     expect(
       await screen.findByText(
-        "Part of the app is missing. Please reinstall Echo.",
+        "Part of the app is missing. Please reinstall NekoHub.",
       ),
     ).toBeInTheDocument();
     expect(
@@ -164,7 +164,7 @@ describe("AiSubtitlesCard", () => {
       await screen.findByText("Getting AI subtitles ready…"),
     ).toBeInTheDocument();
     expect(screen.getByText(/\(40%\)/)).toBeInTheDocument();
-    expect(screen.getByText(/You can keep using Echo/)).toBeInTheDocument();
+    expect(screen.getByText(/You can keep using NekoHub/)).toBeInTheDocument();
   });
 
   it("shows a failed download with its message and a way to try again", async () => {

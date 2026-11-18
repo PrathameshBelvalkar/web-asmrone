@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "3b0b7b87-dfb5-45ef-b006-488fbbae0944",
-    "name": "Echo Web API (Express)",
-    "description": "Every /api route of web/backend-express, the Express port of the Kotlin Echo Web server.\n\nSetup\n1. cd web/backend-express && npm install && npm run dev (serves http://127.0.0.1:8080 unless PORT is set).\n2. If you change PORT, update `baseUrl` in the collection variables.\n3. Set `username` and `password` to a real asmr.one account, and replace the sample ids with real ones.\n4. Run the folders top to bottom. Account > Login comes first and Cleanup > Logout last. Home, Library or Search must run before Open feed and Page. Playlist editing > Create must run before the other editing requests. Tracks > Media must run before Proxy.\n\nNotes\n- Requests that reach asmr.one need network access and a working upstream.\n- Login stores the session on the server, so no Authorization header is needed.\n- Playlist editing changes only the playlist that Create made. Like, Settings and Logout change saved state on the server.",
+    "name": "NekoHub Web API (Express)",
+    "description": "Every /api route of web/backend-express, the Express port of the Kotlin NekoHub Web server.\n\nSetup\n1. cd web/backend-express && npm install && npm run dev (serves http://127.0.0.1:8080 unless PORT is set).\n2. If you change PORT, update `baseUrl` in the collection variables.\n3. Set `username` and `password` to a real asmr.one account, and replace the sample ids with real ones.\n4. Run the folders top to bottom. Account > Login comes first and Cleanup > Logout last. Home, Library or Search must run before Open feed and Page. Playlist editing > Create must run before the other editing requests. Tracks > Media must run before Proxy.\n\nNotes\n- Requests that reach asmr.one need network access and a working upstream.\n- Login stores the session on the server, so no Authorization header is needed.\n- Playlist editing changes only the playlist that Create made. Like, Settings and Logout change saved state on the server.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -989,7 +989,7 @@
             "description": "Creates a playlist. Saves its id and title to createdPlaylistId and createdPlaylistTitle.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Echo API test playlist\",\n  \"description\": \"Created by the Postman collection\"\n}",
+              "raw": "{\n  \"title\": \"NekoHub API test playlist\",\n  \"description\": \"Created by the Postman collection\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1026,7 +1026,7 @@
             "description": "Changes the title and description of the created playlist.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Playlist\",\n    \"id\": \"{{createdPlaylistId}}\",\n    \"title\": \"{{createdPlaylistTitle}}\",\n    \"isEditable\": true\n  },\n  \"title\": \"Echo API test playlist (edited)\",\n  \"description\": \"Edited by the Postman collection\"\n}",
+              "raw": "{\n  \"item\": {\n    \"mediaItemType\": \"dev.brahmkshatriya.echo.common.models.Playlist\",\n    \"id\": \"{{createdPlaylistId}}\",\n    \"title\": \"{{createdPlaylistTitle}}\",\n    \"isEditable\": true\n  },\n  \"title\": \"NekoHub API test playlist (edited)\",\n  \"description\": \"Edited by the Postman collection\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

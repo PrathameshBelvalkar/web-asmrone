@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { buildAppMenu } from './menu';
-import { migrate } from './migrate';
+import { migrate, moveRenamedAppData } from './migrate';
 import { checkForUpdates, initUpdater } from './updater';
 import { pickPort } from './ports';
 import { resolvePaths, serverEnv, type AppPaths, type PathInput } from './paths';
@@ -23,7 +23,7 @@ let serverPort = 0;
 let quitting = false;
 let crashes = 0;
 
-// Only one copy of Echo runs. A second start focuses the first window.
+// Only one copy of NekoHub runs. A second start focuses the first window.
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 }
@@ -34,7 +34,7 @@ app.on('second-instance', () => {
   win.focus();
 });
 
-app.setName('Echo');
+app.setName('NekoHub');
 
 app
   .whenReady()
@@ -49,6 +49,11 @@ app
       appVersion: app.getVersion(),
     };
     paths = resolvePaths(pathInput);
+    try {
+      if (!process.env.ECHO_WEB_DATA) moveRenamedAppData(join(app.getPath('appData'), 'Echo'), paths.dataDir);
+    } catch (err) {
+      console.error('Moving the data of the old Echo app failed:', err);
+    }
     mkdirSync(paths.dataDir, { recursive: true });
 
     // Only for the default data folder. With ECHO_WEB_DATA set, the folder is chosen on purpose and
@@ -83,7 +88,7 @@ app
     );
   })
   .catch((err: unknown) => {
-    dialog.showErrorBox('Echo could not start', err instanceof Error ? err.message : String(err));
+    dialog.showErrorBox('NekoHub could not start', err instanceof Error ? err.message : String(err));
     app.exit(1);
   });
 
@@ -127,7 +132,7 @@ async function handleServerCrash(): Promise<void> {
       // Falls through to the message below.
     }
   }
-  dialog.showErrorBox('Echo stopped working', `Please restart Echo. Log file: ${join(paths.logsDir, 'server.log')}`);
+  dialog.showErrorBox('NekoHub stopped working', `Please restart NekoHub. Log file: ${join(paths.logsDir, 'server.log')}`);
   app.quit();
 }
 

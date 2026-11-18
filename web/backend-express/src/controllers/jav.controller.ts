@@ -30,7 +30,7 @@ import { paramString, queryString } from './query.js';
 
 const SLUG = /^[a-z0-9][a-z0-9%._-]{0,199}$/i;
 
-/** Echo's idol filter names → the site's facet names. */
+/** NekoHub's idol filter names → the site's facet names. */
 const FACET_PARAMS: Readonly<Record<string, JavIdolFacet>> = {
   content: 'content_type',
   age: 'age_group',

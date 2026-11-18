@@ -1,4 +1,4 @@
-// Shapes returned by the Echo Web server. Discriminators are fully-qualified class names.
+// Shapes returned by the NekoHub Web server. Discriminators are fully-qualified class names.
 
 export const MODEL_PREFIX = 'dev.brahmkshatriya.echo.common.models.';
 

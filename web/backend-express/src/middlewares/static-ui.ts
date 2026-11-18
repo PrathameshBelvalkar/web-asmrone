@@ -1,7 +1,7 @@
 import express, { type RequestHandler } from 'express';
 import { join, sep } from 'node:path';
 
-const NOT_BUILT = 'Echo Web API is running. Build the frontend (web/frontend) to serve the UI.';
+const NOT_BUILT = 'NekoHub Web API is running. Build the frontend (web/frontend) to serve the UI.';
 const ASSET_DIR = `${sep}assets${sep}`;
 
 /**

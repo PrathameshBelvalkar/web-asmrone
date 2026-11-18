@@ -34,7 +34,7 @@ export type SuggestSource =
 
 const MAX_RECENT = 6;
 const DEBOUNCE_MS = 300;
-/** Hanime's suggestions come from Echo's own copy of the catalog, not the site. */
+/** Hanime's suggestions come from NekoHub's own copy of the catalog, not the site. */
 const HANIME_DEBOUNCE_MS = 120;
 
 function readRecent(scope: string): string[] {

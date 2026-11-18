@@ -29,7 +29,7 @@ export const LIST_BY_PATH: Readonly<Record<JavListBy, string>> = {
   director: 'directors',
 };
 
-/** Echo's sort → the site's `_sort_` value (null: the site's default order). */
+/** NekoHub's sort → the site's `_sort_` value (null: the site's default order). */
 export const MOVIE_SORT: Readonly<Record<JavMovieSort, string | null>> = {
   release: null,
   most_favorited: 'most_favorited',

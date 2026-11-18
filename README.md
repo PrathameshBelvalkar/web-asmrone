@@ -1,10 +1,10 @@
 <div align="center">
 
 <a href="https://github.com/PrathameshBelvalkar/web-asmrone/releases/latest">
-  <img src="apps/desktop/build/icon.png" alt="Echo icon" width="128" height="128">
+  <img src="apps/desktop/build/icon.png" alt="NekoHub icon" width="128" height="128">
 </a>
 
-# Echo
+# NekoHub
 
 ### An ASMR player for your Mac
 
@@ -19,7 +19,7 @@ The AI runs on your Mac, it is free, and nothing is uploaded.
 [Download](#download) · [Features](#features) · [AI subtitles](#ai-subtitles) · [FAQ](#faq) · [Developing](docs/DEVELOPMENT.md)
 
 <a href="https://github.com/PrathameshBelvalkar/web-asmrone/raw/main/docs/media/echo-promo.mp4">
-  <img src="docs/media/echo-promo.webp" alt="Echo in 45 seconds: the promo video" width="720">
+  <img src="docs/media/echo-promo.webp" alt="NekoHub in 45 seconds: the promo video" width="720">
 </a>
 
 _[Download the full-quality video (MP4)](https://github.com/PrathameshBelvalkar/web-asmrone/raw/main/docs/media/echo-promo.mp4)_
@@ -41,7 +41,7 @@ Not sure which Mac you have? Open the Apple menu → **About This Mac**. If it s
 version. If it says **Processor: Intel…**, take the Intel one.
 
 > [!IMPORTANT]
-> Echo isn't signed by Apple yet, so macOS stops it the first time. Open the `.dmg`, drag Echo to
+> NekoHub isn't signed by Apple yet, so macOS stops it the first time. Open the `.dmg`, drag NekoHub to
 > **Applications**, then open it. If macOS blocks it, go to **System Settings → Privacy & Security** and click
 > **Open Anyway**. You only do this once.
 
@@ -53,17 +53,17 @@ version. If it says **Processor: Intel…**, take the Intel one.
 - **Music-player controls**: a queue that's saved between launches, shuffle, repeat, and a mini player.
 - **Your asmr.one account**: log in to see your playlists and favourites. Browsing works without one.
 - **Manga & Doujinshi**: browse and search galleries by tag, artist and language, and read them in a built-in reader.
-- **Private by design**: the server inside Echo listens only on your Mac, and your data never leaves it.
-- **Update checks**: Echo tells you when a new version is out (**Help → Check for updates…**).
+- **Private by design**: the server inside NekoHub listens only on your Mac, and your data never leaves it.
+- **Update checks**: NekoHub tells you when a new version is out (**Help → Check for updates…**).
 
 ## AI subtitles
 
-Open **Settings** and turn on **AI subtitles**. Echo downloads what it needs once (190 to 550 MB, depending on
+Open **Settings** and turn on **AI subtitles**. NekoHub downloads what it needs once (190 to 550 MB, depending on
 the model) and tells you when it's ready.
 
 - **Pause** a download and resume it later, or **cancel** it, which deletes the partial file.
 - See the models you have, pick one, and run a **speed test** to check it keeps up on your Mac.
-- **Delete** a model you don't need. If it was the one in use, Echo switches to another downloaded model. If it
+- **Delete** a model you don't need. If it was the one in use, NekoHub switches to another downloaded model. If it
   was the last one, AI subtitles turn off.
 
 Apple-chip Macs run Whisper on the GPU (Metal). Intel Macs use the CPU, which is slower.
@@ -75,52 +75,52 @@ Apple-chip Macs run Whisper on the GPU (Metal). Intel Macs use the CPU, which is
 
 <br>
 
-Everything is in `~/Library/Application Support/Echo` (**Help → Open data folder**): settings, your login, the
+Everything is in `~/Library/Application Support/NekoHub` (**Help → Open data folder**): settings, your login, the
 saved queue, subtitles and AI models. The log is in its `logs` folder (**Help → Open log folder**).
 
 </details>
 
 <details>
-<summary><b>macOS says Echo "is damaged" or "can't be opened".</b></summary>
+<summary><b>macOS says NekoHub "is damaged" or "can't be opened".</b></summary>
 
 <br>
 
-This happens because Echo isn't signed yet. Try **System Settings → Privacy & Security → Open Anyway** first. If
+This happens because NekoHub isn't signed yet. Try **System Settings → Privacy & Security → Open Anyway** first. If
 that button isn't there, run this in Terminal once:
 
 ```bash
-xattr -cr /Applications/Echo.app
+xattr -cr /Applications/NekoHub.app
 ```
 
 </details>
 
 <details>
-<summary><b>Does Echo work on Windows or Linux?</b></summary>
+<summary><b>Does NekoHub work on Windows or Linux?</b></summary>
 
 <br>
 
-Not as an app. Echo Desktop is Mac only. There's a browser version you can run yourself; see
-[Developing Echo](docs/DEVELOPMENT.md#echo-web-the-browser-version).
+Not as an app. NekoHub Desktop is Mac only. There's a browser version you can run yourself; see
+[Developing NekoHub](docs/DEVELOPMENT.md#nekohub-web-the-browser-version).
 
 </details>
 
 <details>
-<summary><b>How do I uninstall Echo?</b></summary>
+<summary><b>How do I uninstall NekoHub?</b></summary>
 
 <br>
 
-Drag **Echo** from **Applications** to the Trash. To remove your data and AI models too, delete
-`~/Library/Application Support/Echo`.
+Drag **NekoHub** from **Applications** to the Trash. To remove your data and AI models too, delete
+`~/Library/Application Support/NekoHub`.
 
 </details>
 
 ## Contributing
 
 Bug reports and ideas are welcome in [Issues](https://github.com/PrathameshBelvalkar/web-asmrone/issues). When
-you report a bug, include your Echo version (**Echo → About Echo**), your Mac type, and the steps that cause it.
+you report a bug, include your NekoHub version (**NekoHub → About NekoHub**), your Mac type, and the steps that cause it.
 For larger changes, open an issue before a pull request.
 
-Building, running and releasing Echo are covered in [Developing Echo](docs/DEVELOPMENT.md).
+Building, running and releasing NekoHub are covered in [Developing NekoHub](docs/DEVELOPMENT.md).
 
 ## Credits
 
@@ -131,10 +131,10 @@ Building, running and releasing Echo are covered in [Developing Echo](docs/DEVEL
 
 ## Disclaimer
 
-Echo is not affiliated with asmr.one, HASMR, JASMR, or any other site it can read from, and it hosts no content.
+NekoHub is not affiliated with asmr.one, HASMR, JASMR, or any other site it can read from, and it hosts no content.
 Everything you see comes from those sites. Some of it is for adults only (18+).
 
 ## License
 
-Echo is released under the [Unabandon Public License](LICENSE.md). The bundled FFmpeg is LGPL 2.1; its licence
+NekoHub is released under the [Unabandon Public License](LICENSE.md). The bundled FFmpeg is LGPL 2.1; its licence
 texts are inside the app (**Help → Licences**).

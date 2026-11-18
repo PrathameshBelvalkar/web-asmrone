@@ -9,7 +9,7 @@ import { HANIME_HOME, titleRoute } from '../../lib/hanime';
 import { timeLeft } from '../../lib/jav';
 import { dayLabel } from '../HistoryPage';
 
-/** The titles you've watched in Echo: the ones to carry on with first, then the ones you finished. */
+/** The titles you've watched in NekoHub: the ones to carry on with first, then the ones you finished. */
 export function HanimeLibraryPage() {
   useCrumbs([HANIME_HOME, { label: 'Library' }]);
   const entries = useHistory((s) => s.entries).filter((e): e is HentaiEntry => e.kind === 'hanime');

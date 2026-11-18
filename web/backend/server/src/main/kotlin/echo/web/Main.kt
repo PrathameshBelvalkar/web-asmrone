@@ -29,7 +29,7 @@ fun main() {
     val port = System.getenv("PORT")?.toIntOrNull() ?: 8080
     val dist = findFrontendDist()
     runBlocking { Host.init() }
-    println("Echo Web on http://127.0.0.1:$port  (frontend: ${dist?.path ?: "not built"})")
+    println("NekoHub Web on http://127.0.0.1:$port  (frontend: ${dist?.path ?: "not built"})")
     embeddedServer(Netty, port = port, host = "127.0.0.1") { module(dist) }.start(wait = true)
 }
 
@@ -72,7 +72,7 @@ fun Application.module(dist: File?) {
         } else {
             get("/") {
                 call.respondText(
-                    "Echo Web API is running. Build the frontend (web/frontend) to serve the UI.",
+                    "NekoHub Web API is running. Build the frontend (web/frontend) to serve the UI.",
                     ContentType.Text.Plain
                 )
             }

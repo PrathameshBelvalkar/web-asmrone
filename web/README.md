@@ -1,6 +1,6 @@
-# Echo Web (asmr.one)
+# NekoHub Web (asmr.one)
 
-A browser version of Echo that plays only the **asmr.one** extension
+A browser version of NekoHub that plays only the **asmr.one** extension
 ([rebelonion/echo-asmr-one](https://github.com/rebelonion/echo-asmr-one)).
 
 - `backend-express/` – Node.js + Express server, the default. It runs the extension in-process,

@@ -20,7 +20,7 @@ const brotliAsync = promisify(brotliDecompress);
 /** A real check page says "Just a moment" or carries the challenge form. */
 const CHALLENGE =
   /<title>Just a moment|<title>Attention Required|id="challenge-form"|cf-chl-widget/;
-const BUSY = 'hanime is limiting requests right now. Echo keeps its copy and tries again later.';
+const BUSY = 'hanime is limiting requests right now. NekoHub keeps its copy and tries again later.';
 
 export interface HanimeClientOptions {
   /** The shortest gap between two page requests (title pages, Browse). */

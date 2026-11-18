@@ -66,7 +66,7 @@ function selfCheck(entry, uiDir) {
     child.stderr.on('data', (chunk) => (buffer += chunk));
     child.stdout.on('data', async (chunk) => {
       buffer += chunk;
-      const line = buffer.split('\n').find((l) => l.includes('Echo Web listening'));
+      const line = buffer.split('\n').find((l) => l.includes('NekoHub Web listening'));
       if (!line) return;
       clearTimeout(timer);
       child.stdout.removeAllListeners('data');

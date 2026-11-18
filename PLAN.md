@@ -1,9 +1,9 @@
-# Echo: Desktop + Android Plan
+# NekoHub: Desktop + Android Plan
 
-This plan covers turning Echo Web into two apps, built **in order**:
+This plan covers turning NekoHub Web into two apps, built **in order**:
 
-- **Part A: Echo Desktop** (macOS only: Apple chip and Intel). The React UI and Express server we already have, packaged as one installable app. On first run it downloads **FFmpeg** and a **Whisper** model, so it can make subtitles for free on the computer's own CPU or GPU. It ships and is useful by itself before any phone work starts.
-- **Part B: Mobile connectivity.** The desktop app opens a safe door for phones. Then **Echo for Android** browses and plays the same sources on a phone, and gets subtitles in one of two ways:
+- **Part A: NekoHub Desktop** (macOS only: Apple chip and Intel). The React UI and Express server we already have, packaged as one installable app. On first run it downloads **FFmpeg** and a **Whisper** model, so it can make subtitles for free on the computer's own CPU or GPU. It ships and is useful by itself before any phone work starts.
+- **Part B: Mobile connectivity.** The desktop app opens a safe door for phones. Then **NekoHub for Android** browses and plays the same sources on a phone, and gets subtitles in one of two ways:
   1. **On the paired computer**: the phone asks the desktop app to do the work. This is free and fast.
   2. **On the phone itself**: only when the phone has passed a speed test, using `whisper.cpp`.
 
@@ -65,7 +65,7 @@ This plan covers turning Echo Web into two apps, built **in order**:
 
 ```mermaid
 gantt
-    title Echo Desktop, then Android (one developer, rough)
+    title NekoHub Desktop, then Android (one developer, rough)
     dateFormat YYYY-MM-DD
     axisFormat %b %d
 
@@ -127,7 +127,7 @@ This is where we are after Phase 6. Phase 1 builds the left box; Part B builds t
 
 ```mermaid
 flowchart LR
-    subgraph PC["💻 Echo Desktop (Electron) · Part A"]
+    subgraph PC["💻 NekoHub Desktop (Electron) · Part A"]
         UI1["React UI<br/>(window)"]
         SRV["Express server"]
         CORE1["Shared core<br/>(sources, translator)"]
@@ -141,7 +141,7 @@ flowchart LR
         SUB1 --> WH1
     end
 
-    subgraph PHONE["📱 Echo for Android (Capacitor) · Part B"]
+    subgraph PHONE["📱 NekoHub for Android (Capacitor) · Part B"]
         UI2["Same React UI"]
         CORE2["Shared core<br/>(runs inside the app)"]
         ROUTER["Subtitle router"]
@@ -241,7 +241,7 @@ Order of work:                      ①②③④⑤⑥⑦ … then go back ⑧�
 
 ## 7. Phase 1 · Desktop app
 
-**Goal:** a new user installs Echo, clicks one button, and gets AI subtitles without ever opening a terminal.
+**Goal:** a new user installs NekoHub, clicks one button, and gets AI subtitles without ever opening a terminal.
 
 **Done means:** Mac installers (Apple chip and Intel); tool downloads with checksums and resume; a speed test that picks the right Whisper build and model; signed builds with auto-update.
 
@@ -288,7 +288,7 @@ sequenceDiagram
     participant W as Window (React UI)
     participant WS as whisper-server
 
-    U->>M: Opens Echo
+    U->>M: Opens NekoHub
     M->>M: Find a free port, read tool paths
     M->>S: Start server (separate process)<br/>with data folder + FFmpeg/Whisper paths
     S-->>M: "Listening on 127.0.0.1:port"
@@ -932,7 +932,7 @@ This adds two things to the Compute API: the `{upload: true, durationMs}` form o
 | Paired computer | — | Preferences (address, fingerprint) + Keystore (key) |
 | Certificate | `<data>/tls/` | — |
 
-`<data>` is the app data folder: `~/Library/Application Support/Echo`. `ECHO_WEB_DATA` still overrides it, as today.
+`<data>` is the app data folder: `~/Library/Application Support/NekoHub`. `ECHO_WEB_DATA` still overrides it, as today.
 
 ---
 

@@ -1,8 +1,8 @@
-# Echo: Manga & Doujinshi Plan
+# NekoHub: Manga & Doujinshi Plan
 
-This plan adds a **Manga & Doujinshi** section to Echo. It sits in the sidebar between **Browse** and **Account**. You can browse, search, filter by tag, artist, language and category, and read galleries in a built-in reader.
+This plan adds a **Manga & Doujinshi** section to NekoHub. It sits in the sidebar between **Browse** and **Account**. You can browse, search, filter by tag, artist, language and category, and read galleries in a built-in reader.
 
-The first source is **3hentai.to**. We have permission from the site to use its data. The site has no public JSON API, so Echo reads its HTML pages, the same way the `hasmr` and `jasmr` sources already work.
+The first source is **3hentai.to**. We have permission from the site to use its data. The site has no public JSON API, so NekoHub reads its HTML pages, the same way the `hasmr` and `jasmr` sources already work.
 
 > **Diagrams.** The diagrams use [Mermaid](https://mermaid.js.org/). GitHub shows them as pictures. In VS Code, install the
 > "Markdown Preview Mermaid Support" extension to see them in the preview.
@@ -14,7 +14,7 @@ The first source is **3hentai.to**. We have permission from the site to use its 
 1. [The plan in one minute](#1-the-plan-in-one-minute)
 2. [Content rules](#2-content-rules)
 3. [How the site works](#3-how-the-site-works)
-4. [How Echo talks to the site](#4-how-echo-talks-to-the-site)
+4. [How NekoHub talks to the site](#4-how-nekohub-talks-to-the-site)
 5. [Backend](#5-backend)
 6. [Frontend](#6-frontend)
 7. [The reader](#7-the-reader)
@@ -34,7 +34,7 @@ The first source is **3hentai.to**. We have permission from the site to use its 
 
 ```mermaid
 flowchart LR
-  UI["Echo UI<br/>(React)"] -->|/api/manga/*| S["Express server<br/>manga.service"]
+  UI["NekoHub UI<br/>(React)"] -->|/api/manga/*| S["Express server<br/>manga.service"]
   S --> C["threehentai.client<br/>allow-list · queue · cache · backoff"]
   C -->|HTML| Site["3hentai.to"]
   S -->|clean JSON| UI
@@ -55,7 +55,7 @@ These rules are written into the code. They are not settings.
   - Search: a query that names a blocked tag returns no results.
   - Tag browser: blocked tags never appear.
   - The ids were found once from each tag's page (the one id every card there shares) and are fixed in the code. Names are checked as well, and a gallery refused by name adds its tag ids to the list, so its cards drop out of lists too.
-- **Polite access.** One request at a time, at least 1 second apart. Pages are cached. On a block or a Cloudflare check, Echo stops asking for a while. It never tries to get past a block.
+- **Polite access.** One request at a time, at least 1 second apart. Pages are cached. On a block or a Cloudflare check, NekoHub stops asking for a while. It never tries to get past a block.
 
 ---
 
@@ -68,7 +68,7 @@ Mapped with Playwright on 2026-11-15.
 | Page | URL | Notes |
 |---|---|---|
 | Home | `/` | Landing page. Links to `/go`. |
-| Browse | `/go` → 302 → `/kai` | A strip of 5 "popular at the moment" cards, then 24 newest. Echo reads only the last list (`.listing-container`). `?page=N` (about 26,900 pages). `?sort=popular`. |
+| Browse | `/go` → 302 → `/kai` | A strip of 5 "popular at the moment" cards, then 24 newest. NekoHub reads only the last list (`.listing-container`). `?page=N` (about 26,900 pages). `?sort=popular`. |
 | Search | `/search/?q=…&page=N` | Accepts `tag:x -tag:y`. No result count is shown. |
 | Gallery | `/d/{id}/` | Info, tags and a grid of thumbnails. |
 | Reader | `/d/{id}/{page}/` | One page image, plus the whole gallery as JSON (see 3.3). |
@@ -173,7 +173,7 @@ To read it, find `N.reader(`, then the `gallery:` after it (the page's CSS also 
 
 ### 3.8 Things we don't use
 
-- `/api/autocomplete`, `/api/comments/*`, `/api/gallery/{id}/edit`, `/api/hit` and `/api/inventory` are the site's own internal endpoints. They need a CSRF token and a session. Echo doesn't call them.
+- `/api/autocomplete`, `/api/comments/*`, `/api/gallery/{id}/edit`, `/api/hit` and `/api/inventory` are the site's own internal endpoints. They need a CSRF token and a session. NekoHub doesn't call them.
 - Login, favourites, likes and comments.
 - Ads and tracking scripts.
 
@@ -185,7 +185,7 @@ To read it, find `N.reader(`, then the `gallery:` after it (the page's CSS also 
 
 ---
 
-## 4. How Echo talks to the site
+## 4. How NekoHub talks to the site
 
 The client is a copy of the `HasmrClient` approach (`web/backend-express/src/extension/hasmr/api/hasmr.client.ts`).
 
@@ -408,6 +408,6 @@ The design follows what dedicated readers do (Mihon, Kavita, Komga, Komic): a re
 ## 10. Open questions and risks
 
 - **Site changes.** The HTML and the `N.reader` script can change without notice. The parsers fail loudly with a clear error, and the recorded fixtures make it quick to fix them.
-- **Cloudflare.** If the site turns on a bot check, Echo backs off and shows a message. It doesn't try to get around it. Ask the site for an allow-listed key or a feed if that happens.
+- **Cloudflare.** If the site turns on a bot check, NekoHub backs off and shows a message. It doesn't try to get around it. Ask the site for an allow-listed key or a feed if that happens.
 - **Written permission.** Keep a copy of the permission from the site. It should cover reading the HTML and hot-linking images from `3-hentai.xyz`.
 - **More sources later.** `MangaSource` is a port, so other licensed sources can be added the same way as the music extensions.

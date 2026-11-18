@@ -1,6 +1,6 @@
 /**
  * JAV. A separate area from the music extensions and from manga: a movie here is metadata (covers,
- * cast, studio, genres, sample images), not something Echo plays, so it has its own port.
+ * cast, studio, genres, sample images), not something NekoHub plays, so it has its own port.
  */
 
 export const JAV_KINDS = ['censored', 'uncensored'] as const;

@@ -9,7 +9,7 @@ export interface HanimeRef {
 
 export type HanimeCensorship = 'censored' | 'uncensored';
 
-/** One title as Echo keeps it: the catalog's fields, cleaned up. */
+/** One title as NekoHub keeps it: the catalog's fields, cleaned up. */
 export interface HanimeRecord {
   readonly id: number;
   readonly slug: string;

@@ -6,12 +6,12 @@ export function createTray(iconPath: string, showWindow: () => void, quit: () =>
   if (!existsSync(iconPath)) return null;
   const image = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
   const tray = new Tray(image);
-  tray.setToolTip('Echo');
+  tray.setToolTip('NekoHub');
   tray.setContextMenu(
     Menu.buildFromTemplate([
-      { label: 'Open Echo', click: showWindow },
+      { label: 'Open NekoHub', click: showWindow },
       { type: 'separator' },
-      { label: 'Quit Echo', click: quit },
+      { label: 'Quit NekoHub', click: quit },
     ]),
   );
   return tray;

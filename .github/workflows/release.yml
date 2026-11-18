@@ -34,7 +34,7 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 ||
             gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft --verify-tag \
-              --title "Echo $version" --notes "Building the installers…"
+              --title "NekoHub $version" --notes "Building the installers…"
 
   build:
     needs: check
@@ -78,8 +78,8 @@ jobs:
           cd apps/desktop
           npx electron-builder ${{ matrix.args }} --dir
           case "${{ matrix.target }}" in
-            mac-arm64) app="release/mac-arm64/Echo.app/Contents/MacOS/Echo" ;;
-            mac-x64)   app="release/mac/Echo.app/Contents/MacOS/Echo" ;;
+            mac-arm64) app="release/mac-arm64/NekoHub.app/Contents/MacOS/NekoHub" ;;
+            mac-x64)   app="release/mac/NekoHub.app/Contents/MacOS/NekoHub" ;;
           esac
           "$app" --smoke-test
 
@@ -105,7 +105,7 @@ jobs:
           cd apps/desktop
           npx electron-builder ${{ matrix.args }} "${adhoc[@]}" \
             --publish ${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }}
-          for app in release/mac*/Echo.app; do
+          for app in release/mac*/NekoHub.app; do
             codesign --verify --deep --strict --verbose=2 "$app"
           done
 

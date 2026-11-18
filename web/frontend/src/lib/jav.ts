@@ -12,7 +12,7 @@ export function searchRoute(q: string, type: 'movies' | 'idols', kind?: JavKind)
   if (type === 'movies' && kind === 'uncensored') params.set('kind', 'uncensored');
   return `/jav/search?${params.toString()}`;
 }
-/** A news post inside Echo. `path` is `2026/11/13/slug`. */
+/** A news post inside NekoHub. `path` is `2026/11/13/slug`. */
 export const newsRoute = (path: string) => `/jav/news/${path}`;
 
 export const LIST_BY_LABEL: Record<JavListBy, string> = { genre: 'Genre', studio: 'Studio', director: 'Director' };

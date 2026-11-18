@@ -39,7 +39,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   <Disc3 className="size-4" aria-hidden />
                 </span>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Echo</span>
+                  <span className="truncate font-semibold">NekoHub</span>
                   <span className="truncate text-xs text-sidebar-foreground/70">asmr.one player</span>
                 </div>
               </NavLink>

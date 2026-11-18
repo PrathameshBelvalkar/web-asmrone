@@ -43,7 +43,7 @@ export function JavLatestPage() {
         meta={
           upcomingOnly
             ? 'Announced movies, the soonest first.'
-            : 'The newest released movies. The first visit takes a few seconds while Echo finds where released titles start.'
+            : 'The newest released movies. The first visit takes a few seconds while NekoHub finds where released titles start.'
         }
       />
       <div className="mb-8">

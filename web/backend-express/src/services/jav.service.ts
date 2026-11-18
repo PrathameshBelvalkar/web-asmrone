@@ -290,7 +290,7 @@ export class JavService {
 }
 
 const unavailable = (): HttpError =>
-  new HttpError(451, 'forbidden', 'This title is not available in Echo.');
+  new HttpError(451, 'forbidden', 'This title is not available in NekoHub.');
 
 const emptyList = <T>(page: number): JavList<T> => ({
   items: [],

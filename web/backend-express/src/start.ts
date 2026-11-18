@@ -41,7 +41,7 @@ export async function startServer(env: NodeJS.ProcessEnv = process.env): Promise
   const url = `http://${config.host}:${port}`;
   logger.info(
     { url, dataDir: config.dataDir, ui: config.distDir ?? 'not built' },
-    'Echo Web listening',
+    'NekoHub Web listening',
   );
 
   return {

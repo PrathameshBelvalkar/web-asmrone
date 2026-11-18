@@ -10,7 +10,7 @@ import type { HanimeService } from '../hanime.service.js';
 import type { HanimeAvailability } from './availability.service.js';
 
 const NO_PAGE = 'hentaibros.net has no video for this title.';
-const UNAVAILABLE = 'This title isn’t available in Echo.';
+const UNAVAILABLE = 'This title isn’t available in NekoHub.';
 
 export interface HanimeStreamServiceOptions {
   /** How long a title's video, or the lack of one, is remembered. */

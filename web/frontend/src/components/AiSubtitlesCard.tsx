@@ -95,7 +95,7 @@ export function AiSubtitlesCard() {
             <div className="text-sm">AI subtitles</div>
             <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
               Writes subtitles for audio that has none. Runs on this computer,
-              free, nothing is uploaded. The first time, Echo downloads one file
+              free, nothing is uploaded. The first time, NekoHub downloads one file
               (190 to 550 MB).
             </div>
           </div>
@@ -159,7 +159,7 @@ function SetupDetails({ status }: { status: ToolsStatus }) {
           </span>
         </div>
         <p className="text-xs text-muted-foreground">
-          You can keep using Echo. This continues in the background.
+          You can keep using NekoHub. This continues in the background.
         </p>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -255,7 +255,7 @@ function NotSetUpDetails({ status }: { status: ToolsStatus }) {
       <div className="text-sm">No model downloaded</div>
       <p className="text-xs text-muted-foreground">
         AI subtitles need one model file. Pick one and download it. You can
-        keep using Echo while it downloads.
+        keep using NekoHub while it downloads.
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <Select value={modelId} onValueChange={setChoice}>

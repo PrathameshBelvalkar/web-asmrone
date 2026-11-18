@@ -33,7 +33,7 @@ export function useLoadMore(hasMore: boolean, busy: boolean, load: () => unknown
 export function Unavailable({ what = 'This page' }: { what?: string }) {
   return (
     <EmptyState icon={Ban} title="Not available">
-      {what} has content Echo doesn't show.
+      {what} has content NekoHub doesn't show.
     </EmptyState>
   );
 }

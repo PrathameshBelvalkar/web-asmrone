@@ -18,7 +18,7 @@ import { tempDir } from '../helpers/tmp.js';
 const GB = 1024 * 1024 * 1024;
 const LARGE = MODELS.find((m) => m.id === 'large-v3-turbo-q5_0')!;
 const SMALL = MODELS.find((m) => m.id === 'small-q5_1')!;
-const PROBLEM = 'Part of the app is missing. Please reinstall Echo.';
+const PROBLEM = 'Part of the app is missing. Please reinstall NekoHub.';
 
 let t: { dir: string; cleanup: () => Promise<void> };
 let services: ToolsService[];

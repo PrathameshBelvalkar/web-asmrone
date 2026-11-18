@@ -57,7 +57,7 @@ export function MangaListPage() {
   if (list.error instanceof ApiError && list.error.status === 451) {
     return (
       <EmptyState icon={Ban} title="Not available">
-        This list has content Echo doesn't show.
+        This list has content NekoHub doesn't show.
       </EmptyState>
     );
   }

@@ -85,7 +85,7 @@ jobs:
           sha256sum echo-tools-*.tar.gz > SHA256SUMS
           cat SHA256SUMS
           {
-            echo "Build tools bundled into Echo. **This isn't an app release**: download Echo from the latest \`v*\` release."
+            echo "Build tools bundled into NekoHub. **This isn't an app release**: download NekoHub from the latest \`v*\` release."
             echo
             echo "| Tool | Version |"
             echo "|---|---|"
@@ -99,5 +99,5 @@ jobs:
             echo '```'
           } > notes.md
           # A pre-release, so it never becomes "Latest": the app's update check reads the latest release.
-          gh release create "$RELEASE" --title "Echo tools ($RELEASE)" --prerelease \
+          gh release create "$RELEASE" --title "NekoHub tools ($RELEASE)" --prerelease \
             --notes-file notes.md echo-tools-*.tar.gz SHA256SUMS --repo "$GITHUB_REPOSITORY"

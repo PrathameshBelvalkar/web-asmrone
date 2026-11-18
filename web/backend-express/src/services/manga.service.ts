@@ -142,7 +142,7 @@ export class MangaService {
   }
 }
 
-const unavailable = (): HttpError => new HttpError(451, 'forbidden', 'This gallery is not available in Echo.');
+const unavailable = (): HttpError => new HttpError(451, 'forbidden', 'This gallery is not available in NekoHub.');
 
 const emptyList = (page: number): MangaList => ({ tag: null, items: [], page, lastPage: page, hasMore: false });
 

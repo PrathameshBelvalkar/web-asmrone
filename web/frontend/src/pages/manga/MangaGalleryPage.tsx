@@ -23,7 +23,7 @@ export function MangaGalleryPage() {
   if (gallery.error instanceof ApiError && gallery.error.status === 451) {
     return (
       <EmptyState icon={Ban} title="Not available">
-        This gallery has content Echo doesn't show.
+        This gallery has content NekoHub doesn't show.
       </EmptyState>
     );
   }

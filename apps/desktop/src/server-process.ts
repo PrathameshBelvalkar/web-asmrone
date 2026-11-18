@@ -29,7 +29,7 @@ export function startServerProcess(config: ServerProcessConfig): Promise<ServerH
   const child = utilityProcess.fork(config.entry, [], {
     env: config.env,
     stdio: 'pipe',
-    serviceName: 'Echo server',
+    serviceName: 'NekoHub server',
   });
   child.stdout?.pipe(log, { end: false });
   child.stderr?.pipe(log, { end: false });

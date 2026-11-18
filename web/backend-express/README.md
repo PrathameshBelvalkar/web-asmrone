@@ -1,6 +1,6 @@
-# Echo Web backend (Express)
+# NekoHub Web backend (Express)
 
-Node.js port of `web/backend` (Kotlin/Ktor). It serves the Echo Web `/api` for the asmr.one
+Node.js port of `web/backend` (Kotlin/Ktor). It serves the NekoHub Web `/api` for the asmr.one
 extension, runs the extension in-process, and serves the built web UI from `web/frontend/dist`,
 so one process runs the whole app.
 

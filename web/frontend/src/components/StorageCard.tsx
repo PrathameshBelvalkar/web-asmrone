@@ -57,7 +57,7 @@ export function StorageCard() {
         <CardTitle className="flex items-center gap-2">
           <HardDrive size={18} className="text-primary" aria-hidden /> Storage
         </CardTitle>
-        <CardDescription>What Echo keeps on this computer.</CardDescription>
+        <CardDescription>What NekoHub keeps on this computer.</CardDescription>
       </CardHeader>
       <CardContent className="divide-y">
         <div className={row}>
@@ -105,7 +105,7 @@ export function StorageCard() {
           <div className="min-w-0">
             <div className="text-sm">Clear all data</div>
             <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-              Resets Echo as if it were new: clears the cache, every
+              Resets NekoHub as if it were new: clears the cache, every
               preference, the play queue and reading progress, and logs you
               out.
             </div>
