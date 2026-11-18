@@ -1,6 +1,6 @@
-# Echo: Android App Plan (Phase 1)
+# NekoHub: Android App Plan (Phase 1)
 
-A native Android app that does everything Echo does today: **listen** to ASMR, **read** manga and **watch** JAV.
+A native Android app that does everything NekoHub does today: **listen** to ASMR, **read** manga and **watch** JAV.
 It is written **entirely in Kotlin**, scrapers included. **No Node.js, and no server or computer is needed.** The UI
 is Jetpack Compose + **Material 3**, laid out like the original **Echo Android app** by brahmkshatriya
 ([github.com/brahmkshatriya/echo](https://github.com/brahmkshatriya/echo)). The manga reader follows **Mihon's reader**.
@@ -164,8 +164,8 @@ Rules:
 | `:source-hasmr` | `extension/hasmr/` | 903 | Jsoup parsers + fixtures |
 | `:source-jasmr` | `extension/jasmr/` | 1,250 | **Keep the 10 s crawl delay** (`JASMR_CRAWL_DELAY_MS`, from the site's `robots.txt`) |
 | `:source-jnet` | `extension/jnet/` | 880 | |
-| `:source-threehentai` | `extension/threehentai/` | 593 | Manga. Allow-list, queue, caches as in [`MANGA.md` §4](MANGA.md#4-how-echo-talks-to-the-site) |
-| `:source-javdatabase` | `extension/javdatabase/` | 895 | Allow-list (`isAllowedAddress`), 1 s gap, caches as in [`JAV.md` §4](JAV.md#4-how-echo-talks-to-the-site) |
+| `:source-threehentai` | `extension/threehentai/` | 593 | Manga. Allow-list, queue, caches as in [`MANGA.md` §4](MANGA.md#4-how-nekohub-talks-to-the-site) |
+| `:source-javdatabase` | `extension/javdatabase/` | 895 | Allow-list (`isAllowedAddress`), 1 s gap, caches as in [`JAV.md` §4](JAV.md#4-how-nekohub-talks-to-the-site) |
 | `:source-javguru` | `extension/javguru/` | 333 | Two lanes (jav.guru 2 s, embed host 1 s), `token.ts` and **`packer.ts`** (the p,a,c,k,e,d unpacker, done by hand, never runs the site's code), REST search only, never `/?s=` ([`JAV.md` §11.3](JAV.md#113-staying-unblocked-without-getting-around-anything)) |
 | `:services` | `services/manga.service.ts`, `jav.service.ts`, `jav-stream.service.ts`, `media.service.ts`, `feed.service.ts`, `playlist.service.ts`, `auth.service.ts`, `settings.service.ts`, `presentation.service.ts` | part of ~1,500 | Same functions, same caching and "one lookup shared by concurrent callers" rule (`Deferred` in a map) |
 
@@ -184,7 +184,7 @@ Rules:
    is the same as one desktop user's.
 4. **Never get around a block.** Same as [`JAV.md` §11.3](JAV.md#113-staying-unblocked-without-getting-around-anything):
    honest User-Agent, no WebView challenge solving, no browser User-Agent.
-5. **Keep the TS version working.** Echo Desktop and Echo Web still use `web/backend-express`. When a site changes,
+5. **Keep the TS version working.** NekoHub Desktop and NekoHub Web still use `web/backend-express`. When a site changes,
    fix both, and re-record the shared fixture so both test suites check it.
 
 ### 4.4 What gets simpler on the phone
@@ -524,7 +524,7 @@ next/previous chapter) are left out.
 | Rotation | Free, Portrait, Landscape, Locked portrait, Locked landscape, Reverse portrait |
 | Volume keys | Turn pages with the volume keys, invert volume keys |
 | Double tap animation speed | No animation, Normal, Fast |
-| Show actions on long tap | Copy to clipboard, Share, Save (to `Pictures/Echo`) |
+| Show actions on long tap | Copy to clipboard, Share, Save (to `Pictures/NekoHub`) |
 | Show reading mode | Briefly shows the mode when the reader opens |
 
 **Filter tab** (colour filter, custom brightness, grayscale, invert colours): Mihon has these in the app, but the guide
@@ -590,7 +590,7 @@ sequenceDiagram
 | Controls | `PlayerSurface` (media3-ui-compose) + Material 3 controls: play/pause, seek bar, double-tap ±10 s, speed, quality (1080p / 720p / 480p / Auto), fullscreen, PiP |
 | Resume | From Room. The last 2 min or 5 % counts as finished (`isFinished`). |
 | Expiry | On HTTP 403/410 during play, resolve once more and continue from the same place |
-| Errors | NotFound → the service's message; Blocked → "This title isn't available in Echo"; Busy → "The stream source is busy" + **Try again**; player error → "This stream could not be played" |
+| Errors | NotFound → the service's message; Blocked → "This title isn't available in NekoHub"; Busy → "The stream source is busy" + **Try again**; player error → "This stream could not be played" |
 | Trailer | `JavMovie.trailer` → the same theater, no history |
 
 **Spike on day 1 of the JAV milestone: PNG-prefixed segments.** The CDN sends each segment as a 70-byte PNG followed by
@@ -639,7 +639,7 @@ into `:core` and the services **with the same values and the same tests**. Nothi
 | Backend error | App shows |
 |---|---|
 | `NotFound` | "Not found", with Back |
-| `Blocked` (451) | "This title isn't available in Echo". No retry. |
+| `Blocked` (451) | "This title isn't available in NekoHub". No retry. |
 | `Busy` (BlockBackoff active) | "The source is busy, try again later" + Try again (enabled when the back-off ends) |
 | `Upstream` (site changed, parser failed) | "This source isn't working right now". Logged with the parser and selector that failed. |
 | No internet | "You're offline" + Try again |
@@ -723,7 +723,7 @@ Distribution: a **signed APK on GitHub Releases** (or Obtainium). Google Play wo
 | # | Question | Needed by | Options |
 |---|---|---|---|
 | 1 | Where do the scrapers run? | M0 | ✅ **On the phone, in Kotlin** (decided) |
-| 2 | Should Echo Desktop / Web move to the Kotlin backend too? | After Phase 1 | ✅ Not now; desktop keeps `web/backend-express` · Later: wrap `:services` in a Ktor server (the `backend/server` Ktor app already exists) and drop Node, so there's one copy of each scraper |
+| 2 | Should NekoHub Desktop / Web move to the Kotlin backend too? | After Phase 1 | ✅ Not now; desktop keeps `web/backend-express` · Later: wrap `:services` in a Ktor server (the `backend/server` Ktor app already exists) and drop Node, so there's one copy of each scraper |
 | 2b | UI reference branch | M1 | ✅ Echo `main` (XML, released, can be installed to compare) for the layout + `compose` branch for Compose techniques · `compose` branch only |
 | 3 | Mihon code or our own code | M3 | ✅ Our own Compose code, Mihon's design · Copy parts of Mihon (Apache-2.0, with notices) |
 | 4 | Reader Filter tab (colour filter, brightness, grayscale, invert) | M3 | ✅ Optional, last · Required |

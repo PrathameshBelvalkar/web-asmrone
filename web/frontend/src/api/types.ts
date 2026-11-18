@@ -1,4 +1,4 @@
-// Shapes returned by the Echo Web server. Discriminators are fully-qualified class names.
+// Shapes returned by the NekoHub Web server. Discriminators are fully-qualified class names.
 
 export const MODEL_PREFIX = "dev.brahmkshatriya.echo.common.models.";
 
@@ -464,7 +464,7 @@ export type JavMovieQuery =
   /** `solo`: only the movies where she is the one actress. */
   | { by: "idol"; slug: string; solo?: boolean };
 
-/** Idol filters, by Echo's query names. Values are the site's facet values. */
+/** Idol filters, by NekoHub's query names. Values are the site's facet values. */
 export interface JavIdolFilters {
   content?: string[];
   age?: string[];

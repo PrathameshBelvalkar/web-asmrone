@@ -89,7 +89,7 @@ function Problem({ error, onRetry }: { error: Error; onRetry: () => void }) {
     status === 404
       ? 'hentaibros.net has no video for this title.'
       : status === 451
-        ? "This title isn't available in Echo."
+        ? "This title isn't available in NekoHub."
         : status === 503
           ? 'hentaibros.net is busy. Try again later.'
           : 'The video couldn’t be found.';

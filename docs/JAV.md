@@ -1,10 +1,10 @@
-# Echo: JAV Plan
+# NekoHub: JAV Plan
 
-This plan adds a **JAV** section to Echo. It sits in the sidebar below **Manga & Doujinshi** and above **Account**. It has six screens: **News**, **Latest**, **Movies**, **Idols**, **Genres**, and a **movie detail** page. An idol page and a genre page reuse the movie list.
+This plan adds a **JAV** section to NekoHub. It sits in the sidebar below **Manga & Doujinshi** and above **Account**. It has six screens: **News**, **Latest**, **Movies**, **Idols**, **Genres**, and a **movie detail** page. An idol page and a genre page reuse the movie list.
 
-The source is **javdatabase.com**. We have a licence from the site to use its data. The site's WordPress REST API is closed to the public (`/wp-json/` answers 401), so Echo reads its HTML pages and its RSS feed, the same way the `threehentai` manga source works ([MANGA.md](MANGA.md)).
+The source is **javdatabase.com**. We have a licence from the site to use its data. The site's WordPress REST API is closed to the public (`/wp-json/` answers 401), so NekoHub reads its HTML pages and its RSS feed, the same way the `threehentai` manga source works ([MANGA.md](MANGA.md)).
 
-Echo shows **metadata only**: titles, covers, sample images, cast, studio, genres and dates. The site doesn't host full movies, and neither does Echo. Trailers are hosted by DMM or the studio: the user's browser loads them directly, and Echo's server never fetches or proxies them (decided 2026-11-16, section 10).
+NekoHub shows **metadata only**: titles, covers, sample images, cast, studio, genres and dates. The site doesn't host full movies, and neither does NekoHub. Trailers are hosted by DMM or the studio: the user's browser loads them directly, and NekoHub's server never fetches or proxies them (decided 2026-11-16, section 10).
 
 > **Exception (decided 2026-11-16):** a **Watch** button plays the full movie from jav.guru's "STREAM SB" server. jav.guru is not licensed. See [section 11](#11-watching-full-movies-from-javguru).
 
@@ -18,7 +18,7 @@ Echo shows **metadata only**: titles, covers, sample images, cast, studio, genre
 1. [The plan in one minute](#1-the-plan-in-one-minute)
 2. [Content rules](#2-content-rules)
 3. [How the site works](#3-how-the-site-works)
-4. [How Echo talks to the site](#4-how-echo-talks-to-the-site)
+4. [How NekoHub talks to the site](#4-how-nekohub-talks-to-the-site)
 5. [Backend](#5-backend)
 6. [Frontend](#6-frontend)
 7. [The movie page](#7-the-movie-page)
@@ -40,7 +40,7 @@ Echo shows **metadata only**: titles, covers, sample images, cast, studio, genre
 
 ```mermaid
 flowchart LR
-  UI["Echo UI<br/>(React)"] -->|/api/jav/*| S["Express server<br/>jav.service"]
+  UI["NekoHub UI<br/>(React)"] -->|/api/jav/*| S["Express server<br/>jav.service"]
   S --> C["javdatabase.client<br/>allow-list · queue · cache · backoff"]
   C -->|HTML + RSS| Site["javdatabase.com"]
   S -->|clean JSON| UI
@@ -63,9 +63,9 @@ These rules are written into the code. They are not settings. They follow the sa
   - **Movie page.** If the movie has a blocked genre or title, the API answers **451** and sends no images. Its slug goes into a small in-memory blocked set, so later listings drop that card too, the same way manga remembers blocked tag ids.
   - **Genre pages.** Asking for a blocked genre returns 451.
   - **Search.** A query that names a blocked genre or matches the title pattern returns no results.
-- **Idol filters.** The site has a `body_type=loli` idol filter. Echo doesn't offer it, and refuses a request that names it.
+- **Idol filters.** The site has a `body_type=loli` idol filter. NekoHub doesn't offer it, and refuses a request that names it.
 - **Ads.** List pages mix in sponsored cards that link off-site (`rel="sponsored"`, for example `cospuri.com`). The parser drops every card whose link isn't a `javdatabase.com/movies/` or `/uncensored/` page.
-- **Polite access.** One request at a time, at least 1 second apart. Pages are cached. On a block or a Cloudflare check, Echo stops asking for a while. It never tries to get past a block.
+- **Polite access.** One request at a time, at least 1 second apart. Pages are cached. On a block or a Cloudflare check, NekoHub stops asking for a while. It never tries to get past a block.
 
 ---
 
@@ -201,7 +201,7 @@ A genre page (`/genres/{slug}/`) has `h1.entry-title` "Creampie JAV Videos" and 
 
 **Feed** (`/feed/`, RSS 2.0, hourly): for each `item`, read `title`, `link`, `pubDate`, `category` (for example "Top JAV Movies", "New JAV Debuts", "Featured") and `description` (a short summary). It gives the newest 10 posts only.
 
-**Blog list** (`/blog/?paged={n}`, `/category/{slug}/page/{n}/`), which Echo uses for all news:
+**Blog list** (`/blog/?paged={n}`, `/category/{slug}/page/{n}/`), which NekoHub uses for all news:
 
 | Field | Where |
 |---|---|
@@ -228,12 +228,12 @@ A genre page (`/genres/{slug}/`) has `h1.entry-title` "Creampie JAV Videos" and 
 </div>
 ```
 
-Echo parses these ranked lists (movie posts link `/movies/…` and idol-debut posts link `/idols/…`) into cards. For any other post, it shows the intro paragraph and a link to the post on the site. Echo doesn't render the post's HTML.
+NekoHub parses these ranked lists (movie posts link `/movies/…` and idol-debut posts link `/idols/…`) into cards. For any other post, it shows the intro paragraph and a link to the post on the site. NekoHub doesn't render the post's HTML.
 
 ### 3.9 Things we don't use
 
 - `/wp-json/*`: closed to anyone not logged in (401).
-- `admin-ajax.php`, FacetWP's AJAX refresh, and the search autocomplete (`ep-autocomplete`). Echo uses the plain GET pages.
+- `admin-ajax.php`, FacetWP's AJAX refresh, and the search autocomplete (`ep-autocomplete`). NekoHub uses the plain GET pages.
 - Login, favourites, comments, "suggest an edit", GIFs, PinkTok.
 - Sponsored cards, ads, Google Analytics, the off-site player logo link.
 
@@ -245,7 +245,7 @@ Echo parses these ranked lists (movie posts link `/movies/…` and idol-debut po
 
 ---
 
-## 4. How Echo talks to the site
+## 4. How NekoHub talks to the site
 
 The client is a copy of `ThreeHentaiClient` (`web/backend-express/src/extension/threehentai/`).
 
@@ -372,7 +372,7 @@ Errors use the existing `ApiError` shape. 404 means not found on the site. 451 m
 
 About 60 pages of announced titles can sit at the top, so a page-by-page scan is too slow. As built:
 
-- **The start page** is the first site page that holds a released movie. It is found by doubling the page number (1, 2, 4, 8, 16 …) until a released movie shows up, then halving the gap: about a dozen pages the first time. It's remembered for 1 hour (`javBoundaryTtlMs`); after that Echo checks the remembered page and the one before it (two pages) before searching again.
+- **The start page** is the first site page that holds a released movie. It is found by doubling the page number (1, 2, 4, 8, 16 …) until a released movie shows up, then halving the gap: about a dozen pages the first time. It's remembered for 1 hour (`javBoundaryTtlMs`); after that NekoHub checks the remembered page and the one before it (two pages) before searching again.
 - **Latest** page `n` is site page `start + n - 1`, with announced cards removed.
 - **Upcoming** reads backwards from the start page (page 1 is the start page, or the one before it when the start page has no announced movies), sorted soonest first, up to site page 1.
 - **Known gap.** The site's order is only roughly by date (3.1), so announced titles that sit deeper in the list don't appear in Upcoming. Upcoming shows the announcements near the top of the list, not every one.
@@ -470,7 +470,7 @@ Reuse `components/manga/Segmented.tsx` for the switches and sort chips. Move it 
 | Watch | Released movies with a DVD ID only. A **Watch** button that swaps the cover for `JavPlayer`, the full movie from jav.guru (section 11). The stream is looked up only when it's pressed. |
 | Similar | A `MovieGrid` without infinite scroll |
 | Header | **Open on javdatabase.com** (an external link) and **Copy DVD ID** |
-| Errors | 451 shows "This title isn't available in Echo." 404 shows the not-found state. 503 shows "The source is busy, try again later" with a **Try again** button. |
+| Errors | 451 shows "This title isn't available in NekoHub." 404 shows the not-found state. 503 shows "The source is busy, try again later" with a **Try again** button. |
 
 Box sizes are fixed before images load (147:200 cards, 160:200 idols, about 3:2 samples), so the layout doesn't jump.
 
@@ -504,12 +504,12 @@ Box sizes are fixed before images load (147:200 cards, 160:200 idols, about 3:2 
 
 ## 10. Open questions and risks
 
-- **Trailers (decided).** The trailer MP4s are on DMM (`cc3001.dmm.co.jp`) or the studio's host, not on javdatabase. A plain server request got **403**. Echo puts the address in a `<video>` and lets the user's browser load it; it never proxies trailers or fakes a Referer. If the host refuses, the page says "Trailer unavailable". The one exception to the Referer rule is the jav.guru embed page (section 11).
+- **Trailers (decided).** The trailer MP4s are on DMM (`cc3001.dmm.co.jp`) or the studio's host, not on javdatabase. A plain server request got **403**. NekoHub puts the address in a `<video>` and lets the user's browser load it; it never proxies trailers or fakes a Referer. If the host refuses, the page says "Trailer unavailable". The one exception to the Referer rule is the jav.guru embed page (section 11).
 - **Sample images on DMM (decided).** Shown, loaded directly by the browser with the proxy as a fallback.
 - **More blocked genres (decided).** `adopted-daughter` and `youthful` were not added. The `teen` idol age group means 18–19 on this site and stays.
 - **Upcoming is partial.** See 5.4. A complete list would need the site to sort strictly by release date, or a feed of announced titles.
 - **Site changes.** The HTML can change without notice. The parsers fail loudly with the selector name, and the fixtures make fixes quick.
-- **Cloudflare.** Today there's no bot check. If the site turns one on, Echo backs off and shows a message. It doesn't try to get around it. Ask the site for an allow-listed key or a feed, since we have a licence.
+- **Cloudflare.** Today there's no bot check. If the site turns one on, NekoHub backs off and shows a message. It doesn't try to get around it. Ask the site for an allow-listed key or a feed, since we have a licence.
 - **Licence on file.** Keep a copy of the licence. It should cover reading the HTML and RSS and hot-linking `covers/`, `idolimages/` and `wp-content/uploads/` images.
 - **REST API.** `/wp-json/` exists but needs a login. If the licence can include an API account, the JSON API would replace most of the HTML parsing. Worth asking.
 
@@ -549,18 +549,18 @@ flowchart TD
 | Check | Result |
 |---|---|
 | Cloudflare in front of jav.guru | Yes. Pages are edge-cached (`cf-cache-status: HIT`). |
-| User agent rule | `curl/…` and an empty user agent get **403** with `cf-mitigated: challenge`. Echo's honest `EchoASMR/1.0` gets **200**. |
+| User agent rule | `curl/…` and an empty user agent get **403** with `cf-mitigated: challenge`. NekoHub's honest `EchoASMR/1.0` gets **200**. |
 | Search `/?s=` | **Rate-limited.** About 8 searches in about 5 s gave **429** with `cf-mitigated: challenge`. Only search was blocked: post pages, the home page and `/searcho/` kept answering 200. The block lifted in under a minute. |
 | REST search `/wp-json/wp/v2/posts?search=` | Open (javdatabase's REST API is closed). 8 searches 2 s apart all gave 200. |
 | Post pages, `/searcho/` | 200. `?xr=` is `cf-cache-status: BYPASS`, so every call reaches the origin. |
 | `robots.txt` | `Disallow: /searcho/`. Sitemaps are listed: about 186 post sitemaps of 1,000 posts each, newest last. |
 | Embed host (javclan.com) | Cloudflare too, but no bot check seen. 10 requests back to back all gave 200. The only rule is the Referer check. `robots.txt` has no rules. |
 | Stream URL binding | `hls2` carries `asn=18207`, the ASN of the network that asked for it. `hls4` carries an expiry about 12 h ahead. `hls2` is good for 129,600 s (36 h). |
-| Where Echo runs | The desktop app runs the Express server inside Electron on `127.0.0.1` (`apps/desktop/src/server-process.ts`). The server that resolves a link and the player that plays it share the user's IP and ASN. |
+| Where NekoHub runs | The desktop app runs the Express server inside Electron on `127.0.0.1` (`apps/desktop/src/server-process.ts`). The server that resolves a link and the player that plays it share the user's IP and ASN. |
 
 ### 11.3 Staying unblocked without getting around anything
 
-The aim is to stay well below the limits the site sets. If a check fires anyway, Echo stops. It never tries to get past one.
+The aim is to stay well below the limits the site sets. If a check fires anyway, NekoHub stops. It never tries to get past one.
 
 | Rule | Why |
 |---|---|
@@ -571,7 +571,7 @@ The aim is to stay well below the limits the site sets. If a check fires anyway,
 | Cache the post's server list for 24 h. Cache the resolved master URL for 1 h, which is well inside the `hls4` expiry. | Replaying or seeking doesn't go back to jav.guru. |
 | Reuse `BlockBackoff`: any 403, 429, `cf-mitigated: challenge` or challenge HTML pauses **all** jav.guru calls (doubling, starting at 5 min). The UI says "The stream source is busy". | Same as javdatabase. The 429 lifted in under a minute, so 5 minutes is safely longer. |
 | Don't treat the background `/cdn-cgi/challenge-platform/` script on normal pages as a block. | It's on every page, the same as on javdatabase. |
-| Proxy only the master and quality playlists (two small text files per play), through `ProxyService` with `rewriteHlsPlaylist`. The browser loads segments straight from the CDN. | Video traffic never goes through Echo, and the embed host sees one client. |
+| Proxy only the master and quality playlists (two small text files per play), through `ProxyService` with `rewriteHlsPlaylist`. The browser loads segments straight from the CDN. | Video traffic never goes through NekoHub, and the embed host sees one client. |
 | Best on desktop (11.7, item 4). | `hls2` links are tied to the network that asked for them (`asn=`). The desktop app's server and player share one network; a hosted server may not. |
 
 ### 11.4 Backend
@@ -593,13 +593,13 @@ Endpoint: `GET /api/jav/movie/:kind/:slug/stream?server=sb` returns `{ server: '
 ### 11.5 Frontend
 
 - `JavMoviePage`: the cover is a play button, and the actions are **Watch** (or **Resume 42:07** and **Start over**), **Trailer**, **Copy DVD ID** and a javdatabase link. Both only show for released movies with a DVD ID. `?play=movie` or `?play=trailer` opens the theater across the top of the page, so Back closes it and other pages can link straight to it. `&from=start` ignores the saved place.
-- `components/jav/JavTheater.tsx`: the player, built on **Vidstack** (`@vidstack/react` 1.15.7, pinned) with its default video layout: speed and quality menus, picture-in-picture, fullscreen and keyboard shortcuts. Its HLS provider uses Echo's own hls.js rather than loading one from a CDN. It asks for the stream when it opens (`['jav', 'stream', kind, slug]`, kept 30 min), starts at the saved place, and saves the place every 5 s, on pause, at the end and on close. Errors: the server's 404 message, "This title isn't available in Echo", "The stream source is busy" with **Try again**, or "This stream could not be played". Vidstack is in security-only maintenance until January 2028; its successor is Video.js 10 (`@videojs/react`). It was kept on purpose (2026-11-16).
+- `components/jav/JavTheater.tsx`: the player, built on **Vidstack** (`@vidstack/react` 1.15.7, pinned) with its default video layout: speed and quality menus, picture-in-picture, fullscreen and keyboard shortcuts. Its HLS provider uses NekoHub's own hls.js rather than loading one from a CDN. It asks for the stream when it opens (`['jav', 'stream', kind, slug]`, kept 30 min), starts at the saved place, and saves the place every 5 s, on pause, at the end and on close. Errors: the server's 404 message, "This title isn't available in NekoHub", "The stream source is busy" with **Try again**, or "This stream could not be played". Vidstack is in security-only maintenance until January 2028; its successor is Video.js 10 (`@videojs/react`). It was kept on purpose (2026-11-16).
 - **Library** (`/jav/library`, `JavLibraryPage`, last in the JAV sidebar group): **Continue watching** and **Watched**, as landscape cards with a progress bar and the time left. A card in progress opens straight into the player. The places are watch entries (`kind: 'jav'`) in the same browser-only history as listening and reading (`lib/history.ts`); the last two minutes, or 5%, count as watched to the end.
-- Checked: Echo's hls.js (1.7.3) plays the PNG-prefixed segments as they are, so no stripping is needed.
+- Checked: NekoHub's hls.js (1.7.3) plays the PNG-prefixed segments as they are, so no stripping is needed.
 
 ### 11.6 Breakage to expect
 
-| Change | What Echo does |
+| Change | What NekoHub does |
 |---|---|
 | The embed host moves (StreamSB copies change domain often) | The `?xr=` redirect names the new host. Accept it only if it matches the `/e/{12 chars}` shape and a packed `var links`. Otherwise "Stream unavailable", and add the host to the allow-list. |
 | The packer or `links` keys change | The parser fails loudly, naming what it was looking for. The recorded embed fixture shows the diff. |
@@ -610,8 +610,8 @@ Endpoint: `GET /api/jav/movie/:kind/:slug/stream?server=sb` returns `{ server: '
 
 1. **Unlicensed source: accepted.** jav.guru hosts full commercial movies without a licence. Watch is the one exception to "metadata only" at the top of this doc.
 2. **Referer: accepted** for the embed page only, which answers only with `Referer: https://jav.guru/`. Nothing else in the JAV section sends one.
-3. **`/searcho/`: option B.** Echo works out the file id locally and goes straight to the known embed host's `/e/{id}`. It calls the disallowed `?xr=` only when that host fails, and then remembers the new host.
-4. **Desktop vs web: not decided.** The Watch button shows in both. It works when the Echo server and the browser are on the same network, which is always true for the desktop app. A hosted server may get `hls2` links tied to its own network; `hls4` is tried first and isn't visibly tied to one.
+3. **`/searcho/`: option B.** NekoHub works out the file id locally and goes straight to the known embed host's `/e/{id}`. It calls the disallowed `?xr=` only when that host fails, and then remembers the new host.
+4. **Desktop vs web: not decided.** The Watch button shows in both. It works when the NekoHub server and the browser are on the same network, which is always true for the desktop app. A hosted server may get `hls2` links tied to its own network; `hls4` is tried first and isn't visibly tied to one.
 5. **Other servers** (VO, VI, DD, JK): out of scope.
 6. **Upcoming movies get no Watch button**, even when jav.guru already has them (it posts some before javdatabase's release date, for example DLDSS-575, released 2026-12-03).
 

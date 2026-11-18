@@ -5,7 +5,7 @@ const base: PathInput = {
   isPackaged: false,
   resourcesPath: '/app/Resources',
   packageDir: '/repo/apps/desktop',
-  userData: '/home/u/Library/Application Support/Echo',
+  userData: '/home/u/Library/Application Support/NekoHub',
   arch: 'arm64',
   appVersion: '0.1.0',
 };

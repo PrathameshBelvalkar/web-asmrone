@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Hides the installer's background and volume-icon files, so they do not appear in the window
-# people drag Echo from. Then updates latest-mac.yml with the new checksum and size.
+# people drag NekoHub from. Then updates latest-mac.yml with the new checksum and size.
 #
 #   usage: fix-dmg.sh <path to the .dmg>      (macOS only; run after electron-builder)
 set -euo pipefail

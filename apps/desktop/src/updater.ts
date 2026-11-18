@@ -32,7 +32,7 @@ export function initUpdater(dataDir: string): void {
     log(`error: ${err.message}`);
     if (userAsked) {
       userAsked = false;
-      void dialog.showMessageBox({ type: 'info', message: 'Echo could not check for updates.' });
+      void dialog.showMessageBox({ type: 'info', message: 'NekoHub could not check for updates.' });
     }
   });
 
@@ -40,7 +40,7 @@ export function initUpdater(dataDir: string): void {
     log('no update');
     if (userAsked) {
       userAsked = false;
-      void dialog.showMessageBox({ type: 'info', message: 'You have the latest version of Echo.' });
+      void dialog.showMessageBox({ type: 'info', message: 'You have the latest version of NekoHub.' });
     }
   });
 
@@ -51,7 +51,7 @@ export function initUpdater(dataDir: string): void {
     void dialog
       .showMessageBox({
         type: 'info',
-        message: `Echo ${info.version} is available.`,
+        message: `NekoHub ${info.version} is available.`,
         buttons: ['Open download page', 'Later'],
         defaultId: 0,
         cancelId: 1,
@@ -66,7 +66,7 @@ export function initUpdater(dataDir: string): void {
     void dialog
       .showMessageBox({
         type: 'question',
-        message: `Echo ${info.version} is ready. Restart now?`,
+        message: `NekoHub ${info.version} is ready. Restart now?`,
         buttons: ['Restart', 'Later'],
         defaultId: 0,
         cancelId: 1,
@@ -95,7 +95,7 @@ function runCheck(fromMenu: boolean): void {
     log(`check failed: ${err instanceof Error ? err.message : String(err)}`);
     if (fromMenu) {
       userAsked = false;
-      void dialog.showMessageBox({ type: 'info', message: 'Echo could not check for updates.' });
+      void dialog.showMessageBox({ type: 'info', message: 'NekoHub could not check for updates.' });
     }
   });
 }

@@ -1,10 +1,10 @@
-# Echo: Hanime Plan
+# NekoHub: Hanime Plan
 
-This plan adds a **Hanime** section to Echo. It sits in the sidebar below **JAV** and above **Account**. It has six screens: **Home**, **Browse**, **Tags**, **Studios**, **Search** and a **title page**. A tag page and a studio page reuse the Browse list.
+This plan adds a **Hanime** section to NekoHub. It sits in the sidebar below **JAV** and above **Account**. It has six screens: **Home**, **Browse**, **Tags**, **Studios**, **Search** and a **title page**. A tag page and a studio page reuse the Browse list.
 
-The source is **hanime.tv**. We have a licence from the site to use its data. The site serves its **whole catalog as one JSON file** (section 3.2), so Echo doesn't read HTML pages as it does for JAV. Echo downloads the catalog, keeps it on the computer, and answers every list, filter and search from its own copy.
+The source is **hanime.tv**. We have a licence from the site to use its data. The site serves its **whole catalog as one JSON file** (section 3.2), so NekoHub doesn't read HTML pages as it does for JAV. NekoHub downloads the catalog, keeps it on the computer, and answers every list, filter and search from its own copy.
 
-Echo lists the catalog: titles, posters, covers, descriptions, tags, studios, dates and counts. A title page's **Watch** plays the title's video from its episode page on **hentaibros.net** (section 12).
+NekoHub lists the catalog: titles, posters, covers, descriptions, tags, studios, dates and counts. A title page's **Watch** plays the title's video from its episode page on **hentaibros.net** (section 12).
 
 > **Diagrams.** The diagrams use [Mermaid](https://mermaid.js.org/). GitHub shows them as pictures. In VS Code, install the
 > "Markdown Preview Mermaid Support" extension to see them in the preview.
@@ -32,7 +32,7 @@ Echo lists the catalog: titles, posters, covers, descriptions, tags, studios, da
 
 - The Express server gets a new source, `hanime`. A **sync job** downloads the catalog (`search_hvs`, about 3,500 titles, 1 MB compressed) at start-up and then every 30 minutes, compares it with the copy it has, and records what's new, changed or gone.
 - The catalog lives **in memory**, with a copy on disk in `~/.echo-web/hanime/`. That's enough: the whole catalog is 4.5 MB of JSON. **No database** (section 4).
-- Every list, filter, sort and search runs on Echo's copy. Opening a page never sends a request to hanime, so pages are instant and the site sees one download every 30 minutes no matter how much Echo is used.
+- Every list, filter, sort and search runs on NekoHub's copy. Opening a page never sends a request to hanime, so pages are instant and the site sees one download every 30 minutes no matter how much NekoHub is used.
 - **Search** matches English, Romaji, Japanese, Korean and Chinese titles, the studio and the tags, in memory (1–3 ms a query). Suggestions appear as you type, as they do for JAV, but after 120 ms instead of 300 ms (section 7).
 - New uploads reach the UI **live**: the server pushes a "3 new titles" event (Server-Sent Events) and the open pages refresh themselves.
 - Posters and covers are on `hanime-cdn.com` and load without a Referer, so the browser loads them directly, with `/api/proxy` as a fallback.
@@ -44,7 +44,7 @@ flowchart LR
   Sync -->|snapshot, changes, views| Disk[("~/.echo-web/hanime/*.json")]
   Disk -->|at start-up| Cat
   Cat --> Svc["hanime.service<br/>filter · sort · page · suggest"]
-  Svc -->|/api/hanime/*| UI["Echo UI<br/>(React)"]
+  Svc -->|/api/hanime/*| UI["NekoHub UI<br/>(React)"]
   Sync -.->|SSE: new titles| UI
   UI -->|posters, covers| CDN["hanime-cdn.com"]
   UI -.fallback.-> P["/api/proxy"]
@@ -62,8 +62,8 @@ These rules are written into the code. They are not settings. They keep out titl
 - **`school girl` stays** (decided 2026-11-17). It's in the **Characters** tag group.
 - **Search.** A query matching `BLOCKED_WORD` returns no results and no suggestions.
 - **Titles that disappear.** A blocked title is dropped before it reaches the catalog. Asking for its slug answers **451**, the same as JAV.
-- **Ads.** The catalog answer has an `ads` key (banners and off-site links). Echo throws it away unread.
-- **Polite access.** One catalog download every 30 minutes, with Echo's honest `EchoASMR/1.0` user agent. On a block or a Cloudflare check, Echo keeps its last copy, stops asking for a while, and never tries to get past the block.
+- **Ads.** The catalog answer has an `ads` key (banners and off-site links). NekoHub throws it away unread.
+- **Polite access.** One catalog download every 30 minutes, with NekoHub's honest `EchoASMR/1.0` user agent. On a block or a Cloudflare check, NekoHub keeps its last copy, stops asking for a while, and never tries to get past the block.
 
 ---
 
@@ -86,9 +86,9 @@ The page holds the addresses in `window.AppConfig`:
 
 ### 3.2 The catalog (`search_hvs`)
 
-`GET https://guest.freeanimehentai.net/api/v11/search_hvs` returns **every title in one answer**: `{ data: Video[], ads: {…} }`. A `POST` with search options answers 404. All searching and filtering is up to the client, so Echo does it itself.
+`GET https://guest.freeanimehentai.net/api/v11/search_hvs` returns **every title in one answer**: `{ data: Video[], ads: {…} }`. A `POST` with search options answers 404. All searching and filtering is up to the client, so NekoHub does it itself.
 
-| Field | Type | Example | Echo uses it as |
+| Field | Type | Example | NekoHub uses it as |
 |---|---|---|---|
 | `id` | int | `5` | the key for diffs |
 | `name` | string | `Yabai! Fukushuu Yami Site 2` | the title |
@@ -97,7 +97,7 @@ The page holds the addresses in `window.AppConfig`:
 | `description` | HTML string | `<p>A mysterious fire …</p>` | turned into plain text paragraphs on the server |
 | `views`, `likes`, `dislikes`, `downloads` | int | `3326381` | counts and sorting |
 | `cover_url` | URL | `hanime-cdn.com/images/covers/…-cover_….webp` | the **portrait** cover art (268 × 394): what hanime.tv shows on every card and beside the player |
-| `poster_url` | URL | `hanime-cdn.com/images/posters/…-poster_….webp` | the **landscape** video frame (16:9): the player's poster; Echo uses it for the title page's colour wash |
+| `poster_url` | URL | `hanime-cdn.com/images/posters/…-poster_….webp` | the **landscape** video frame (16:9): the player's poster; NekoHub uses it for the title page's colour wash |
 | `brand`, `brand_id` | string, int | `Suzuki Mirano`, `92` | the studio |
 | `tags` | string[] | `["bondage", "censored", "hd", …]` | tags and the censored filter |
 | `created_at_unix`, `created_at` | int, ISO | `1399380969` | when it was added to the site ("New uploads") |
@@ -115,18 +115,18 @@ The numbers on 2026-11-17:
 | Upcoming titles | None. The catalog lists released titles only. |
 | Size | 4.5 MB of JSON, about 1 MB gzipped |
 
-There is **no series field**. 1,105 names repeat with a trailing episode number (`Ane Koi 1`, `Ane Koi 2`), so Echo groups a series by its name with that number removed (section 6.4).
+There is **no series field**. 1,105 names repeat with a trailing episode number (`Ane Koi 1`, `Ane Koi 2`), so NekoHub groups a series by its name with that number removed (section 6.4).
 
 ### 3.3 Caching and change detection
 
 | Check | Result |
 |---|---|
 | `cache-control` | `max-age=3600, public`. Cloudflare keeps the answer for **up to 1 hour** (`cf-cache-status: HIT`, `age: 3574`). |
-| `ETag` | `W/"…"` is sent, but `If-None-Match` still gets 200, never 304. Echo hashes the body instead (section 5). |
-| Query strings | `?page=1` gets `cf-cache-status: MISS`: it goes past the cache to the site's own server. **Echo must not add query strings**, so it always reads the cached copy. |
-| User agents | Echo's `EchoASMR/1.0`, curl's default and a browser user agent all get 200. |
+| `ETag` | `W/"…"` is sent, but `If-None-Match` still gets 200, never 304. NekoHub hashes the body instead (section 5). |
+| Query strings | `?page=1` gets `cf-cache-status: MISS`: it goes past the cache to the site's own server. **NekoHub must not add query strings**, so it always reads the cached copy. |
+| User agents | NekoHub's `EchoASMR/1.0`, curl's default and a browser user agent all get 200. |
 
-So the freshest data anyone outside the site can get is **up to 1 hour old**. Checking every 30 minutes means a new upload shows up in Echo within about 1.5 hours at worst, usually much sooner.
+So the freshest data anyone outside the site can get is **up to 1 hour old**. Checking every 30 minutes means a new upload shows up in NekoHub within about 1.5 hours at worst, usually much sooner.
 
 ### 3.4 Other pages
 
@@ -141,23 +141,23 @@ So the freshest data anyone outside the site can get is **up to 1 hour old**. Ch
 
 - The site and the catalog host are behind Cloudflare (Cloudflare name servers, `server: cloudflare`, `cf-ray`). The catalog, the sitemap and the title pages load with no bot check.
 - **Video data is protected.** `guest.freeanimehentai.net/api/v8/video` and `/api/v11/video` answer **403 "Attention Required! | Cloudflare"**. The player asks for streams with a CSRF token, an `x-signature` / `x-time` pair made by WebAssembly code in the page (`x-signature-version: web2`), a "handshake" call, and playlist links that expire. Turnstile is on the page.
-- Echo **does not** reverse the signature or get past Turnstile. hanime's own download menu also refuses an automated browser (a Cloudflare check on the title page, and sessions ended). Videos come from hentaibros.net instead (section 12).
+- NekoHub **does not** reverse the signature or get past Turnstile. hanime's own download menu also refuses an automated browser (a Cloudflare check on the title page, and sessions ended). Videos come from hentaibros.net instead (section 12).
 
 ### 3.6 The title page
 
-Mapped with Playwright on 2026-11-17 (`hitori-tsuma-1`, `ane-koi-1`). The page is server-rendered: a plain GET with Echo's user agent returns all of this, with no bot check. Sections in order: the player, the badges and counts, **Synopsis**, **Alternate Names**, **Preview**, **Next Video**, **More from {series}**, **Related Playlists** (not used: users' playlists), comments (not used).
+Mapped with Playwright on 2026-11-17 (`hitori-tsuma-1`, `ane-koi-1`). The page is server-rendered: a plain GET with NekoHub's user agent returns all of this, with no bot check. Sections in order: the player, the badges and counts, **Synopsis**, **Alternate Names**, **Preview**, **Next Video**, **More from {series}**, **Related Playlists** (not used: users' playlists), comments (not used).
 
 | Field | Where |
 |---|---|
 | Preview storyboard | The player's `astro-island` `props`: `storyboard_url` (`/images/storyboards/…jpg`), `storyboard_columns` (5), `storyboard_rows` (36), `storyboard_tile_count` (180). One 800 × 3240 sprite of 160 × 90 frames. hanime.tv's Preview shows 14 of them spread evenly through the video, each a CSS background position on the sprite. |
 | Length | JSON-LD `VideoObject.duration`: `PT23M14S` |
 | Badges | `span.badge`: `FHD 1080p`, `23 min`, `Sub EN`, `Dub JP` |
-| Alternate names | The **Alternate Names** section's `h3` texts (or "None available"). These are exact, so Echo shows them instead of splitting `search_titles` (`altTitles`, kept as the fallback). |
+| Alternate names | The **Alternate Names** section's `h3` texts (or "None available"). These are exact, so NekoHub shows them instead of splitting `search_titles` (`altTitles`, kept as the fallback). |
 | Synopsis | The **Synopsis** section's paragraphs. The catalog's `description` is the same text; it's the fallback. |
 
 ### 3.7 The Browse page
 
-`/browse` has four big cards (Trending, Seasons, Random, Images), then a tall card per tag (`a[href^="/browse/tags/"]`: `.tile-title`, `.tile-description`, and the picture in `.tile-icon`'s `background:url(…)`, for example `/images/tags/anal-vertical.min.jpg`; names are irregular, like `2kdragon-tall-banner.webp`, so they're read, not built), then the studios as chips with counts, sorted A–Z or by uploads. **Seasons** (`/browse/seasons?year=2026`) is a year picker over Fall / Summer / Spring / Winter rows; Echo works it out from release dates. **Images** is the site's user image uploads, not part of the video catalog, and isn't used.
+`/browse` has four big cards (Trending, Seasons, Random, Images), then a tall card per tag (`a[href^="/browse/tags/"]`: `.tile-title`, `.tile-description`, and the picture in `.tile-icon`'s `background:url(…)`, for example `/images/tags/anal-vertical.min.jpg`; names are irregular, like `2kdragon-tall-banner.webp`, so they're read, not built), then the studios as chips with counts, sorted A–Z or by uploads. **Seasons** (`/browse/seasons?year=2026`) is a year picker over Fall / Summer / Spring / Winter rows; NekoHub works it out from release dates. **Images** is the site's user image uploads, not part of the video catalog, and isn't used.
 
 ---
 
@@ -165,11 +165,11 @@ Mapped with Playwright on 2026-11-17 (`hitori-tsuma-1`, `ane-koi-1`). The page i
 
 | Option | Fits? | Why |
 |---|---|---|
-| **Memory + JSON files** (chosen) | **Yes** | 3,474 titles is 4.5 MB. Filtering and sorting the lot in plain TypeScript takes about a millisecond. Echo already stores everything else as JSON files in `~/.echo-web` (`settings.json`, `user.json`, `tools.json`) with `writeFileAtomic`. No new dependency. Works the same on desktop, the web server and the future shared core for Android (PLAN.md, phase 3). |
+| **Memory + JSON files** (chosen) | **Yes** | 3,474 titles is 4.5 MB. Filtering and sorting the lot in plain TypeScript takes about a millisecond. NekoHub already stores everything else as JSON files in `~/.echo-web` (`settings.json`, `user.json`, `tools.json`) with `writeFileAtomic`. No new dependency. Works the same on desktop, the web server and the future shared core for Android (PLAN.md, phase 3). |
 | SQLite (`better-sqlite3`, `node:sqlite`) | Not needed | `better-sqlite3` is a native module that has to be rebuilt for Electron 45 on both Mac types and wouldn't run on Android. `node:sqlite` is still experimental in Electron's Node. Its full-text search would be nice, but section 7's index does the job at this size. |
 | Postgres, MongoDB, Redis | No | A separate server to install and run, for 3,500 rows on a desktop app. |
 
-**Revisit the choice** if any of these become true: the catalog grows past about 100,000 titles; Echo runs as one shared server for many users; or we need searches the in-memory index can't answer. Then pick SQLite with FTS5, behind the same `HanimeCatalog` interface, so nothing above it changes.
+**Revisit the choice** if any of these become true: the catalog grows past about 100,000 titles; NekoHub runs as one shared server for many users; or we need searches the in-memory index can't answer. Then pick SQLite with FTS5, behind the same `HanimeCatalog` interface, so nothing above it changes.
 
 ### 4.1 Files
 
@@ -183,7 +183,7 @@ All in `~/.echo-web/hanime/` (`config.dataDir`), written with `writeFileAtomic`:
 | `tags.json` | Each tag's description and picture from Browse (3.7), by tag name | small |
 | `state.json` | `lastCheckedAt`, `lastChangedAt`, `lastError`, `lastSitemapAt`, `lastTagArtAt`, `catalogUrl` | tiny |
 
-If `catalog.json` is missing or unreadable, Echo starts with an empty catalog, shows "Getting the catalog…" and syncs straight away.
+If `catalog.json` is missing or unreadable, NekoHub starts with an empty catalog, shows "Getting the catalog…" and syncs straight away.
 
 ---
 
@@ -223,7 +223,7 @@ sequenceDiagram
 | Request | `GET` the `search_hvs` URL exactly as given, with `Accept-Encoding: gzip` and `APP_USER_AGENT`, through the shared undici dispatcher. Timeouts in `src/config/limits.ts`. |
 | Unchanged | If the body's sha256 equals the last one, only `state.json` is written. No parsing. |
 | Parsing | A Zod schema for one title. A title that fails is skipped and logged. If more than 5% fail, or the list has fewer than 50% of the last catalog's titles, the whole download is rejected and the old catalog stays (protection against a broken or empty answer). |
-| Blocks | A 403, 429, 503, `cf-mitigated: challenge` or a `Just a moment` body starts `BlockBackoff` (15 minutes, doubling up to 2 hours). Echo keeps serving the last catalog and the UI shows "Catalog last updated 3 h ago". |
+| Blocks | A 403, 429, 503, `cf-mitigated: challenge` or a `Just a moment` body starts `BlockBackoff` (15 minutes, doubling up to 2 hours). NekoHub keeps serving the last catalog and the UI shows "Catalog last updated 3 h ago". |
 | One at a time | A `Mutex` around the sync, so a manual **Refresh** and the timer can't overlap. |
 | Manual refresh | `POST /api/hanime/sync` runs it now, at most once every 5 minutes. |
 
@@ -231,7 +231,7 @@ sequenceDiagram
 
 Titles are matched by `id`:
 
-| Case | What Echo does |
+| Case | What NekoHub does |
 |---|---|
 | A new id | **Added.** Goes into `changes.json`, appears in **New uploads**, and is counted in the live event. |
 | A known id with a different `name`, `slug`, `description`, `tags`, `brand`, `poster_url`, `cover_url` or `released_at` | **Updated.** The changed field names are recorded. |
@@ -330,7 +330,7 @@ Errors use the existing `ApiError` shape. 503 means the catalog has never been d
 
 ### 6.4 Filters and sorts
 
-All of them run on Echo's copy, so any mix works and every list shows its total.
+All of them run on NekoHub's copy, so any mix works and every list shows its total.
 
 | Query key | Values | Meaning |
 |---|---|---|
@@ -347,11 +347,11 @@ All of them run on Echo's copy, so any mix works and every list shows its total.
 
 - **rating** is likes ÷ (likes + dislikes), with titles under 100 votes ranked below the rest.
 - **trending** is views a day: those gained since the snapshot nearest 7 days ago in `views.json` (any snapshot at least a day old will do). Until there's one, it's the average views a day since upload. Both are views a day, so new and old titles compare fairly.
-- Tag and studio slugs are made by Echo (`blow job` → `blow-job`, `Pink Pineapple` → `pink-pineapple`) and checked against the catalog's lists. Unknown values answer 400. A blocked tag answers 451.
+- Tag and studio slugs are made by NekoHub (`blow job` → `blow-job`, `Pink Pineapple` → `pink-pineapple`) and checked against the catalog's lists. Unknown values answer 400. A blocked tag answers 451.
 
 ### 6.5 Tag groups
 
-The site lists 61 tags without groups. Echo groups them in `constants.ts` so the Tags page and the filter sheet are easier to scan. A new tag the list doesn't know goes into **Other** until it's added.
+The site lists 61 tags without groups. NekoHub groups them in `constants.ts` so the Tags page and the filter sheet are easier to scan. A new tag the list doesn't know goes into **Other** until it's added.
 
 | Group | Tags |
 |---|---|
@@ -471,7 +471,7 @@ Tag and studio pages are All titles with one filter set (`/hanime/titles?tags=yu
 | Similar | A grid without infinite scroll |
 | Header | **Copy name** and **Open on hanime.tv** |
 | No Watch button | Not until section 11 is settled |
-| Errors | 451: "This title isn't available in Echo." 404: the not-found state. 503: "The source is busy, try again later" with **Try again**. |
+| Errors | 451: "This title isn't available in NekoHub." 404: the not-found state. 503: "The source is busy, try again later" with **Try again**. |
 
 ### 8.5 Components (`src/components/hanime/`)
 
@@ -519,11 +519,11 @@ Reuse `Segmented.tsx` for the switches and sort chips.
 ## 11. Open questions and risks
 
 - **`ECHO_HANIME_SYNC=0`** turns the timer off. Tests use it; the app never sets it.
-- **Video.** hanime's stream endpoints are behind Cloudflare and a signed request scheme (3.5), and Echo won't work around them. Watch uses hentaibros.net (section 12); about a third of the catalog has no page there.
+- **Video.** hanime's stream endpoints are behind Cloudflare and a signed request scheme (3.5), and NekoHub won't work around them. Watch uses hentaibros.net (section 12); about a third of the catalog has no page there.
 - **Faster updates.** 30-minute checks against a 1-hour cache are as fresh as public data gets. For anything faster, ask hanime for a webhook or a "changed since" feed.
 - **The catalog address changes.** `v11` and the `freeanimehentai.net` host can change. If the URL starts answering 404, the client reads `window.AppConfig.search_hvs_url` from the hanime.tv home page once, and uses that if it's on an allowed host. A failure shows in `/status` and the UI, and the last catalog keeps working.
 - **The catalog stops being complete.** The daily sitemap check (5.4) logs it.
-- **Cloudflare.** Today there's no bot check on the catalog. If one appears, Echo backs off and keeps its copy. It doesn't try to get around it.
+- **Cloudflare.** Today there's no bot check on the catalog. If one appears, NekoHub backs off and keeps its copy. It doesn't try to get around it.
 - **Licence on file.** Keep a copy. It should cover downloading the catalog regularly, keeping a copy, and hot-linking `hanime-cdn.com/images/`.
 - **Android.** The catalog, index and filters are plain TypeScript with no Node-only parts except the file reads, so they can move into the shared core (PLAN.md, phase 3) as they are.
 
@@ -535,13 +535,13 @@ Added 2026-11-17. The rights to stream these files are covered (decided 2026-11-
 
 ### 12.1 The site
 
-- WordPress behind Cloudflare, as a cache only (`cf-cache-status: HIT`): no bot check on pages or videos, and plain requests with Echo's `EchoASMR/1.0` user agent get the real pages. `robots.txt` allows everything.
+- WordPress behind Cloudflare, as a cache only (`cf-cache-status: HIT`): no bot check on pages or videos, and plain requests with NekoHub's `EchoASMR/1.0` user agent get the real pages. `robots.txt` allows everything.
 - `sitemap_index.xml` lists four post sitemaps (`post-sitemap.xml` … `post-sitemap4.xml`) with 3,199 posts: 2,695 are `{name}-episode-{n}`, the rest one-offs (3D, ASMR, motion anime). Newest change 2026-11-10.
 - An episode page's player is an FV Player box with the video as JSON in `data-item`: `{"sources":[{"src":"https://cdn.vintageporno.stream/Can%20Can%20Bunny%2002%20Sub.mp4","type":"video/mp4"}]}`. One MP4 per episode, English subtitles burned in. The other `<video>`s on the page (`bkcdn.net`, `bxcdn.net`, 10–30 s) are ads.
 - 13 sampled pages, old and new: all had the `data-item` player, no iframes. Hosts: `cdn.vintageporno.stream` (11) and `povblowjob.net` (2); one address had unescaped spaces (`/1Ldk 08 Sub.mp4`).
-- The files are plain MP4s on Cloudflare (157–505 MB in the sample) that answer byte ranges (206) with or without a Referer: no hotlink check. They play and seek in Echo's player straight from the host.
+- The files are plain MP4s on Cloudflare (157–505 MB in the sample) that answer byte ranges (206) with or without a Referer: no hotlink check. They play and seek in NekoHub's player straight from the host.
 
-### 12.2 What Echo does
+### 12.2 What NekoHub does
 
 `GET /api/hanime/title/{slug}/stream` → `{ file, page, title }`.
 
@@ -552,7 +552,7 @@ Added 2026-11-17. The rights to stream these files are covered (decided 2026-11-
 5. The episode page is read and the `data-item` source taken (https, `.mp4` or `.m3u8` only).
 6. The answer is kept for a week, a miss for 6 hours; requests for one title at once share one lookup.
 
-A 403, 429, 503 or Cloudflare check page pauses all requests to the site (`BlockBackoff`: 15 minutes, doubling to 2 hours). Echo never tries to get past one.
+A 403, 429, 503 or Cloudflare check page pauses all requests to the site (`BlockBackoff`: 15 minutes, doubling to 2 hours). NekoHub never tries to get past one.
 
 The title page's **Watch** (`?play=1`) opens the JAV theater's Vidstack player across the top with the file, plus **Source** (the episode page) and **Close**. The first lookup after a start takes about 8 s (the sitemaps); later ones about 1 s.
 
@@ -567,11 +567,11 @@ The two sites spell titles differently (`boku-ni-sefure-ga-dekita-riyuu-3` and `
 
 ### 12.5 Only titles with a video are listed
 
-Added 2026-11-18. Echo lists only the titles that find a post (12.3), about 2,322 of 3,462.
+Added 2026-11-18. NekoHub lists only the titles that find a post (12.3), about 2,322 of 3,462.
 
 - `src/services/hanime/availability.service.ts` (`HanimeAvailability`) holds the post list and matches it against the catalog once for each new catalog or post list (about 0.7 s), giving a smaller `HanimeCatalog` (`catalog.only()`). Every answer comes from it: Home, Browse, the title list, search, suggestions, tags and their counts, studios, Seasons, Random, a series' episodes, Similar, and the title count in the status.
 - A title the catalog has but without a video answers **404** "hentaibros.net has no video for this title.", on its page and its stream.
-- The post list is saved in `~/.echo-web/hanime/hentaibros-posts.json`, so a restart lists the same titles at once. It is read again once a day in the background while the old one is used; at start-up when Echo syncs, it is loaded straight away.
+- The post list is saved in `~/.echo-web/hanime/hentaibros-posts.json`, so a restart lists the same titles at once. It is read again once a day in the background while the old one is used; at start-up when NekoHub syncs, it is loaded straight away.
 - **No list at all** (first start with the site down): every title is listed rather than none, and the site is asked again after 15 minutes (`hentaibrosPostsRetryMs`).
 - A match found here can still fail when the episode page is read (no player on the page): Watch then says there's no video. The page itself is only read when Watch is pressed.
 

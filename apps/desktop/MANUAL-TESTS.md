@@ -1,4 +1,4 @@
-# Manual test checklist (Echo Desktop)
+# Manual test checklist (NekoHub Desktop)
 
 Run this on a real Mac (one with an Apple chip and one with an Intel chip) before publishing a release. Record the
 results in the release notes. Automated tests cover the logic; this list covers what only a person can see.
@@ -7,7 +7,7 @@ Mac: ______________  macOS: ______________  Installer: ______________  Date: ___
 
 | # | Test | Expected | Result |
 |---|---|---|---|
-| 1 | Install on a machine that has never had Echo, FFmpeg or Whisper | Installs and opens | |
+| 1 | Install on a machine that has never had NekoHub, FFmpeg or Whisper | Installs and opens | |
 | 2 | First start | Home page, no prompt; browsing and playback work; a track without subtitles shows only the "Turn on AI subtitles in Settings" link | |
 | 3 | Settings → turn on AI subtitles, touch nothing else | Download, check and speed test run by themselves and end on "Ready" | |
 | 3a | During the download, turn Wi-Fi off at about 50 %, then on | Continues without starting over | |
@@ -20,13 +20,13 @@ Mac: ______________  macOS: ______________  Installer: ______________  Date: ___
 | 8 | Settings → switch model, play another track | Works with the new model | |
 | 8a | Settings → delete a downloaded model (not in use, then the one in use) | The file is removed; the one in use switches to another, or AI subtitles turn off | |
 | 9 | Close the window while audio plays | Audio continues; menu bar icon reopens the window | |
-| 10 | Quit (Cmd+Q, menu bar icon → Quit) | No `Echo`, `ffmpeg` or `whisper-server` process is left | |
+| 10 | Quit (Cmd+Q, menu bar icon → Quit) | No `NekoHub`, `ffmpeg` or `whisper-server` process is left | |
 | 11 | Open the app twice | The second start focuses the first window | |
 | 12 | Restart the app | Queue and settings are still there | |
 | 13 | Disk almost full | Clear "Not enough free disk space" message | |
 | 14 | Install a newer version over an older one | Models and settings are kept | |
 | 15 | Path with spaces or non-English letters in the user name | Everything works | |
-| 16 | Help → Check for updates… | "You have the latest version of Echo" when there is nothing new | |
+| 16 | Help → Check for updates… | "You have the latest version of NekoHub" when there is nothing new | |
 | 17 | First start | Manga & Doujinshi is in the sidebar between Browse and Account | |
 | 18 | Manga → Browse, scroll; pick a language, then a category; open a gallery; read | Covers load; more load on scroll; the language is still picked after a restart; the reader turns pages with the arrow keys and Space without starting playback | |
 | 19 | Reader on a Japanese manga → Two pages; then Settings → Cover on its own off; Long strip; F for fullscreen | Pages are laid out right to left (page 2 on the right of 3) while → and the right side still go forward; turning the switch off shifts the pairs; wide spreads stay whole; the bars fade while reading and come back on a tap in the middle; the strip's page number follows scrolling; panels still open in fullscreen | |

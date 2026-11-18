@@ -151,7 +151,7 @@ describe("JavMoviePage", () => {
   });
 
   it("shows a refused movie as not available", async () => {
-    vi.mocked(api.jav.movie).mockRejectedValue(new ApiError(451, "forbidden", "This title is not available in Echo."));
+    vi.mocked(api.jav.movie).mockRejectedValue(new ApiError(451, "forbidden", "This title is not available in NekoHub."));
     renderAt("/jav/movie/censored/abc-2", "/jav/movie/:kind/:slug", <JavMoviePage />);
     expect(await screen.findByText("Not available")).toBeInTheDocument();
   });

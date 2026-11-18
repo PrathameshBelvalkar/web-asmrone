@@ -20,7 +20,7 @@ export interface HentaibrosClientOptions {
 
 /**
  * Reads hentaibros.net's post sitemaps and episode pages, one request at a time with a gap, with
- * Echo's own user agent. robots.txt allows everything. A block or bot check pauses requests for a
+ * NekoHub's own user agent. robots.txt allows everything. A block or bot check pauses requests for a
  * while; it never tries to get past one.
  */
 export class HentaibrosClient {

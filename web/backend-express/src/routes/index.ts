@@ -115,7 +115,7 @@ function routeTable(c: Controllers): RouteSpec[] {
     { method: 'GET', path: '/jav/genres', handler: c.jav.genres },
     { method: 'GET', path: '/jav/search', handler: c.jav.search },
 
-    // Hanime (answered from the catalog Echo keeps; docs/HANIME.md)
+    // Hanime (answered from the catalog NekoHub keeps; docs/HANIME.md)
     { method: 'GET', path: '/hanime/home', handler: c.hanime.home },
     { method: 'GET', path: '/hanime/titles', handler: c.hanime.titles },
     { method: 'GET', path: '/hanime/title/:slug', handler: c.hanime.title },

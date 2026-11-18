@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const appDir = join(__dirname, '..', '..');
-const executable = join(appDir, 'release', 'mac-arm64', 'Echo.app', 'Contents', 'MacOS', 'Echo');
+const executable = join(appDir, 'release', 'mac-arm64', 'NekoHub.app', 'Contents', 'MacOS', 'NekoHub');
 
 test('first start: home page without a prompt, AI subtitles off', async () => {
   const dataDir = mkdtempSync(join(tmpdir(), 'echo-e2e-'));
@@ -22,10 +22,10 @@ test('first start: home page without a prompt, AI subtitles off', async () => {
   try {
     const window = await app.firstWindow();
     await window.waitForLoadState('domcontentloaded');
-    await expect(window).toHaveTitle('Echo Web');
+    await expect(window).toHaveTitle('NekoHub');
 
     // No dialog or setup screen on the home page.
-    await expect(window.locator('a[data-sidebar="menu-button"]', { hasText: 'Home' })).toBeVisible();
+    await expect(window.locator('a[data-sidebar="menu-button"][href="/"]', { hasText: 'Home' })).toBeVisible();
     await expect(window.getByRole('dialog')).toHaveCount(0);
 
     await window.locator('a[data-sidebar="menu-button"]', { hasText: 'Settings' }).click();

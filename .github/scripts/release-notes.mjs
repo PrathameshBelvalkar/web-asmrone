@@ -58,26 +58,24 @@ function checksums() {
     .join('\n');
 }
 
-// GitHub's generated list of merged pull requests, or the commit subjects if that isn't available.
-async function changeList(prev) {
-  const heading = prev ? `## Changes since ${prev}` : '## Changes';
-  try {
-    const generated = await api('/releases/generate-notes', {
-      method: 'POST',
-      body: JSON.stringify({ tag_name: tag, ...(prev ? { previous_tag_name: prev } : {}) }),
-    });
-    return generated.body.replace(/^## What's Changed/m, heading);
-  } catch (err) {
-    console.error(`Generated notes unavailable, using the commit list: ${err.message}`);
-    const range = prev ? [`${prev}..HEAD`] : ['HEAD', '-n', '30'];
-    const commits = execFileSync('git', ['log', '--no-merges', '--pretty=- %s (%h)', ...range], { encoding: 'utf8' });
-    const compare = prev ? `\n\n**Full changelog**: https://github.com/${repo}/compare/${prev}...${tag}` : '';
-    return `${heading}\n\n${commits.trim()}${compare}`;
-  }
+// The changelog: every commit since the previous version, newest first, without merges and the
+// "Release x.y.z" commits themselves.
+function changelog(prev) {
+  const range = prev ? [`${prev}..HEAD`] : ['HEAD', '-n', '30'];
+  const lines = execFileSync('git', ['log', '--no-merges', '--pretty=%h %s', ...range], { encoding: 'utf8' })
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => line.match(/^(\S+) (.*)$/))
+    .filter(([, , subject]) => !/^Release \d/.test(subject))
+    .map(([, hash, subject]) => `- ${subject} ([${hash}](https://github.com/${repo}/commit/${hash}))`);
+  const since = prev ? `Since ${prev}:\n\n` : '';
+  const list = lines.length > 0 ? lines.join('\n') : '- Maintenance release.';
+  const compare = prev ? `\n\n**Full changelog**: https://github.com/${repo}/compare/${prev}...${tag}` : '';
+  return `${since}${list}${compare}`;
 }
 
 const prev = previousTag();
-const changes = await changeList(prev);
+const changes = changelog(prev);
 
 const notes = readFileSync('.github/release-notes.md', 'utf8')
   .replace(/^<!-- Filled in by.*-->\n/, '')

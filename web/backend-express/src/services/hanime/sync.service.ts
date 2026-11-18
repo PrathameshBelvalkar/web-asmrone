@@ -243,13 +243,13 @@ export class HanimeSyncService {
     if (total === 0 || bad / total > MAX_BAD_SHARE) {
       throw HttpError.upstream(
         502,
-        `hanime’s catalog had ${bad} of ${total} titles Echo couldn’t read`,
+        `hanime’s catalog had ${bad} of ${total} titles NekoHub couldn’t read`,
       );
     }
     if (previous.size > 0 && records.length < previous.size * MIN_KEPT_SHARE) {
       throw HttpError.upstream(
         502,
-        `hanime’s catalog had only ${records.length} titles (Echo has ${previous.size}); keeping the copy`,
+        `hanime’s catalog had only ${records.length} titles (NekoHub has ${previous.size}); keeping the copy`,
       );
     }
     if (bad > 0)

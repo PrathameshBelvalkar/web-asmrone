@@ -1,6 +1,6 @@
-# Developing Echo
+# Developing NekoHub
 
-How to build, run, test and release Echo. For using the app, see the [README](../README.md).
+How to build, run, test and release NekoHub. For using the app, see the [README](../README.md).
 
 ## Desktop app
 
@@ -31,7 +31,7 @@ Package it:
 
 ```bash
 cd apps/desktop
-npm run pack   # unpacked app in release/; its smoke test: release/mac-arm64/Echo.app/Contents/MacOS/Echo --smoke-test
+npm run pack   # unpacked app in release/; its smoke test: release/mac-arm64/NekoHub.app/Contents/MacOS/NekoHub --smoke-test
 npm run e2e    # launches the packaged app and checks the first start
 npm run dist   # installers in release/
 ```
@@ -50,13 +50,13 @@ git commit -am "Release 0.1.0" && git tag v0.1.0 && git push personal main v0.1.
 ```
 
 The tag starts the **release** workflow. It creates a **draft** release, builds the two Mac installers into it, and
-writes the release notes from [`.github/release-notes.md`](../.github/release-notes.md): a download table, the
-changes since the last version, and SHA-256 checksums. Open the draft on GitHub, test one installer, replace the
-"Highlights" placeholder with a few lines about the release, and publish.
+writes the release notes from [`.github/release-notes.md`](../.github/release-notes.md): a changelog (every commit
+since the last version), a download table and SHA-256 checksums. Open the draft on GitHub, test one installer, and
+publish.
 
-## Echo Web (the browser version)
+## NekoHub Web (the browser version)
 
-A browser version of Echo that plays only the **asmr.one** extension
+A browser version of NekoHub that plays only the **asmr.one** extension
 ([rebelonion/echo-asmr-one](https://github.com/rebelonion/echo-asmr-one)).
 
 - `backend/` – Kotlin + Ktor server. It runs the extension in-process, keeps

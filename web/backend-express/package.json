@@ -2,7 +2,7 @@
   "name": "echo-web-backend-express",
   "version": "0.1.0",
   "private": true,
-  "description": "Echo Web backend (Node/Express port of web/backend). API only.",
+  "description": "NekoHub Web backend (Node/Express port of web/backend). API only.",
   "type": "module",
   "engines": {
     "node": ">=20"

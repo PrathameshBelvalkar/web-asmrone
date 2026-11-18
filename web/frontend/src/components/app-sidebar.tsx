@@ -1,5 +1,5 @@
 import { BookOpen, CalendarRange, Clapperboard, Film, History, House, LayoutGrid, Library, MonitorPlay, Newspaper, Palette, Search, Settings, Sparkles, Tags, Users } from 'lucide-react';
-import appIcon from '../assets/echo-icon.png';
+import appIcon from '../assets/nekohub-icon.png';
 import type { LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -118,7 +118,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <NavLink to="/">
                 <img src={appIcon} alt="" aria-hidden className="aspect-square size-8 shrink-0 rounded-lg ring-1 ring-white/10" />
                 <div className="grid flex-1 text-left leading-tight">
-                  <span className="truncate text-base font-semibold">Echo</span>
+                  <span className="truncate text-base font-semibold">NekoHub</span>
                   <span className="truncate text-xs text-sidebar-foreground/60">asmr.one player</span>
                 </div>
               </NavLink>

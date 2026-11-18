@@ -8,7 +8,7 @@ const iso = (unix: number): string => new Date(unix * 1000).toISOString();
 /** Only the site's own image host is passed on; anything else becomes an empty string. */
 const image = (url: string): string => (url.startsWith(HANIME_IMAGE_PREFIX) ? url : '');
 
-/** True when a content rule keeps the title out of Echo (constants.ts). */
+/** True when a content rule keeps the title out of NekoHub (constants.ts). */
 export function isBlockedTitle(raw: RawTitle): boolean {
   return (
     BLOCKED_SERIES.test(raw.name) ||

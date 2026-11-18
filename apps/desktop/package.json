@@ -1,9 +1,9 @@
 {
   "name": "echo-desktop",
-  "productName": "Echo",
+  "productName": "NekoHub",
   "version": "0.1.7",
   "private": true,
-  "description": "Echo music player with AI subtitles",
+  "description": "NekoHub music player with AI subtitles",
   "author": "Prathamesh",
   "main": "dist/main.js",
   "scripts": {
@@ -14,7 +14,7 @@
     "tools": "node scripts/fetch-tools.mjs",
     "stage": "node scripts/stage.mjs",
     "pack": "npm run stage && npm run build && electron-builder --dir",
-    "dist": "npm run stage && npm run build && electron-builder --publish never && bash scripts/fix-dmg.sh release/Echo-0.1.0-mac-arm64.dmg",
+    "dist": "npm run stage && npm run build && electron-builder --publish never && bash scripts/fix-dmg.sh release/NekoHub-0.1.0-mac-arm64.dmg",
     "e2e": "playwright test"
   },
   "keywords": [],

@@ -24,7 +24,7 @@ const OLD_DEFAULT_MODEL_ID = 'large-v3-turbo-q5_0';
 const SMALL_MODEL_ID = 'small-q5_1';
 /** A model slower than this (times real time) steps down to the small model on first setup. */
 const STEP_DOWN_ABOVE = 0.5;
-const DESKTOP_PROBLEM = 'Part of the app is missing. Please reinstall Echo.';
+const DESKTOP_PROBLEM = 'Part of the app is missing. Please reinstall NekoHub.';
 const GB = 1024 * 1024 * 1024;
 
 /** The whisper settings. The engine reads them on every use, so changes apply at once. */

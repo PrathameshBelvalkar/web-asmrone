@@ -33,3 +33,13 @@ export function migrate(dataDir: string, home: string): { copied: boolean; moved
   }
   return { copied: true, movedModels };
 }
+
+/**
+ * The app used to be called Echo, so its data lived in `Application Support/Echo`. On the first run
+ * under the new name, that folder is renamed to the new one. Does nothing once the new folder exists.
+ */
+export function moveRenamedAppData(oldDir: string, dataDir: string): boolean {
+  if (existsSync(dataDir) || !existsSync(oldDir)) return false;
+  renameSync(oldDir, dataDir);
+  return true;
+}

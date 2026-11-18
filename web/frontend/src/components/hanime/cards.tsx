@@ -108,7 +108,7 @@ export function ShelfSkeleton() {
   );
 }
 
-/** "Updated 12 min ago · 3,462 titles", a Refresh button, and a note while the source asks Echo to wait. */
+/** "Updated 12 min ago · 3,462 titles", a Refresh button, and a note while the source asks NekoHub to wait. */
 export function StatusLine() {
   const client = useQueryClient();
   const status = useQuery(hanimeStatusOptions());
@@ -128,7 +128,7 @@ export function StatusLine() {
       <span>
         Updated {timeAgo(s.lastCheckedAt)} · <span className="tnum">{s.titles.toLocaleString('en')}</span> titles
       </span>
-      {s.paused && <span className="text-amber-300">Paused: hanime asked Echo to wait</span>}
+      {s.paused && <span className="text-amber-300">Paused: hanime asked NekoHub to wait</span>}
       <button
         type="button"
         onClick={() => refresh.mutate()}

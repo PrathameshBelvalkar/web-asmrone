@@ -10,7 +10,7 @@ import { dayLabel } from '../HistoryPage';
 
 const GRID = 'grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-x-5 gap-y-9';
 
-/** The movies you've watched in Echo: the ones to carry on with first, then the ones you finished. */
+/** The movies you've watched in NekoHub: the ones to carry on with first, then the ones you finished. */
 export function JavLibraryPage() {
   useCrumbs([JAV_HOME, { label: 'Library' }]);
   const entries = useHistory((s) => s.entries).filter((e): e is WatchEntry => e.kind === 'jav');

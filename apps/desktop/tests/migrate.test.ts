@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { migrate } from '../src/migrate';
+import { migrate, moveRenamedAppData } from '../src/migrate';
 
 let root: string;
 let home: string;
@@ -49,5 +49,28 @@ describe('migrate', () => {
 
   it('does nothing when there is no web folder', async () => {
     expect(migrate(dataDir, join(root, 'nobody'))).toEqual({ copied: false, movedModels: 0 });
+  });
+});
+
+describe('moveRenamedAppData', () => {
+  it('renames the old Echo folder to the new one', async () => {
+    const oldDir = join(root, 'Echo');
+    await mkdir(join(oldDir, 'models'), { recursive: true });
+    await writeFile(join(oldDir, 'settings.json'), '{"old":true}');
+    expect(moveRenamedAppData(oldDir, dataDir)).toBe(true);
+    expect(await readFile(join(dataDir, 'settings.json'), 'utf8')).toBe('{"old":true}');
+    expect((await readdir(root)).includes('Echo')).toBe(false);
+  });
+
+  it('leaves both alone when the new folder already exists', async () => {
+    const oldDir = join(root, 'Echo');
+    await mkdir(oldDir, { recursive: true });
+    await mkdir(dataDir, { recursive: true });
+    expect(moveRenamedAppData(oldDir, dataDir)).toBe(false);
+    expect((await readdir(root)).includes('Echo')).toBe(true);
+  });
+
+  it('does nothing when there is no old folder', () => {
+    expect(moveRenamedAppData(join(root, 'Echo'), dataDir)).toBe(false);
   });
 });
