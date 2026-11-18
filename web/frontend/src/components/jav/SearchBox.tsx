@@ -3,9 +3,10 @@ import type { FormEvent, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, Clock, LoaderCircle, Search, X } from 'lucide-react';
-import { javSuggestOptions } from '../../api/queries';
+import { hanimeSuggestOptions, javSuggestOptions } from '../../api/queries';
 import type { JavKind } from '../../api/types';
 import { dvdIdSlug, idolRoute, movieRoute } from '../../lib/jav';
+import { seriesRoute, studioRoute, tagLabel, tagRoute, titleRoute } from '../../lib/hanime';
 import { useJavPrefs } from '../../lib/jav-prefs';
 import { JavImage } from './JavImage';
 
@@ -22,16 +23,19 @@ export interface Suggestion {
 }
 
 /**
- * Where suggestions come from: the site's movie or idol search (a request per pause in typing), or a
- * list the page already has (instant).
+ * Where suggestions come from: the site's movie or idol search (a request per pause in typing),
+ * Hanime's catalog on the server (fast, so a shorter pause), or a list the page already has (instant).
  */
 export type SuggestSource =
   | { type: 'movies'; kind?: JavKind }
   | { type: 'idols' }
+  | { type: 'hanime' }
   | { type: 'local'; items: Suggestion[] };
 
 const MAX_RECENT = 6;
 const DEBOUNCE_MS = 300;
+/** Hanime's suggestions come from Echo's own copy of the catalog, not the site. */
+const HANIME_DEBOUNCE_MS = 120;
 
 function readRecent(scope: string): string[] {
   try {
@@ -87,17 +91,18 @@ export function SearchBox({
   const [active, setActive] = useState(-1);
   const [recent, setRecent] = useState(() => readRecent(scope));
   const q = text.trim();
-  const debounced = useDebounced(q, DEBOUNCE_MS);
+  const debounced = useDebounced(q, source.type === 'hanime' ? HANIME_DEBOUNCE_MS : DEBOUNCE_MS);
   const hideUpcoming = useJavPrefs((s) => s.hideUpcoming);
 
   // A new address (Back, a link) brings its own query.
   useEffect(() => setText(initial), [initial]);
 
-  const remote = source.type === 'local' ? null : source;
+  const remote = source.type === 'movies' || source.type === 'idols' ? source : null;
   const suggest = useQuery({
     ...javSuggestOptions(remote?.type ?? 'movies', debounced, remote?.type === 'movies' ? remote.kind : undefined),
     enabled: remote !== null && debounced.length >= 2,
   });
+  const hanime = useQuery({ ...hanimeSuggestOptions(debounced), enabled: source.type === 'hanime' && debounced.length >= 1 });
 
   const rows: Suggestion[] = useMemo(() => {
     if (q.length === 0) return recent.map((r) => ({ key: `recent:${r}`, label: r }));
@@ -111,6 +116,19 @@ export function SearchBox({
     if (source.type === 'local') {
       const needle = q.toLowerCase();
       out.push(...source.items.filter((s) => s.label.toLowerCase().includes(needle)).slice(0, 8));
+    } else if (source.type === 'hanime') {
+      for (const s of hanime.data ?? []) {
+        if (s.type === 'title') {
+          const c = s.card;
+          out.push({ key: `t:${c.id}`, label: c.name, sub: `${c.studio.name} · ${c.releasedAt.slice(0, 4)}`, image: c.cover, to: titleRoute(c.slug) });
+        } else if (s.type === 'series') {
+          out.push({ key: `s:${s.key}`, label: s.name, sub: `Series · ${s.count} episodes`, image: s.poster, to: seriesRoute(s.key) });
+        } else if (s.type === 'tag') {
+          out.push({ key: `g:${s.ref.slug}`, label: tagLabel(s.ref.name), sub: `Tag · ${s.ref.count ?? 0} titles`, to: tagRoute(s.ref.slug) });
+        } else {
+          out.push({ key: `b:${s.ref.slug}`, label: s.ref.name, sub: `Studio · ${s.ref.count ?? 0} titles`, to: studioRoute(s.ref.slug) });
+        }
+      }
     } else if (q.length >= 2) {
       const data = suggest.data;
       for (const m of (data?.movies ?? []).filter((m) => !(hideUpcoming && m.upcoming))) {
@@ -128,7 +146,7 @@ export function SearchBox({
     }
     out.push({ key: 'submit', label: `Search for “${q}”` });
     return out;
-  }, [q, recent, source, suggest.data, hideUpcoming]);
+  }, [q, recent, source, suggest.data, hanime.data, hideUpcoming]);
 
   useEffect(() => setActive(-1), [q]);
 
@@ -185,7 +203,9 @@ export function SearchBox({
   };
 
   const showList = open && rows.length > 0 && !(q.length === 0 && recent.length === 0);
-  const loading = remote !== null && q.length >= 2 && (suggest.isFetching || debounced !== q);
+  const loading =
+    (remote !== null && q.length >= 2 && (suggest.isFetching || debounced !== q)) ||
+    (source.type === 'hanime' && q.length >= 1 && hanime.isFetching);
   const field =
     variant === 'header'
       ? 'h-10 rounded-lg border-white/10 bg-background/60 text-sm backdrop-blur-md hover:border-white/20 focus:border-white/25 focus:bg-background/80'

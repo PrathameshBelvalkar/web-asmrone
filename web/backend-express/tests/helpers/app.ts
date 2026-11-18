@@ -29,6 +29,11 @@ export async function makeTestApp(
     javdatabaseDispatcher?: Dispatcher;
     javguruDispatcher?: Dispatcher;
     javClock?: Clock;
+    hanimeDispatcher?: Dispatcher;
+    hanimeClock?: Clock;
+    hentaibrosDispatcher?: Dispatcher;
+    /** Off unless a test turns it on. */
+    hanimeSync?: boolean;
     distDir?: string | null;
     /** Off unless a test passes one. */
     aiSubtitles?: AiSubtitleService | null;
@@ -52,6 +57,7 @@ export async function makeTestApp(
     benchSample: '',
     desktopVersion: null,
     modelsDir: join(t.dir, 'models'),
+    hanimeSync: options.hanimeSync ?? false,
   };
   const logger = createLogger('silent');
   const container = createContainer(config, logger, {

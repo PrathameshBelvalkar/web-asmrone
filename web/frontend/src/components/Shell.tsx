@@ -6,6 +6,8 @@ import { AppBreadcrumb } from './AppBreadcrumb';
 import { HeaderWash } from './HeaderWash';
 import { MiniPlayer } from './MiniPlayer';
 import { JavHeaderSearch } from './jav/HeaderSearch';
+import { HanimeHeaderSearch } from './hanime/HeaderSearch';
+import { useHanimeEvents } from '../lib/hanime-events';
 import { PlayerBar } from './PlayerBar';
 import { NowPlaying } from './NowPlaying';
 import { Toasts } from './Toasts';
@@ -16,7 +18,7 @@ import { currentTrack, togglePlay } from '../player/engine';
 import { useAutoSubtitles } from '../hooks/use-auto-subtitles';
 import { useToolsReadyToast } from '../hooks/use-tools-ready-toast';
 import { usePlayerAccent } from '../hooks/use-player-accent';
-import { useScrolled } from '../hooks/use-scroll';
+import { useScrolled, useScrollToTopOnNavigate } from '../hooks/use-scroll';
 import { cn } from '@/lib/utils';
 
 /** App frame: sidebar, header with breadcrumbs, page content, and the player at the bottom. */
@@ -40,9 +42,17 @@ function ShellInner() {
   const nowPlayingOpen = usePlayer((s) => s.nowPlayingOpen);
   const setState = usePlayer((s) => s.setState);
   const scrolled = useScrolled();
-  // Manga and JAV pages get the small floating player instead of the full bar.
-  const manga = /^\/(?:manga|jav)(?:\/|$)/.test(location.pathname);
-  const area = location.pathname.startsWith('/manga') ? 'manga' : location.pathname.startsWith('/jav') ? 'jav' : 'music';
+  useScrollToTopOnNavigate();
+  // Manga, JAV and Hanime pages get the small floating player instead of the full bar.
+  const manga = /^\/(?:manga|jav|hentai)(?:\/|$)/.test(location.pathname);
+  const area = location.pathname.startsWith('/manga')
+    ? 'manga'
+    : location.pathname.startsWith('/jav')
+      ? 'jav'
+      : location.pathname.startsWith('/hentai')
+        ? 'hanime'
+        : 'music';
+  useHanimeEvents(area === 'hanime');
   useAutoSubtitles();
   useToolsReadyToast();
   usePlayerAccent();
@@ -84,6 +94,8 @@ function ShellInner() {
         <div className="min-w-0 flex-1 sm:hidden" />
         {area === 'jav' ? (
           <JavHeaderSearch />
+        ) : area === 'hanime' ? (
+          <HanimeHeaderSearch />
         ) : (
           !['/search', '/manga/search'].includes(location.pathname) && <TopSearch area={area} />
         )}

@@ -17,6 +17,8 @@ const envSchema = z.object({
   ECHO_BIN_DIR: z.string().min(1).optional(),
   ECHO_BENCH_SAMPLE: z.string().min(1).optional(),
   ECHO_DESKTOP_VERSION: z.string().min(1).optional(),
+  /** `0` turns off the Hanime catalog sync (tests). */
+  ECHO_HANIME_SYNC: z.enum(['0', '1']).default('1'),
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .default('info'),
@@ -42,6 +44,8 @@ export interface AppConfig {
   readonly desktopVersion: string | null;
   /** Downloaded Whisper models. */
   readonly modelsDir: string;
+  /** Download hanime's catalog at start-up and on a timer. Off only in tests. */
+  readonly hanimeSync: boolean;
 }
 
 export interface WhisperConfig {
@@ -78,6 +82,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
         : fileURLToPath(new URL('../../assets/benchmark.wav', import.meta.url))),
     desktopVersion: parsed.data.ECHO_DESKTOP_VERSION ?? null,
     modelsDir: join(dataDir, 'models'),
+    hanimeSync: parsed.data.ECHO_HANIME_SYNC === '1',
   };
 }
 

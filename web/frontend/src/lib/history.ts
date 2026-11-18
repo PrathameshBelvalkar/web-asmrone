@@ -49,7 +49,20 @@ export interface WatchEntry {
   at: number;
 }
 
-export type HistoryEntry = ListenEntry | ReadEntry | WatchEntry;
+export interface HentaiEntry {
+  kind: 'hanime';
+  /** The title's slug (opens `/hentai/title/{slug}`). */
+  id: string;
+  title: string;
+  /** The portrait poster. */
+  cover: string | null;
+  /** Seconds watched and the episode's length, in seconds. */
+  position: number;
+  duration: number;
+  at: number;
+}
+
+export type HistoryEntry = ListenEntry | ReadEntry | WatchEntry | HentaiEntry;
 
 const KEY = 'echo:history';
 /** Per kind. */
@@ -59,7 +72,7 @@ function load(): HistoryEntry[] {
   try {
     const raw = localStorage.getItem(KEY);
     const data: unknown = raw ? JSON.parse(raw) : [];
-    return Array.isArray(data) ? (data as HistoryEntry[]).filter((e) => e && (e.kind === 'asmr' || e.kind === 'manga' || e.kind === 'jav')) : [];
+    return Array.isArray(data) ? (data as HistoryEntry[]).filter((e) => e && (e.kind === 'asmr' || e.kind === 'manga' || e.kind === 'jav' || e.kind === 'hanime')) : [];
   } catch {
     return [];
   }
@@ -156,13 +169,33 @@ export function recordWatch(movie: WatchedMovie, position: number, duration: num
   });
 }
 
+/** The hentai title being watched, as the player records it. */
+export interface WatchedTitle {
+  slug: string;
+  title: string;
+  cover: string | null;
+}
+
+/** Records how far into hentai [t] you are. */
+export function recordHentaiWatch(t: WatchedTitle, position: number, duration: number, now = Date.now()): void {
+  push({
+    kind: 'hanime',
+    id: t.slug,
+    title: t.title,
+    cover: t.cover,
+    position: Math.max(0, Math.floor(position)),
+    duration: Math.max(0, Math.floor(duration)),
+    at: now,
+  });
+}
+
 /** Within the last two minutes (or 5%) counts as watched to the end. */
 export function isFinished(e: Pick<WatchEntry, 'position' | 'duration'>): boolean {
   return e.duration > 0 && (e.position >= e.duration - 120 || e.position >= e.duration * 0.95);
 }
 
 /** Where to pick a movie up again, in seconds; null when it's barely started or finished. */
-export function resumeAt(e: WatchEntry | undefined): number | null {
+export function resumeAt(e: Pick<WatchEntry, 'position' | 'duration'> | undefined): number | null {
   if (!e || e.position < 30 || isFinished(e)) return null;
   return e.position;
 }
@@ -171,6 +204,11 @@ export function resumeAt(e: WatchEntry | undefined): number | null {
 export function useWatchEntry(kind: string, slug: string): WatchEntry | undefined {
   const id = watchId(kind, slug);
   return useHistory((s) => s.entries.find((e): e is WatchEntry => e.kind === 'jav' && e.id === id));
+}
+
+/** The watch entry for a hentai title, kept up to date. */
+export function useHentaiEntry(slug: string): HentaiEntry | undefined {
+  return useHistory((s) => s.entries.find((e): e is HentaiEntry => e.kind === 'hanime' && e.id === slug));
 }
 
 export function removeEntry(kind: HistoryEntry['kind'], id: string): void {

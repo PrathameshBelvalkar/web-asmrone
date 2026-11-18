@@ -3,6 +3,19 @@ import type {
   Artist,
   EditableDto,
   FeedDto,
+  HanimeBrowse,
+  HanimeCard,
+  HanimeChange,
+  HanimeDetails,
+  HanimeList,
+  HanimeRef,
+  HanimeSeasons,
+  HanimeShelf,
+  HanimeStatus,
+  HanimeStream,
+  HanimeSuggestion,
+  HanimeTagGroup,
+  HanimeTitle,
   JavGenreGroup,
   JavIdol,
   JavIdolCard,
@@ -233,7 +246,41 @@ export const api = {
     idol: (slug: string) => req<JavIdol>("GET", `/jav/idol/${enc(slug)}`),
     genres: () => req<{ groups: JavGenreGroup[] }>("GET", "/jav/genres"),
   },
+  hanime: {
+    home: () => req<HanimeShelf[]>("GET", "/hanime/home"),
+    titles: (browse: HanimeBrowse, page: number) =>
+      req<HanimeList>("GET", `/hanime/titles?${hanimeParams(browse, page).toString()}`),
+    title: (slug: string) => req<HanimeTitle>("GET", `/hanime/title/${enc(slug)}`),
+    details: (slug: string) => req<HanimeDetails>("GET", `/hanime/title/${enc(slug)}/details`),
+    seasons: (year: number | null) =>
+      req<HanimeSeasons>("GET", `/hanime/seasons${year === null ? "" : `?year=${year}`}`),
+    random: () => req<HanimeCard>("GET", "/hanime/random"),
+    tags: () => req<HanimeTagGroup[]>("GET", "/hanime/tags"),
+    studios: () => req<HanimeRef[]>("GET", "/hanime/studios"),
+    suggest: (q: string) => req<HanimeSuggestion[]>("GET", `/hanime/suggest?q=${enc(q)}`),
+    changes: () => req<HanimeChange[]>("GET", "/hanime/changes?limit=50"),
+    status: () => req<HanimeStatus>("GET", "/hanime/status"),
+    sync: () => req<HanimeStatus>("POST", "/hanime/sync"),
+    stream: (slug: string) => req<HanimeStream>("GET", `/hanime/title/${enc(slug)}/stream`),
+  },
 };
+
+/** Browse's choices as the server's query: only what differs from the defaults is sent. */
+export function hanimeParams(b: HanimeBrowse, page: number): URLSearchParams {
+  const p = new URLSearchParams();
+  if (b.q) p.set("q", b.q);
+  if (b.tags.length) p.set("tags", b.tags.join(","));
+  if (b.tags.length > 1 && b.tagMode === "or") p.set("tagMode", "or");
+  if (b.exclude.length) p.set("exclude", b.exclude.join(","));
+  if (b.studios.length) p.set("studios", b.studios.join(","));
+  if (b.censored !== "all") p.set("censored", b.censored);
+  if (b.year) p.set("year", b.year);
+  if (b.series) p.set("series", b.series);
+  p.set("sort", b.sort);
+  p.set("order", b.order);
+  p.set("page", String(page));
+  return p;
+}
 
 export interface LikeStatusDto {
   liked: boolean;

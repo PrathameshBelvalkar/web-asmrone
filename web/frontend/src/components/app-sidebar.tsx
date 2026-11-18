@@ -1,4 +1,4 @@
-import { BookOpen, Clapperboard, History, House, Library, MonitorPlay, Newspaper, Palette, Search, Settings, Sparkles, Tags, Users } from 'lucide-react';
+import { BookOpen, CalendarRange, Clapperboard, Film, History, House, LayoutGrid, Library, MonitorPlay, Newspaper, Palette, Search, Settings, Sparkles, Tags, Users } from 'lucide-react';
 import appIcon from '../assets/echo-icon.png';
 import type { LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -82,6 +82,25 @@ function javActive(item: NavItem, pathname: string): boolean {
   return section === item.url;
 }
 
+const HANIME: NavItem[] = [
+  { title: 'Home', url: '/hentai', icon: House, end: true },
+  { title: 'Browse', url: '/hentai/browse', icon: LayoutGrid },
+  { title: 'All titles', url: '/hentai/titles', icon: Film },
+  { title: 'Seasons', url: '/hentai/seasons', icon: CalendarRange },
+  { title: 'Search', url: '/hentai/search', icon: Search },
+  { title: 'Library', url: '/hentai/library', icon: MonitorPlay },
+];
+
+/** Which Hentai item a page belongs to: a title goes with All titles. */
+function hanimeActive(item: NavItem, pathname: string): boolean {
+  const section = pathname.startsWith('/hentai/title/')
+    ? '/hentai/titles'
+    : pathname === '/hentai' || pathname === '/hentai/'
+      ? '/hentai'
+      : (HANIME.find((i) => i.url !== '/hentai' && pathname.startsWith(i.url))?.url ?? null);
+  return section === item.url;
+}
+
 /** App navigation. Collapses to icons on desktop and becomes a sheet on phones. */
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const me = useQuery(meOptions());
@@ -158,6 +177,27 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   asChild
                   tooltip={`JAV: ${item.title}`}
                   isActive={javActive(item, pathname)}
+                  className={NAV_ITEM}
+                >
+                  <NavLink to={item.url} end={item.end}>
+                    <item.icon aria-hidden />
+                    <span>{item.title}</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Hentai</SidebarGroupLabel>
+          <SidebarMenu>
+            {HANIME.map((item) => (
+              <SidebarMenuItem key={item.url}>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={`Hentai: ${item.title}`}
+                  isActive={hanimeActive(item, pathname)}
                   className={NAV_ITEM}
                 >
                   <NavLink to={item.url} end={item.end}>

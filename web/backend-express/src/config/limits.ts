@@ -54,4 +54,28 @@ export const LIMITS = {
   javguruMissTtlMs: 24 * 60 * 60_000,
   javguruServersTtlMs: 24 * 60 * 60_000,
   javguruStreamTtlMs: 60 * 60_000,
+  /**
+   * hanime (Hanime catalog): timeouts, how often the catalog is downloaded (Cloudflare keeps it for
+   * an hour, so more often only returns the same copy), and the shortest gap between manual refreshes.
+   */
+  hanimeConnectTimeoutMs: 10_000,
+  hanimeResponseTimeoutMs: 60_000,
+  hanimeSyncIntervalMs: 30 * 60_000,
+  hanimeManualSyncGapMs: 5 * 60_000,
+  /** Title pages (Preview, length, other names) and the Browse page: one at a time, this far apart, kept a day. */
+  hanimePageGapMs: 1_000,
+  hanimeDetailsTtlMs: 24 * 60 * 60_000,
+  /**
+   * hentaibros.net (a title's video; docs/HANIME.md section 12): timeouts, the gap between
+   * requests, how long its list of posts is used, and how long a title's video, or the lack of one,
+   * is remembered.
+   */
+  hentaibrosConnectTimeoutMs: 10_000,
+  hentaibrosResponseTimeoutMs: 30_000,
+  hentaibrosGapMs: 1_000,
+  hentaibrosPostsTtlMs: 24 * 60 * 60_000,
+  /** After the post list couldn't be read, how long before asking again. */
+  hentaibrosPostsRetryMs: 15 * 60_000,
+  hentaibrosStreamTtlMs: 7 * 24 * 60 * 60_000,
+  hentaibrosMissTtlMs: 6 * 60 * 60_000,
 } as const;
