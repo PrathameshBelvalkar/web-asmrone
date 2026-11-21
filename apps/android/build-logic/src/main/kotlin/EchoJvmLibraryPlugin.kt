@@ -9,7 +9,7 @@ import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 /**
- * A backend module: plain Kotlin/JVM, no Android code (docs/ANDROID.md §3).
+ * A backend module: plain Kotlin/JVM, no Android code.
  *
  * - JDK 17 toolchain, so the bytecode and the JDK API match what Android runs.
  * - JUnit 5 with coroutines-test.

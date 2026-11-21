@@ -1,4 +1,4 @@
-// :source-javguru. Port of web/backend-express/src/extension/javguru (docs/ANDROID.md §4.2).
+// :source-javguru. Port of web/backend-express/src/extension/javguru.
 plugins {
     id("echo.jvm.library")
     alias(libs.plugins.kotlin.serialization)

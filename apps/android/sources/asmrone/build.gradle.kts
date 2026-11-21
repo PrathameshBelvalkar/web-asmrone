@@ -1,4 +1,4 @@
-// :source-asmrone. Port of web/backend-express/src/extension/asmrone (docs/ANDROID.md §4.2).
+// :source-asmrone. Port of web/backend-express/src/extension/asmrone.
 plugins {
     id("echo.jvm.library")
     alias(libs.plugins.kotlin.serialization)

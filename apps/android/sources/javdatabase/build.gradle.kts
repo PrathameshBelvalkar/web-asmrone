@@ -1,4 +1,4 @@
-// :source-javdatabase. Port of web/backend-express/src/extension/javdatabase (docs/ANDROID.md §4.2).
+// :source-javdatabase. Port of web/backend-express/src/extension/javdatabase.
 plugins {
     id("echo.jvm.library")
     alias(libs.plugins.kotlin.serialization)

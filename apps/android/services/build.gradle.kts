@@ -1,4 +1,4 @@
-// :services. AsmrService, MangaService, JavService, JavStreamService and SourceRouter (docs/ANDROID.md §4.2).
+// :services. AsmrService, MangaService, JavService, JavStreamService and SourceRouter.
 plugins {
     id("echo.jvm.library")
     alias(libs.plugins.kotlin.serialization)

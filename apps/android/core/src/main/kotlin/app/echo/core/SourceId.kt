@@ -1,6 +1,6 @@
 package app.echo.core
 
-/** The app's three sections. The source switcher groups sources by these (docs/ANDROID.md §9.1). */
+/** The app's three sections. The source switcher groups sources by these. */
 public enum class Section { ASMR, MANGA, JAV }
 
 /**

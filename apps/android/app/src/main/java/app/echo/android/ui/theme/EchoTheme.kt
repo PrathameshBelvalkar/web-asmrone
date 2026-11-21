@@ -12,7 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 
 /**
  * Plain Material 3 with dynamic colour (Android 12+). Custom seed colour, pure black and the
- * player colours come in M1 (docs/ANDROID.md §8.1).
+ * player colours come with the design system (docs/android/design/design.md §7).
  */
 @Composable
 fun EchoTheme(

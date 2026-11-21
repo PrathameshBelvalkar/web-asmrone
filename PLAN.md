@@ -709,7 +709,7 @@ The decision is **Capacitor**. With one developer, one copy of each source scrap
 
 > **Changed:** the Android app is now planned as **native Kotlin + Jetpack Compose (Material 3)**, with every
 > scraper rewritten in Kotlin and running on the phone (no Node, no computer needed). See
-> [`docs/ANDROID.md`](docs/ANDROID.md).
+> [`docs/android/design/design.md`](docs/android/design/design.md).
 
 ### 10.2 Inside the Android app
 
@@ -995,7 +995,7 @@ These choices affect the work. The ✅ option is assumed in this plan unless we 
 |---|---|---|---|
 | 1 | Public release? | Phase 1 | Decides whether we must publish source now (see licence risk) |
 | 2 | Remote access outside home | Phase 2 | ✅ Same Wi-Fi + Tailscale · Build our own relay server (more work, costs money) |
-| 3 | Android framework | Phase 3 | ~~Capacitor + shared core~~ · ✅ Native Kotlin/Compose: decided, see [`docs/ANDROID.md`](docs/ANDROID.md) |
+| 3 | Android framework | Phase 3 | ~~Capacitor + shared core~~ · ✅ Native Kotlin/Compose: decided, see [`docs/android/design/design.md`](docs/android/design/design.md) |
 | 4 | "Media libraries" on Android | Phase 4 | ✅ Online sources first, phone files in Phase 7 · Both from the start |
 | 5 | Android audio decoding | Phase 6 | ✅ Our own small FFmpeg · Android MediaCodec |
 

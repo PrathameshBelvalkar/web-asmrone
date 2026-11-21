@@ -56,7 +56,7 @@ changes since the last version, and SHA-256 checksums. Open the draft on GitHub,
 
 ## Android app
 
-A native Kotlin app in `apps/android/`. The plan is [`ANDROID.md`](ANDROID.md).
+A native Kotlin app in `apps/android/`. The UI build plan is [`android/design/design.md`](android/design/design.md).
 
 ### Requirements
 
@@ -66,7 +66,7 @@ A native Kotlin app in `apps/android/`. The plan is [`ANDROID.md`](ANDROID.md).
   with a **JDK 17 toolchain**, which Gradle downloads once if the machine doesn't have one.
 - **`apps/android/local.properties`** with `sdk.dir=/Users/<you>/Library/Android/sdk`. Android Studio writes it when
   you open the project; it is not committed. Setting `ANDROID_HOME` works too.
-- An emulator: Device Manager → **Pixel 8**, newest stable image, arm64-v8a on Apple chips ([`ANDROID.md` §5](ANDROID.md#5-emulator-first-can-we-skip-a-real-phone)).
+- An emulator: Device Manager → **Pixel 8**, newest stable image, arm64-v8a on Apple chips ([`design.md` §4](android/design/design.md#4-emulator-setup)).
 
 ### Build and run
 

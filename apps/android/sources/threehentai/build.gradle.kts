@@ -1,4 +1,4 @@
-// :source-threehentai. Port of web/backend-express/src/extension/threehentai (docs/ANDROID.md §4.2).
+// :source-threehentai. Port of web/backend-express/src/extension/threehentai.
 plugins {
     id("echo.jvm.library")
     alias(libs.plugins.kotlin.serialization)

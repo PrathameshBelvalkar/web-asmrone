@@ -32,7 +32,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "echo-android"
 
-// Backend: pure Kotlin/JVM, no Android code (docs/ANDROID.md §3).
+// Backend: pure Kotlin/JVM, no Android code.
 include(":core")
 include(":services")
 

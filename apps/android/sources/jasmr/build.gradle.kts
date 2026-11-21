@@ -1,4 +1,4 @@
-// :source-jasmr. Port of web/backend-express/src/extension/jasmr (docs/ANDROID.md §4.2).
+// :source-jasmr. Port of web/backend-express/src/extension/jasmr.
 plugins {
     id("echo.jvm.library")
     alias(libs.plugins.kotlin.serialization)

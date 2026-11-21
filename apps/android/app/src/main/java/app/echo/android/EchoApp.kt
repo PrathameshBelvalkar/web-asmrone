@@ -4,7 +4,7 @@ import android.app.Application
 import timber.log.Timber
 
 class EchoApp : Application() {
-    /** Hand-made DI, like the server's container.ts (docs/ANDROID.md §3). */
+    /** Hand-made DI, like the server's container.ts. */
     lateinit var container: AppContainer
         private set
 
