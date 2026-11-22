@@ -20,6 +20,7 @@ import app.echo.android.feature.placeholder.PlaceholderAction
 import app.echo.android.feature.placeholder.PlaceholderScreen
 import app.echo.data.model.Section
 import app.echo.data.model.Source
+import app.echo.data.model.Track
 import app.echo.designsystem.component.m3e.EchoSearchAppBar
 import app.echo.designsystem.component.m3e.EchoSmallAppBar
 import kotlin.reflect.KClass
@@ -32,6 +33,8 @@ interface ShellActions {
     fun openSourceSwitcher()
     fun openProfile()
     fun playSample()
+    /** Queue [tracks] from [index] and open the full player (1.8). */
+    fun play(tracks: List<Track>, index: Int, playingFrom: String)
     fun finishOnboarding()
     fun sectionIcon(section: Section): Int
 }
@@ -54,7 +57,9 @@ fun EchoNavHost(
     // Read through a State so screens recompose when the source changes (the graph itself is built once).
     val currentSource = rememberUpdatedState(source)
     NavHost(navController = nav, startDestination = start, modifier = modifier) {
-        ScreenSpecs.all.map { it.routeClass }.distinct().forEach { routeClass ->
+        // Built screens (Phase 5 onwards). Everything else is still a placeholder.
+        val built = realScreens(shell, currentSource, contentPadding)
+        ScreenSpecs.all.map { it.routeClass }.distinct().filterNot { it in built }.forEach { routeClass ->
             placeholder(routeClass, shell, currentSource, contentPadding, extras)
         }
     }

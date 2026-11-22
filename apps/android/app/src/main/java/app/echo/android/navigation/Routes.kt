@@ -18,7 +18,8 @@ sealed interface Route {
     @Serializable data object AsmrHome : Route
     @Serializable data object AsmrSearch : Route
     @Serializable data class AsmrResults(val query: String) : Route
-    @Serializable data object AsmrFeed : Route
+    /** 1.4 Feed: 1 Popular · 2 New · 3 Recommended (the 1.1 tabs). */
+    @Serializable data class AsmrFeed(val tab: Int = 1) : Route
     @Serializable data class Work(val id: String) : Route
     @Serializable data class Artist(val id: String) : Route
     @Serializable data class Playlist(val id: Long) : Route

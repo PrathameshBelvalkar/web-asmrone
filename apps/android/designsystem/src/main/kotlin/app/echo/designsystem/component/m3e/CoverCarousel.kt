@@ -21,6 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
+import kotlin.math.roundToInt
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.echo.designsystem.component.echo.ContinueCard
@@ -81,6 +83,9 @@ fun CoverRow(
     }
 }
 
+private val TitleFadeStart = 64.dp
+private val TitleFadeLength = 40.dp
+
 /** Figma 1.1: big multi-browse item 236 × 220 dp. */
 private val HeroItemWidth = 236.dp
 private val HeroItemHeight = 220.dp
@@ -109,9 +114,16 @@ fun CarouselItemScope.HeroCarouselItem(
         Box(
             Modifier
                 .align(Alignment.BottomStart)
-                .fillMaxWidth()
+                // The item is laid out at full width and masked: keep the title inside the visible mask.
+                .layout { measurable, constraints ->
+                    val mask = info.maskRect
+                    val width = mask.width.roundToInt().coerceIn(0, constraints.maxWidth)
+                    val placeable = measurable.measure(constraints.copy(minWidth = width, maxWidth = width))
+                    layout(constraints.maxWidth, placeable.height) { placeable.place(mask.left.roundToInt(), 0) }
+                }
                 .background(Brush.verticalGradient(listOf(Color.Transparent, MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))))
-                .graphicsLayer { alpha = ((info.size - 96.dp.toPx()) / 96.dp.toPx()).coerceIn(0f, 1f) }
+                // Fully visible from Figma's medium item (116 dp) up; fades out on the small peeking ones.
+                .graphicsLayer { alpha = ((info.size - TitleFadeStart.toPx()) / TitleFadeLength.toPx()).coerceIn(0f, 1f) }
                 .padding(EchoSpacing.l),
         ) {
             Text(title, style = MaterialTheme.typography.titleMediumEmphasized, color = Color.White, maxLines = 2)

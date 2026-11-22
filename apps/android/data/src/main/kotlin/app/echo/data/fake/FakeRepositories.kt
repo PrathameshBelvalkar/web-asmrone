@@ -47,7 +47,8 @@ class FakeAsmrRepository(private val config: FakeConfig) : AsmrRepository {
         val works = c.works.drop(tab % 2).let { it + c.works.take(tab % 2) }
         AsmrHome(
             featured = works.take(4),
-            trending = works.flatMap { it.tracks.take(1) }.take(6),
+            // One track per work, a different one each (Figma: "01 · Opening, whispered", "03 · Rain and heartbeat").
+            trending = works.mapIndexed { i, w -> w.tracks[(i * 2) % w.tracks.size] }.take(6),
             shelves = listOf(Shelf("New releases", works.reversed()), Shelf("Popular circles", works)),
         )
     }

@@ -2,6 +2,7 @@ package app.echo.android.shell
 
 import android.app.Activity
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -53,6 +54,7 @@ import app.echo.android.navigation.SectionNav
 import app.echo.android.navigation.ShellActions
 import app.echo.android.navigation.Tab
 import app.echo.data.model.Section
+import app.echo.data.model.Track
 import app.echo.data.repository.PlayerState
 import app.echo.designsystem.component.echo.FullPlayer
 import app.echo.designsystem.component.echo.FullPlayerLabels
@@ -104,6 +106,10 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
             override fun openSourceSwitcher() { showSwitcher = true }
             override fun openProfile() { showProfile = true }
             override fun playSample() = vm.playSample()
+            override fun play(tracks: List<Track>, index: Int, playingFrom: String) {
+                vm.player.play(tracks, index, playingFrom)
+                sheet.expand()
+            }
             override fun finishOnboarding() {
                 vm.finishOnboarding()
                 val section = vm.state.value?.source?.section ?: Section.ASMR
@@ -122,7 +128,7 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
     val bottomPadding = (if (showNavBar) navBarHeight else 0.dp) +
         (if (showPlayer && showNavBar) MiniPlayerReserve else 0.dp)
 
-    Box(Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
         EchoNavHost(
             nav = nav,
             start = start,
@@ -218,7 +224,7 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
                     nav.navigate(SectionNav.root(source.section, Tab.HOME)) { popUpTo(nav.graph.id) { inclusive = true } }
                 }
             },
-            onSettings = { showSwitcher = false; nav.navigate(Route.Preferences) },
+            onSettings = { showSwitcher = false; nav.navigate(Route.Settings) },
             onDismiss = { showSwitcher = false },
         )
     }

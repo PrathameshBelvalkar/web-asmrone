@@ -47,6 +47,15 @@ android {
     }
 }
 
+// Every screen @Preview under feature/ is a Roborazzi screenshot test (design.md §12.2).
+roborazzi {
+    generateComposePreviewRobolectricTests {
+        enable = true
+        packages = listOf("app.echo.android.feature")
+        includePrivatePreviews = true
+    }
+}
+
 kotlin {
     jvmToolchain(libs.versions.jvmTarget.get().toInt())
 }
@@ -68,6 +77,7 @@ dependencies {
     // Compose, Material 3 and tooling come from echo.android.compose; Roborazzi from echo.android.screenshots.
 
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
 
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)

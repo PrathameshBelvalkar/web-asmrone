@@ -47,4 +47,33 @@
     <string name="settings_age">Age</string>
     <string name="settings_adult_sources">Show adult sources</string>
     <string name="settings_adult_sources_summary">JAV, Hentai, 3hentai and Hentai ASMR. 18+ only.</string>
+
+    <!-- States (0.4, H.10) -->
+    <string name="state_try_again">Try again</string>
+    <string name="state_offline_title">You’re offline</string>
+    <string name="state_offline_body">Check your connection and try again.</string>
+    <string name="state_not_found_title">Page not found</string>
+    <string name="state_not_found_body">This page doesn’t exist or has moved.</string>
+    <string name="state_blocked_title">Not available here</string>
+    <string name="state_blocked_body">This source is blocked in your region.</string>
+    <string name="state_busy_title">The source is busy</string>
+    <string name="state_busy_body">Try again in a little while.</string>
+    <string name="state_no_video_title">No video for this title</string>
+    <string name="state_no_video_body">There’s nothing to play yet.</string>
+    <string name="state_empty_title">Nothing here yet</string>
+    <string name="state_empty_body">Try another search or filter.</string>
+
+    <!-- Formats -->
+    <string name="format_minutes">%1$dm</string>
+    <string name="format_hours_minutes">%1$dh %2$dm</string>
+    <string name="format_left_minutes">%1$d min left</string>
+    <string name="format_left_hours">%1$dh %2$dm left</string>
+
+    <!-- ASMR -->
+    <string name="asmr_tab_for_you">For you</string>
+    <string name="asmr_tab_popular">Popular</string>
+    <string name="asmr_tab_new">New</string>
+    <string name="asmr_tab_recommended">Recommended</string>
+    <string name="asmr_home_continue">Continue listening</string>
+    <string name="asmr_home_trending">Trending tracks</string>
 </resources>

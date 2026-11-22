@@ -45,10 +45,10 @@ object ScreenSpecs {
         s("0.3", "History", Route.History, S, Route.Gallery("g1"), Route.Reader("g1", 34)),
         s("0.4", "Not found & empty", Route.NotFound, P),
         // ASMR
-        s("1.1", "Home", Route.AsmrHome, S, Route.Work("w1"), Route.AsmrFeed, Route.History),
+        s("1.1", "Home", Route.AsmrHome, S, Route.Work("w1"), Route.AsmrFeed(1), Route.History),
         s("1.2", "Search", Route.AsmrSearch, S, Route.AsmrResults("rain")),
         s("1.3", "Search results", Route.AsmrResults("rain"), S, Route.Work("w2"), Route.Artist("a1")),
-        s("1.4", "Feed", Route.AsmrFeed, S, Route.Work("w3")),
+        s("1.4", "Feed", Route.AsmrFeed(1), S, Route.Work("w3")),
         s("1.5", "Work", Route.Work("w1"), S, Route.Artist("a1"), Route.Playlists),
         s("1.6", "Artist", Route.Artist("a1"), S, Route.Work("w1")),
         s("1.7", "Playlist", Route.Playlist(1), S, Route.Work("w1")),
