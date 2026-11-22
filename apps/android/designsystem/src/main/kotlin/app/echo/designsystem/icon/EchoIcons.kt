@@ -300,6 +300,14 @@ object EchoIcons {
     val WifiOff: Int = R.drawable.ic_wifi_off
     val WifiOffFilled: Int = R.drawable.ic_wifi_off_filled
 
+    /** Playing track indicator (TrackRow). */
+    val GraphicEq: Int = R.drawable.ic_graphic_eq
+    val GraphicEqFilled: Int = R.drawable.ic_graphic_eq_filled
+
+    /** Cover placeholder (CoverImage). */
+    val Image: Int = R.drawable.ic_image
+    val ImageFilled: Int = R.drawable.ic_image_filled
+
     /** Every icon, for the Design system debug screen. */
     val All: List<EchoIcon> = listOf(
         EchoIcon("add", Add, AddFilled),
@@ -329,9 +337,11 @@ object EchoIcons {
         EchoIcon("folder", Folder, FolderFilled),
         EchoIcon("format_size", FormatSize, FormatSizeFilled),
         EchoIcon("fullscreen", Fullscreen, FullscreenFilled),
+        EchoIcon("graphic_eq", GraphicEq, GraphicEqFilled),
         EchoIcon("grid_view", GridView, GridViewFilled),
         EchoIcon("history", History, HistoryFilled),
         EchoIcon("home", Home, HomeFilled),
+        EchoIcon("image", Image, ImageFilled),
         EchoIcon("info", Info, InfoFilled),
         EchoIcon("label", Label, LabelFilled),
         EchoIcon("language", Language, LanguageFilled),

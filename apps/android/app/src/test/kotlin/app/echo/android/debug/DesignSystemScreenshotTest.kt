@@ -11,6 +11,8 @@ import org.robolectric.annotation.GraphicsMode
 /**
  * Every section of the Design system debug screen (Figma 5 · Design system) in Light, Dark and Pure black.
  * Phone width, tall enough for a whole section, at 1× density to keep the baselines small.
+ * The Phase 2 gallery is left out: its components have their own preview tests in :designsystem, and its wavy
+ * progress line animates forever, so the screen never goes idle for a capture.
  */
 @RunWith(ParameterizedRobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -25,6 +27,6 @@ class DesignSystemScreenshotTest(private val section: DsSection, private val the
     companion object {
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0} {1}")
-        fun params() = DsSection.entries.flatMap { s -> EchoPreviewTheme.entries.map { t -> arrayOf<Any>(s, t) } }
+        fun params() = DsSection.entries.filter { it != DsSection.Gallery }.flatMap { s -> EchoPreviewTheme.entries.map { t -> arrayOf<Any>(s, t) } }
     }
 }

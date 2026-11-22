@@ -94,6 +94,7 @@ enum class DsSection(val title: String) {
     Spacing("Spacing, padding & layout"),
     Components("Component sizes, elevation & states"),
     Motion("Motion & icons"),
+    Gallery("Components (Phase 2)"),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,6 +129,7 @@ private fun DsSectionContent(section: DsSection) {
             DsSection.Spacing -> SpacingSection()
             DsSection.Components -> ComponentsSection()
             DsSection.Motion -> MotionSection()
+            DsSection.Gallery -> ComponentGallery()
         }
     }
 }

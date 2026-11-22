@@ -44,6 +44,10 @@ class EchoScreenshotTestPlugin : Plugin<Project> {
             add("testImplementation", lib("roborazzi"))
             add("testImplementation", lib("roborazzi-compose"))
             add("testImplementation", lib("roborazzi-junit-rule"))
+            // Preview-driven tests: every @Preview in the module becomes a screenshot test (see the module's
+            // roborazzi { generateComposePreviewRobolectricTests { … } } block).
+            add("testImplementation", lib("roborazzi-preview-scanner-support"))
+            add("testImplementation", lib("composable-preview-scanner"))
             add("testImplementation", lib("compose-ui-test-junit4"))
             // Roborazzi captures through Espresso. Older Espresso calls InputManager.getInstance(), gone in SDK 37.
             add("testImplementation", lib("androidx-test-espresso-core"))

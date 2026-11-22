@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Content descriptions and built-in labels of :designsystem components. -->
+    <string name="echo_cd_profile">Your profile</string>
+    <string name="echo_cd_switch_source">Switch source, current: %1$s</string>
+    <string name="echo_cd_search">Search</string>
+    <string name="echo_cd_more">More options</string>
+    <string name="echo_cd_play">Play</string>
+    <string name="echo_cd_pause">Pause</string>
+    <string name="echo_cd_next">Next track</string>
+    <string name="echo_cd_open">Open %1$s</string>
+    <string name="echo_cd_back">Back</string>
+    <string name="echo_cd_close">Close</string>
+    <string name="echo_cd_no_image">No image</string>
+    <string name="echo_search_placeholder">Search</string>
+</resources>

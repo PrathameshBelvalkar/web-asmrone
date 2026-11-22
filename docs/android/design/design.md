@@ -473,6 +473,22 @@ DataStore (settings)  ──Flow<ThemeConfig>──▶  MainActivity
 - Every component has `@EchoPreviews` and a Roborazzi test, and a `contentDescription` on every icon-only control.
 - A 48 dp touch target, even when the visible element is smaller.
 
+### 8.1a How Phase 2 is built and tested
+
+- **Batches.** 2a (done first) is everything 1.1 Home and the shell need: icon button, button, segmented list,
+  floating navigation bar, search / flexible / small app bars, tabs, carousels, connected and standard button
+  groups, chips, badge, sheet, switch, and the Echo `ProfileAvatar`, `SourceSwitcherButton`, `ShelfHeader`,
+  `CoverImage`, `CoverCard` / `ContinueCard`, `MiniPlayer`, `TrackRow`, `EmptyState`. 2b builds the rest just before
+  the screens that need them.
+- **Previews are the tests.** Every `@Preview` in `:designsystem` becomes a Roborazzi test (Roborazzi's preview
+  scanner, ComposablePreviewScanner pinned to 0.9.3 because 0.10 breaks Roborazzi 1.79). Component previews use
+  `@EchoPreviews` + `EchoThemesPreview { }`, which draws Light, Dark and Pure black in one image.
+- **Uncontained carousel = `CoverRow`.** The M3 uncontained carousel masks each item and clips the card text, so
+  "Carousel (Uncontained)" rows are a `LazyRow` (`CoverRow`). `CoverCarousel` covers Multi-browse and Hero.
+- **Navigation bar** is drawn from primitives (floating pill, wide active item with icon and label side by side),
+  because `ShortNavigationBar`'s indicator can't take Figma's 56 dp pill. `EchoButtonGroup` is a spaced `Row`.
+- The debug Design system screen has a **Components (Phase 2)** section that shows them live on the emulator.
+
 ### 8.2 M3 Expressive components, in build order
 
 Build order is by how many screens use them (the count). Build the top half before Phase 4.
