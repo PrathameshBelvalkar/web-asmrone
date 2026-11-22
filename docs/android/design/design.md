@@ -430,7 +430,7 @@ Every "X" has an "onX" for content on top of it. Use the pair, never mix.
 | **Dynamic colour** (default **on**, Android 12+) | `dynamicLightColorScheme(context)` / `dynamicDarkColorScheme(context)`. The seed is ignored. |
 | **Seed fallback** (dynamic off, or Android < 12) | Seed `#6750A4` → the exact baseline table above. Any other seed → `MaterialKolor` `dynamicColorScheme(seed, isDark, contrastLevel)`. |
 | **Pure black** (AMOLED) | Dark scheme with `background` and `surface` set to `#000000`. Containers stay slightly lifted so cards still separate. Only applies in dark. |
-| **Dynamic player colour** (default on) | Player sheet only. Cover → Palette → seed → scheme, inside its own `MaterialTheme` in `PlayerSheet`. Fake covers get a fixed sample seed (Figma's example is `#904A43`). |
+| **Dynamic player colour** (default on) | Player sheet only. Cover → Palette → seed → scheme, inside its own `MaterialTheme` in `PlayerSheet` (`rememberCoverSeed`). No cover, or while it loads → the app colours. Figma's example seed `#904A43` is used in previews only. |
 | **Contrast** | Follow the system: `UiModeManager.contrast` on Android 14+, passed as `contrastLevel` to seed schemes. Dynamic schemes already follow it. |
 
 ### 7.3 How a switch flows through the app
@@ -855,7 +855,8 @@ All 13 screens are built and checked against Figma on `Pixel_8`. Deliberate diff
 - **1.12 "History" chip** shows ASMR listening history (Room); the full cross-section history is 0.3 (Phase 6).
 - **1.8 overline follows where playback started** ("PLAYING FROM WORK / PLAYLIST / ARTIST / SEARCH / TRENDING / LIKED
   TRACKS"); Figma only shows the work case.
-- **Player colours**: fake covers have no image, so the sheet uses Figma's sample seed `#904A43`, as §7.2 says.
+- **Player colours** come from the cover; a track with no cover (all fake ones) keeps the app colours, so the player
+  doesn't switch to an unrelated colour.
 - **Segmented tiles inside sheets** use surfaceContainerHigh so they separate from the sheet (surfaceContainerLow),
   matching Figma's white sheet with grey tiles.
 - **1.10 Both · EN · JP** segments size to their labels (`ConnectedButtonGroup(equalWidth = false)`), as in Figma.

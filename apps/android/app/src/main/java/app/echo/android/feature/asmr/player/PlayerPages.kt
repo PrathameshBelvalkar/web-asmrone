@@ -69,7 +69,7 @@ import app.echo.designsystem.component.m3e.ToolbarAction
 import app.echo.designsystem.component.m3e.ToolbarStyle
 import app.echo.designsystem.icon.EchoIcons
 import app.echo.designsystem.theme.PlayerTheme
-import app.echo.designsystem.theme.SamplePlayerSeed
+import app.echo.designsystem.theme.rememberCoverSeed
 import app.echo.designsystem.tokens.EchoElevation
 import app.echo.designsystem.tokens.EchoSpacing
 import sh.calvin.reorderable.ReorderableItem
@@ -85,12 +85,13 @@ class PlayerNav(
 )
 
 /**
- * The expanded player sheet: 1.8 Full player, 1.9 Up Next, 1.10 Lyrics. In the player's own colours (dynamic player
- * colour from the cover; fake covers use Figma's sample seed) over a gradient from the cover colour.
+ * The expanded player sheet: 1.8 Full player, 1.9 Up Next, 1.10 Lyrics. In the cover's colours when Dynamic player
+ * colour is on and the track has a cover; otherwise the app colours. Over a gradient from primaryContainer.
  */
 @Composable
 fun PlayerPages(state: PlayerUiState, page: PlayerPage, vm: PlayerViewModel, nav: PlayerNav) {
-    PlayerTheme(seed = SamplePlayerSeed) {
+    // Colours from the current cover; no cover (or still loading) keeps the app colours.
+    PlayerTheme(seed = rememberCoverSeed(state.player.current?.coverUrl)) {
         Box(
             Modifier.fillMaxSize().background(
                 Brush.verticalGradient(listOf(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f), MaterialTheme.colorScheme.surface)),
@@ -312,9 +313,10 @@ fun PlayerMoreSheet(state: PlayerUiState, vm: PlayerViewModel, nav: PlayerNav, o
     val p = state.player
     val track = p.current ?: return onDismiss()
     var pickPlaylist by remember { mutableStateOf(false) }
-    PlayerTheme(seed = SamplePlayerSeed) { MoreSheetContent(state, vm, nav, onDismiss, track) { pickPlaylist = true } }
+    val seed = rememberCoverSeed(track.coverUrl)
+    PlayerTheme(seed = seed) { MoreSheetContent(state, vm, nav, onDismiss, track) { pickPlaylist = true } }
     if (pickPlaylist) {
-        PlayerTheme(seed = SamplePlayerSeed) {
+        PlayerTheme(seed = seed) {
             EchoSheet(onDismiss = { pickPlaylist = false }, title = stringResource(R.string.work_add_to_playlist)) {
                 SegmentedList(Modifier.padding(bottom = EchoSpacing.xxl)) {
                     state.playlists.forEach { pl ->
