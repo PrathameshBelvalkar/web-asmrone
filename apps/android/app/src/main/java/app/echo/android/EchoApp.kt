@@ -12,5 +12,6 @@ class EchoApp : Application() {
         super.onCreate()
         if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
         container = AppContainer(this)
+        if (BuildConfig.DEBUG) container.seedFakeData()
     }
 }

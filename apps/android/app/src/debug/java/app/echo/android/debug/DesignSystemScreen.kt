@@ -79,10 +79,9 @@ import app.echo.designsystem.tokens.EchoStateLayers
  * Debug only. Spec labels are written inline (not strings.xml) because this screen is a developer tool.
  */
 @Composable
-fun DesignSystemScreen(initial: ThemeConfig = ThemeConfig(dynamicColor = false)) {
-    var config by remember { mutableStateOf(initial) }
+fun DesignSystemScreen(config: ThemeConfig, onConfig: (ThemeConfig) -> Unit) {
     EchoTheme(config) {
-        DesignSystemContent(config = config, onConfig = { config = it })
+        DesignSystemContent(config = config, onConfig = onConfig)
     }
 }
 

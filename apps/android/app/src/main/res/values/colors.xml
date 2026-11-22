@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#3A4A8C</color>
+    <!-- Baseline surface (DS · Colour), light / dark. -->
+    <color name="splash_background">#FEF7FF</color>
 </resources>

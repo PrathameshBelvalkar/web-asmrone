@@ -6,6 +6,10 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.withType
+import org.gradle.api.tasks.testing.Test
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainService
 import org.jetbrains.kotlin.gradle.dsl.KotlinBaseExtension
 
 /**
@@ -13,7 +17,8 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinBaseExtension
  *
  * - SDK levels from the version catalog, Java/Kotlin 17 (AGP's built-in Kotlin).
  * - Lint fails the build on errors, like `:app`.
- * - JVM unit tests on JUnit 4 (Robolectric runs on JUnit 4) with Android resources available.
+ * - JVM unit tests on JUnit 4 (Robolectric runs on JUnit 4) with Android resources available, run on a Java 21 JVM
+ *   (Robolectric needs it for SDK 37; code is still compiled for 17).
  *
  * Add `echo.android.compose` for Compose and `echo.android.screenshots` for Roborazzi.
  */
@@ -47,6 +52,12 @@ class EchoAndroidLibraryPlugin : Plugin<Project> {
         }
 
         (extensions.getByName("kotlin") as KotlinBaseExtension).jvmToolchain(jdk)
+
+        val testJdk = version("testJvm").toInt()
+        val toolchains = extensions.getByType<JavaToolchainService>()
+        tasks.withType<Test>().configureEach {
+            javaLauncher.set(toolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(testJdk)) })
+        }
 
         dependencies {
             add("testImplementation", libs.findLibrary("junit4").get())

@@ -616,6 +616,19 @@ sources are hidden from the source switcher (0.1), O.5 and Library.
 - **Clear history** (0.3) and **Clear watch history** (3.12) delete from one table after a confirm dialog.
 - **Clear all data** (S.7) runs `db.clearAllTables()`, clears both DataStores and the Coil cache, then restarts at O.1.
 
+### 9.3a How `:data` is put together
+
+- **`DataModule`** builds everything stored on the device (both DataStores, `echo.db`, the seeder) and hands `:app`
+  only the repository interfaces: `SettingsRepository`, `ProfileRepository`, `LibraryRepository`,
+  `PlaylistRepository`. DataStore and Room types never leave `:data`. `clearAllData()` is S.7.
+- `:data` has its own UI-facing models (`Section` includes HENTAI, `Sources.all` is the 0.1 list). It doesn't depend
+  on `:core`; the real services will map their results to these types.
+- `app/theme/AppTheme.kt` is the only place stored `ThemeSettings` meet the design system's `ThemeConfig`.
+- Catalogue calls return `Flow<Load<T>>`: `Loading` → `Content` / `Empty` / `Error(OFFLINE | NOT_FOUND | BLOCKED |
+  BUSY | NO_VIDEO)`, the states of 0.4 and H.10.
+- Until the shell exists (Phase 4), the placeholder home screen carries the theme part of S.8 so theme switching and
+  persistence can be checked on the device.
+
 ### 9.4 Fake catalogue
 
 - `FakeCatalog` holds the placeholder content copied from the Figma frames, one object per section.

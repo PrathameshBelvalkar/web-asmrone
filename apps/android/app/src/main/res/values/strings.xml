@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Echo</string>
+
+    <!-- S.8 Look and feel -->
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_dynamic_colour">Dynamic colour</string>
+    <string name="settings_dynamic_colour_summary">Use colours from your wallpaper</string>
+    <string name="settings_pure_black">Pure black</string>
+    <string name="settings_pure_black_summary">Black background in dark theme</string>
 </resources>
