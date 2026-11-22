@@ -42,5 +42,7 @@ listOf("asmrone", "hasmr", "jasmr", "jnet", "threehentai", "javdatabase", "javgu
     project(":source-$id").projectDir = file("sources/$id")
 }
 
-// The Android application.
+// The Android app and its UI layers (docs/android/design/design.md §5.1).
+include(":designsystem")
+include(":data")
 include(":app")

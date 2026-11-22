@@ -1,4 +1,4 @@
-package app.echo.android.ui.theme
+package app.echo.designsystem.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

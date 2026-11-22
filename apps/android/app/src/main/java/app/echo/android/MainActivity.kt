@@ -18,7 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import app.echo.android.ui.theme.EchoTheme
+import app.echo.designsystem.theme.EchoTheme
 import app.echo.core.Section
 import app.echo.core.SourceId
 
@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
 /** M0 placeholder. M1 replaces it with the Home · Search · Library scaffold. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PlaceholderScreen(sources: List<SourceId>) {
+internal fun PlaceholderScreen(sources: List<SourceId>) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = { TopAppBar(title = { Text("Echo") }) },
