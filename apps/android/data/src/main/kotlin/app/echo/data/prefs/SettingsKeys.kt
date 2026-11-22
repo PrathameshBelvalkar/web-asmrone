@@ -59,6 +59,9 @@ internal object SettingsKeys {
     val aiEnabled = booleanPreferencesKey("aiSubtitles.enabled")
     val aiEngine = stringPreferencesKey("aiSubtitles.engine")
     val aiModel = stringPreferencesKey("aiSubtitles.model")
+
+    // Shell
+    val lastSource = stringPreferencesKey("lastSource")
 }
 
 /** DataStore keys of the `profile` store. */

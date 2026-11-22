@@ -105,4 +105,14 @@ class SettingsRepositoryTest {
         assertEquals(Profile(), repo.profile.first())
         scope.cancel()
     }
+
+    @Test
+    fun `last source is remembered`() = runTest {
+        val scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler) + SupervisorJob())
+        val repo = DataStoreSettingsRepository(store(File(tmp.root, "l.preferences_pb"), scope))
+        assertEquals("asmrone", repo.settings.first().lastSourceId)
+        repo.setLastSource("threehentai")
+        assertEquals("threehentai", repo.settings.first().lastSourceId)
+        scope.cancel()
+    }
 }

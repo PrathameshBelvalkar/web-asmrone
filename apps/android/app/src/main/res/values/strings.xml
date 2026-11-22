@@ -11,4 +11,40 @@
     <string name="settings_dynamic_colour_summary">Use colours from your wallpaper</string>
     <string name="settings_pure_black">Pure black</string>
     <string name="settings_pure_black_summary">Black background in dark theme</string>
+
+    <!-- Navigation bar -->
+    <string name="nav_home">Home</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_library">Library</string>
+
+    <!-- 0.1 Source switcher -->
+    <string name="source_switcher_title">Switch source</string>
+    <string name="source_switcher_subtitle">Home and Search follow your choice. Library keeps everything.</string>
+    <string name="source_switcher_settings">Source settings</string>
+    <string name="badge_beta">BETA</string>
+    <string name="section_asmr">ASMR</string>
+    <string name="section_manga">MANGA</string>
+    <string name="section_jav">JAV</string>
+    <string name="section_hentai">HENTAI</string>
+
+    <!-- Placeholders (Phase 4, replaced screen by screen) -->
+    <string name="placeholder_note">Placeholder · Figma %1$s. Built in its phase.</string>
+    <string name="placeholder_opens">Opens</string>
+    <string name="placeholder_overlays">Overlays on this screen</string>
+    <string name="placeholder_play">Play sample work</string>
+    <string name="placeholder_start_exploring">Start exploring</string>
+    <string name="placeholder_skip">Skip onboarding</string>
+    <string name="placeholder_open">Open</string>
+
+    <!-- Full player labels -->
+    <string name="player_next">Next</string>
+    <string name="player_up_next">Up next</string>
+    <string name="player_lyrics">Lyrics</string>
+    <string name="player_sleep">Sleep</string>
+    <string name="player_playing_from">Playing from work</string>
+
+    <!-- S.12 Profile -->
+    <string name="settings_age">Age</string>
+    <string name="settings_adult_sources">Show adult sources</string>
+    <string name="settings_adult_sources_summary">JAV, Hentai, 3hentai and Hentai ASMR. 18+ only.</string>
 </resources>

@@ -112,6 +112,10 @@ class DataStoreSettingsRepository(private val store: DataStore<Preferences>) : S
         this[K.aiModel] = a.model
     }
 
+    override suspend fun setLastSource(sourceId: String) {
+        store.edit { it[K.lastSource] = sourceId }
+    }
+
     override suspend fun clear() {
         store.edit { it.clear() }
     }
@@ -172,6 +176,7 @@ internal fun Preferences.toSettings(): Settings {
             engine = this[K.aiEngine] ?: d.aiSubtitles.engine,
             model = this[K.aiModel] ?: d.aiSubtitles.model,
         ),
+        lastSourceId = this[K.lastSource] ?: d.lastSourceId,
     )
 }
 

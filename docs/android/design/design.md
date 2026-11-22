@@ -696,6 +696,21 @@ routes. They are state on the screen beneath:
 
 Start destination: `Onboarding` when `onboardingDone` is false, otherwise the last section's Home.
 
+### 10.4 How the shell is built (Phase 4)
+
+- `navigation/ScreenSpecs.kt` registers every routed frame: Figma code, name, chrome (`SECTION` = nav bar + mini
+  player, `PLAIN`, `IMMERSIVE`), whether it hides the system bars, and the routes its Figma prototype links to.
+  The scaffold reads the current destination's spec to decide what to show.
+- Every route opens a `PlaceholderScreen` (code, name, links, overlays) until its phase builds it. Section tab roots
+  get the search app bar (source switcher + avatar), other screens a back arrow, onboarding nothing. Overlay frames
+  open placeholder sheets / dialogs from their screen.
+- The last picked source is stored (`lastSource`); a source the profile no longer allows falls back to the first
+  visible one. The active source reaches screens as state, so a switch recomposes them at once.
+- Early controls until their screens exist: S.8 placeholder carries theme mode / dynamic colour / pure black, S.12
+  carries age and "Show adult sources" (to check the adult rule and section switching before onboarding).
+- `NavigationTest` (Robolectric) opens every route and every placeholder link and presses system back on each;
+  `SectionNavTest` checks the §10.2 table, the start destination and the fallback source.
+
 ---
 
 ## 11. Screens, in build order

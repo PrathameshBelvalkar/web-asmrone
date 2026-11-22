@@ -89,4 +89,6 @@ data class Settings(
     val jav: JavSettings = JavSettings(),
     val updates: UpdateSettings = UpdateSettings(),
     val aiSubtitles: AiSubtitleSettings = AiSubtitleSettings(),
+    /** The source picked last in 0.1; the app starts on its section's Home. */
+    val lastSourceId: String = Sources.asmrOne.id,
 )

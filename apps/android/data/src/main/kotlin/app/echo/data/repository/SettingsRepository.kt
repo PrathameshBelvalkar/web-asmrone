@@ -26,6 +26,7 @@ interface SettingsRepository {
     suspend fun updateJav(transform: JavSettings.() -> JavSettings)
     suspend fun updateUpdates(transform: UpdateSettings.() -> UpdateSettings)
     suspend fun updateAiSubtitles(transform: AiSubtitleSettings.() -> AiSubtitleSettings)
+    suspend fun setLastSource(sourceId: String)
 
     /** S.7 Clear all data. */
     suspend fun clear()
