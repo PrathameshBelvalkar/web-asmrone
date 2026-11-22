@@ -43,6 +43,8 @@ interface LibraryRepository {
 interface PlaylistRepository {
     val playlists: Flow<List<Playlist>>
     val liked: Flow<List<Track>>
+    /** 1.12 Favourites: liked works. */
+    val likedWorks: Flow<List<Work>>
     fun tracks(playlistId: Long): Flow<List<Track>>
     fun isLiked(trackId: String): Flow<Boolean>
     fun isWorkLiked(workId: String): Flow<Boolean>
@@ -104,6 +106,9 @@ class RoomPlaylistRepository(private val db: EchoDatabase, private val now: () -
         list.map { Playlist(it.id, it.name, it.privacy.toModel(), it.trackCount) }
     }
     override val liked: Flow<List<Track>> = dao.liked().map { list -> list.map { it.track.toTrack() } }
+    override val likedWorks: Flow<List<Work>> = dao.likedWorks().map { list ->
+        list.map { Work(id = it.workId, title = it.title, circle = it.circle, coverUrl = it.coverUrl) }
+    }
     override fun tracks(playlistId: Long): Flow<List<Track>> = dao.tracks(playlistId).map { list -> list.map { it.track.toTrack() } }
     override fun isLiked(trackId: String): Flow<Boolean> = dao.isLiked(trackId)
     override fun isWorkLiked(workId: String): Flow<Boolean> = dao.isWorkLiked(workId)

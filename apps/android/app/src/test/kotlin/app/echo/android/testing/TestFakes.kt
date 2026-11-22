@@ -53,12 +53,14 @@ class FakePlaylists : PlaylistRepository {
 
     override val playlists = lists.map { m -> m.values.map { (p, t) -> p.copy(trackCount = t.size) } }
     override val liked: Flow<List<Track>> = likedTracks
+
     override fun tracks(playlistId: Long) = lists.map { it[playlistId]?.second.orEmpty() }
     override fun isLiked(trackId: String) = likedTracks.map { l -> l.any { it.id == trackId } }
-    private val likedWorks = MutableStateFlow<Set<String>>(emptySet())
-    override fun isWorkLiked(workId: String) = likedWorks.map { workId in it }
+    private val likedWorkList = MutableStateFlow<List<app.echo.data.model.Work>>(emptyList())
+    override val likedWorks: Flow<List<app.echo.data.model.Work>> = likedWorkList
+    override fun isWorkLiked(workId: String) = likedWorkList.map { l -> l.any { it.id == workId } }
     override suspend fun setWorkLiked(work: app.echo.data.model.Work, liked: Boolean) {
-        likedWorks.value = if (liked) likedWorks.value + work.id else likedWorks.value - work.id
+        likedWorkList.value = if (liked) likedWorkList.value + work else likedWorkList.value.filterNot { it.id == work.id }
     }
     override suspend fun create(name: String, privacy: PlaylistPrivacy): Long {
         val id = nextId++

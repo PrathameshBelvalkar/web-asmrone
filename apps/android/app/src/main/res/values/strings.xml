@@ -123,4 +123,21 @@
     <string name="artist_popular">Popular works</string>
     <string name="artist_latest">Latest releases</string>
     <string name="artist_appears_with">Appears with</string>
+
+    <!-- 1.12 Playlists / 1.7 Playlist -->
+    <string name="playlists_title">Playlists</string>
+    <string name="playlists_subtitle">On this device · %1$d playlists</string>
+    <string name="playlists_favourites">Favourites</string>
+    <string name="playlists_liked">Liked tracks</string>
+    <string name="playlists_history">History</string>
+    <string name="playlists_new">New playlist</string>
+    <string name="playlists_name">Name</string>
+    <string name="playlists_save">Save</string>
+    <string name="playlists_empty_body">Like works and tracks to find them here.</string>
+    <string name="playlist_private">Private</string>
+    <string name="playlist_public">Public</string>
+    <string name="playlist_privacy_count">%1$s · %2$d tracks</string>
+    <string name="playlist_meta">You · %1$s · %2$d tracks · %3$s</string>
+    <string name="playlist_rename">Rename playlist</string>
+    <string name="playlist_add_tracks">Add tracks</string>
 </resources>

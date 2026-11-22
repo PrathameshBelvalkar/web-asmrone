@@ -53,6 +53,12 @@ class SegmentedListScope internal constructor() {
     }
 }
 
+/**
+ * Where a tile sits in a segmented list that isn't a [SegmentedList] (a LazyColumn, a reorderable list): gives it
+ * the right outer / inner corners.
+ */
+data class SegmentPosition(val index: Int, val count: Int)
+
 private val LocalSegmentShapes = compositionLocalOf<ListItemShapes?> { null }
 
 /**
@@ -71,8 +77,11 @@ fun SegmentedListItem(
     onLongClick: (() -> Unit)? = null,
     leading: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
+    position: SegmentPosition? = null,
 ) {
-    val shapes = LocalSegmentShapes.current ?: ListItemDefaults.segmentedShapes(index = 0, count = 1)
+    val shapes = position?.let { ListItemDefaults.segmentedShapes(index = it.index, count = it.count) }
+        ?: LocalSegmentShapes.current
+        ?: ListItemDefaults.segmentedShapes(index = 0, count = 1)
     val colors = ListItemDefaults.segmentedColors(
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,

@@ -12,6 +12,7 @@ import androidx.compose.ui.res.stringResource
 import app.echo.designsystem.R
 import app.echo.designsystem.component.m3e.EchoIconButton
 import app.echo.designsystem.component.m3e.SegmentedList
+import app.echo.designsystem.component.m3e.SegmentPosition
 import app.echo.designsystem.component.m3e.SegmentedListItem
 import app.echo.designsystem.icon.EchoIcons
 import app.echo.designsystem.preview.EchoPreviews
@@ -34,6 +35,8 @@ fun TrackRow(
     onClick: () -> Unit,
     onMore: () -> Unit,
     modifier: Modifier = Modifier,
+    position: SegmentPosition? = null,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     SegmentedListItem(
         headline = title,
@@ -41,6 +44,7 @@ fun TrackRow(
         selected = if (playing) true else null,
         onClick = onClick,
         modifier = modifier,
+        position = position,
         leading = {
             CoverImage(cover, contentDescription = null, modifier = Modifier.size(EchoSizes.minTouchTarget), shape = MaterialTheme.shapes.small)
         },
@@ -49,7 +53,7 @@ fun TrackRow(
                 if (playing) {
                     Icon(painterResource(EchoIcons.GraphicEq), contentDescription = null, modifier = Modifier.size(EchoSizes.iconSmall))
                 }
-                EchoIconButton(EchoIcons.MoreVert, stringResource(R.string.echo_cd_more), onMore)
+                if (trailing != null) trailing() else EchoIconButton(EchoIcons.MoreVert, stringResource(R.string.echo_cd_more), onMore)
             }
         },
     )
