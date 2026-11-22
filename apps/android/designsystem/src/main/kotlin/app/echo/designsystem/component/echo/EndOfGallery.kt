@@ -16,13 +16,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.echo.designsystem.component.m3e.ButtonStyle
 import app.echo.designsystem.component.m3e.ComponentSize
 import app.echo.designsystem.component.m3e.EchoButton
-import app.echo.designsystem.component.m3e.EchoButtonGroup
 import app.echo.designsystem.icon.EchoIcons
 import app.echo.designsystem.preview.EchoPreviews
 import app.echo.designsystem.theme.EchoShapes
@@ -50,11 +51,8 @@ fun EndOfGallery(
         verticalArrangement = Arrangement.spacedBy(EchoSpacing.xl),
     ) {
         Box(Modifier.size(200.dp, 230.dp)) {
-            Box(
-                Modifier.size(150.dp, 210.dp).offset(40.dp, 6.dp).rotate(6f)
-                    .clip(MaterialTheme.shapes.extraExtraLarge.copy(all = androidx.compose.foundation.shape.CornerSize(18.dp)))
-                    .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f)),
-            )
+            // The last page, tilted behind the cover (Figma "Page" with five panels, 40% opacity).
+            PageMock(Modifier.size(150.dp, 210.dp).offset(40.dp, 6.dp).rotate(6f).graphicsLayer { alpha = 0.4f })
             CoverImage(cover, title, Modifier.size(150.dp, 210.dp).offset(20.dp, 10.dp), shape = MaterialTheme.shapes.extraLarge)
             Box(
                 Modifier.size(44.dp).offset(150.dp, 0.dp).clip(EchoShapes.Full).background(MaterialTheme.colorScheme.primary),
@@ -63,11 +61,12 @@ fun EndOfGallery(
                 Icon(painterResource(EchoIcons.Check), null, tint = MaterialTheme.colorScheme.onPrimary)
             }
         }
-        Text(title, style = MaterialTheme.typography.displaySmall, textAlign = TextAlign.Center)
+        Text(title, style = MaterialTheme.typography.displaySmallEmphasized, textAlign = TextAlign.Center)
         Text(summary, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-        EchoButtonGroup {
-            EchoButton(backLabel, onBack, size = ComponentSize.M, icon = EchoIcons.ArrowBack, modifier = Modifier.weight(1f))
-            EchoButton(readAgainLabel, onReadAgain, style = ButtonStyle.Outlined, size = ComponentSize.M, icon = EchoIcons.Replay, modifier = Modifier.weight(1f))
+        // Buttons as wide as their labels, centred (Figma: "Back to gallery" 162 dp, "Read again" 138 dp).
+        Row(horizontalArrangement = Arrangement.spacedBy(EchoSpacing.s)) {
+            EchoButton(backLabel, onBack, size = ComponentSize.M, icon = EchoIcons.ArrowBack)
+            EchoButton(readAgainLabel, onReadAgain, style = ButtonStyle.Outlined, size = ComponentSize.M, icon = EchoIcons.Replay)
         }
     }
 }

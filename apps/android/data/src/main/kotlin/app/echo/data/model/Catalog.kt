@@ -59,6 +59,9 @@ data class Gallery(
     val coverUrl: String? = null,
     val tags: List<String> = emptyList(),
     val addedOn: String = "2026-11-18",
+    val parodies: List<String> = emptyList(),
+    val characters: List<String> = emptyList(),
+    val groups: List<String> = emptyList(),
 )
 
 data class Tag(val id: String, val name: String, val count: Int)

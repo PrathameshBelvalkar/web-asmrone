@@ -31,7 +31,7 @@ sealed interface Route {
     @Serializable data object Tags : Route
     @Serializable data class TagList(val tagId: String) : Route
     @Serializable data class Gallery(val id: String) : Route
-    @Serializable data class Reader(val galleryId: String, val page: Int = 1) : Route
+    @Serializable data class Reader(val galleryId: String, val page: Int = 1, val showPages: Boolean = false) : Route
     @Serializable data class EndOfGallery(val galleryId: String) : Route
     @Serializable data object MangaArtists : Route
 

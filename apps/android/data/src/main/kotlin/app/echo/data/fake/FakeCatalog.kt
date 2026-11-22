@@ -77,12 +77,17 @@ object FakeCatalog {
 
     val galleries: List<Gallery> = (1..24).map { i ->
         Gallery(
-            id = "g$i", title = "Gallery title placeholder that wraps", artist = "Artist Name", pageCount = 20 + i * 3,
-            language = if (i % 3 == 0) "EN" else "JP", tags = listOf("Full color", "Romance", "Vanilla").take(1 + i % 3),
+            id = "g$i", title = "Gallery title placeholder that wraps", artist = "Artist Name",
+            // g1–g5 match the seeded reading history (p. 34 / 52, 40, 12 / 40, 5 / 24, 24).
+            pageCount = listOf(52, 40, 40, 24, 24).getOrElse(i - 1) { 20 + i * 3 },
+            language = if (i % 3 == 0) "EN" else "JP",
+            // The 2.5 chips (series, characters, group) are tags too, so tapping one finds galleries.
+            tags = listOf("Full color", "Romance", "Vanilla").take(1 + i % 3) + listOf("Series name", "Character A", "Character B", "Group name"),
+            parodies = listOf("Series name"), characters = listOf("Character A", "Character B"), groups = listOf("Group name"),
         )
     }
 
-    val tags: List<Tag> = ('A'..'Z').flatMap { c -> (1..3).map { n -> Tag("tag-$c$n", "${c}tag name $n".lowercase().replaceFirstChar { it.uppercase() }, 1200 - n * 100) } }
+    val tags: List<Tag> = ('A'..'Z').flatMap { c -> (1..3).map { n -> Tag("tag-$c$n", "$c tag name $n", 12_480 / n - c.code) } }
 
     val mangaArtists: List<Tag> = ('A'..'Z').flatMap { c -> (1..2).map { n -> Tag("artist-$c$n", "$c. Artist Name $n", 40 - n * 7) } }
 

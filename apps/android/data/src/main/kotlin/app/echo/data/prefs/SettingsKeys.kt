@@ -33,6 +33,7 @@ internal object SettingsKeys {
     val tapZones = stringPreferencesKey("tapZones")
     val scaleType = stringPreferencesKey("scaleType")
     val cropBorders = booleanPreferencesKey("cropBorders")
+    val animatePageTransitions = booleanPreferencesKey("animatePageTransitions")
     val dualPageLandscape = booleanPreferencesKey("dualPageLandscape")
     val readerBackground = stringPreferencesKey("background")
     val showPageNumber = booleanPreferencesKey("showPageNumber")

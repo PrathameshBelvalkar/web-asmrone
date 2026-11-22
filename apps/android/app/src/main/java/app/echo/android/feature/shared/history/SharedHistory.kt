@@ -1,5 +1,6 @@
 package app.echo.android.feature.shared.history
 
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -247,7 +248,11 @@ fun SharedHistoryScreen(
 private fun dayTitle(label: DayLabel): String = when (label) {
     DayLabel.Today -> stringResource(R.string.history_day_today)
     DayLabel.Yesterday -> stringResource(R.string.history_day_yesterday)
-    is DayLabel.On -> label.date.format(DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())).uppercase(Locale.getDefault())
+    is DayLabel.On -> {
+        // Observable locale: the label updates when the app language changes.
+        val locale = LocalConfiguration.current.locales[0]
+        label.date.format(DateTimeFormatter.ofPattern("MMM d", locale)).uppercase(locale)
+    }
 }
 
 @Composable

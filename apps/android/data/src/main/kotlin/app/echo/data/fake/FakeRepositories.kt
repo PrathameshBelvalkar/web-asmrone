@@ -104,6 +104,7 @@ class FakeMangaRepository(private val config: FakeConfig) : MangaRepository {
     override fun search(query: String) = config.serve { c.galleries.filter { it.title.matches(query) || it.tags.any { t -> t.matches(query) } } }
     override fun tags() = config.serve { c.tags }
     override fun byTag(tagId: String) = config.serve { c.galleries.filterIndexed { i, _ -> i % 2 == tagId.length % 2 } }
+    override fun byArtist(name: String) = config.serve { c.galleries.filter { it.artist == name } }
     override fun artists() = config.serve { c.mangaArtists }
 }
 

@@ -24,3 +24,11 @@ enum class ErrorKind {
     /** H.10 "No video for this title". */
     NO_VIDEO,
 }
+
+/** Maps the content of a [Load]; loading, empty and error pass through unchanged. */
+inline fun <T, R> Load<T>.map(transform: (T) -> R): Load<R> = when (this) {
+    is Load.Content -> Load.Content(transform(value))
+    Load.Loading -> Load.Loading
+    Load.Empty -> Load.Empty
+    is Load.Error -> this
+}

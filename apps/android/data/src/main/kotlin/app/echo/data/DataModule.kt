@@ -8,6 +8,8 @@ import app.echo.data.prefs.DataStoreSettingsRepository
 import app.echo.data.prefs.EchoDataStores
 import app.echo.data.repository.LibraryRepository
 import app.echo.data.repository.PlaylistRepository
+import app.echo.data.repository.ReaderPrefsRepository
+import app.echo.data.repository.RoomReaderPrefsRepository
 import app.echo.data.repository.ProfileRepository
 import app.echo.data.repository.RoomLibraryRepository
 import app.echo.data.repository.RoomPlaylistRepository
@@ -26,6 +28,7 @@ class DataModule(context: Context) {
     val profile: ProfileRepository = DataStoreProfileRepository(EchoDataStores.profile(context))
     val library: LibraryRepository = RoomLibraryRepository(database)
     val playlists: PlaylistRepository = RoomPlaylistRepository(database)
+    val readerPrefs: ReaderPrefsRepository = RoomReaderPrefsRepository(database)
 
     /** Debug builds: fill Room with the Figma rows on a fresh install. */
     suspend fun seedFakeData() = withContext(Dispatchers.IO) { FakeSeeder(database).seedIfEmpty() }

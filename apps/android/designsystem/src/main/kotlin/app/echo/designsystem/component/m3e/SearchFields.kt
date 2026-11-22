@@ -1,7 +1,9 @@
 package app.echo.designsystem.component.m3e
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -59,6 +61,11 @@ fun EchoSearchField(
             BackButton(onBack)
             QueryText(query, onQueryChange, onSearch, placeholder, MaterialTheme.typography.bodyLarge, Modifier.weight(1f).focusRequester(focusRequester))
             if (query.isNotEmpty()) {
+                // Figma 2.2 "Search bar (focused)": a 1.5 x 22 dp bar in the text colour before the clear button.
+                Box(
+                    Modifier.padding(start = EchoSpacing.m).size(width = 1.5.dp, height = 22.dp)
+                        .background(MaterialTheme.colorScheme.onSurface),
+                )
                 EchoIconButton(EchoIcons.Close, stringResource(R.string.echo_cd_clear), { onQueryChange("") })
             }
         }

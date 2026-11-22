@@ -35,6 +35,11 @@ class FakeLibrary(items: List<ContinueItem> = emptyList()) : LibraryRepository {
     override fun continueIn(section: Section) = items.map { l -> l.filter { it.section == section && !it.finished } }
     override fun history(section: Section) = items.map { l -> l.filter { it.section == section } }
     override suspend fun clearHistory(section: Section) { items.value = items.value.filterNot { it.section == section } }
+    /** Last page saved per gallery id, with whether it was finished. */
+    val progress = mutableMapOf<String, Pair<Int, Boolean>>()
+    override suspend fun saveReadProgress(gallery: app.echo.data.model.Gallery, page: Int, finished: Boolean) {
+        progress[gallery.id] = page to finished
+    }
     override suspend fun removeHistory(section: Section, id: String) {
         items.value = items.value.filterNot { it.section == section && it.id == id }
     }

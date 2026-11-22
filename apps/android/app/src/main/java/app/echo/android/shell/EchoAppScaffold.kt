@@ -110,6 +110,8 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
             override val profileInitial get() = vm.state.value?.profile?.name ?: shell.profile.name
             override fun open(route: Route) = nav.navigate(route)
             override fun back() { nav.popBackStack() }
+            override fun replace(route: Route) { nav.popBackStack(); nav.navigate(route) }
+            override fun returnTo(route: Route) { if (!nav.popBackStack(route, inclusive = false)) nav.navigate(route) }
             override fun openSourceSwitcher() { showSwitcher = true }
             override fun openProfile() { showProfile = true }
             override fun playSample() = vm.playSample()
@@ -229,6 +231,7 @@ private val MiniPlayerReserve = app.echo.designsystem.component.echo.MiniPlayerH
 fun NavHostController.navigateToTab(section: Section, tab: Tab) {
     val home = SectionNav.root(section, Tab.HOME)
     navigate(SectionNav.root(section, tab)) {
+        launchSingleTop = true
         popUpTo(home) { saveState = true }
         launchSingleTop = true
         restoreState = true

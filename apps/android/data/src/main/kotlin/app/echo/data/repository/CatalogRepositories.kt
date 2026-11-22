@@ -45,6 +45,7 @@ interface MangaRepository {
     fun search(query: String): Flow<Load<List<Gallery>>>
     fun tags(): Flow<Load<List<Tag>>>
     fun byTag(tagId: String): Flow<Load<List<Gallery>>>
+    fun byArtist(name: String): Flow<Load<List<Gallery>>>
     fun artists(): Flow<Load<List<Tag>>>
 }
 

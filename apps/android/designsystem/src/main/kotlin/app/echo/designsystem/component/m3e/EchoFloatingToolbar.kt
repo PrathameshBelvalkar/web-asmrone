@@ -72,6 +72,8 @@ fun ToolbarAction(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     selected: Boolean = false,
+    /** Tighter when actions share a fixed width (reader bar: five in a row). */
+    horizontalPadding: androidx.compose.ui.unit.Dp = EchoSpacing.m,
 ) {
     val colors = MaterialTheme.colorScheme
     Surface(
@@ -83,7 +85,7 @@ fun ToolbarAction(
         contentColor = if (selected) colors.onSecondaryContainer else LocalContentColor.current,
     ) {
         Column(
-            Modifier.padding(horizontal = EchoSpacing.m, vertical = EchoSpacing.s - EchoSpacing.xxs),
+            Modifier.padding(horizontal = horizontalPadding, vertical = EchoSpacing.s - EchoSpacing.xxs),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(EchoSizes.iconSmall + EchoSpacing.xxs))

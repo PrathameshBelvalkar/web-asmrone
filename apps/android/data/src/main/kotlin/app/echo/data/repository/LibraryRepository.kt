@@ -11,6 +11,8 @@ import app.echo.data.db.TrackFields
 import app.echo.data.db.WatchHistoryEntity
 import app.echo.data.db.WatchKind
 import app.echo.data.model.ContinueItem
+import app.echo.data.model.Gallery
+import app.echo.data.model.Sources
 import app.echo.data.model.Playlist
 import app.echo.data.model.PlaylistPrivacy
 import app.echo.data.model.Section
@@ -34,6 +36,9 @@ interface LibraryRepository {
     suspend fun clearHistory(section: Section)
     /** Removes one row from [section]'s history (the X on a 0.3 row). */
     suspend fun removeHistory(section: Section, id: String)
+
+    /** Records the page a gallery is on (2.7 turns, 2.10 when finished). */
+    suspend fun saveReadProgress(gallery: Gallery, page: Int, finished: Boolean)
 
     fun recentSearches(section: Section): Flow<List<String>>
     suspend fun addSearch(section: Section, query: String)
@@ -84,6 +89,15 @@ class RoomLibraryRepository(private val db: EchoDatabase, private val now: () ->
         Section.ASMR -> h.clearListen()
         Section.MANGA -> h.clearRead()
         Section.JAV, Section.HENTAI -> h.clearWatch(section.kind)
+    }
+
+    override suspend fun saveReadProgress(gallery: Gallery, page: Int, finished: Boolean) {
+        h.upsertRead(
+            ReadHistoryEntity(
+                galleryId = gallery.id, sourceId = Sources.threeHentai.id, title = gallery.title, artist = gallery.artist,
+                coverUrl = gallery.coverUrl, page = page, pageCount = gallery.pageCount, updatedAt = now(), finished = finished,
+            ),
+        )
     }
 
     override suspend fun removeHistory(section: Section, id: String) = when (section) {

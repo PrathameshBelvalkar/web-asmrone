@@ -77,10 +77,8 @@ fun GalleryCard(
     language: String? = null,
     width: Dp? = null,
 ) = SectionCard(title, artist, image, 2f / 3f, onClick, modifier, width) {
-    Row(Modifier.align(Alignment.TopStart).padding(EchoSpacing.s - EchoSpacing.xxs), horizontalArrangement = Arrangement.spacedBy(EchoSpacing.xs)) {
-        if (pages != null) CoverBadge("${pages}p")
-        if (language != null) CoverBadge(language)
-    }
+    if (pages != null) CoverBadge("${pages}p", Modifier.align(Alignment.TopStart).padding(EchoSpacing.s - EchoSpacing.xxs))
+    if (language != null) CoverBadge(language, Modifier.align(Alignment.BottomEnd).padding(EchoSpacing.s - EchoSpacing.xxs))
 }
 
 /** Hentai title card (Figma "Echo · HanimeCard (2:3 cover)", 41 uses): 2:3 cover, NEW badge, view count pill. */

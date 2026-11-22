@@ -77,6 +77,7 @@ class DataStoreSettingsRepository(private val store: DataStore<Preferences>) : S
         this[K.tapZones] = r.tapZones.name
         this[K.scaleType] = r.scaleType.name
         this[K.cropBorders] = r.cropBorders
+        this[K.animatePageTransitions] = r.animatePageTransitions
         this[K.dualPageLandscape] = r.dualPageLandscape
         this[K.readerBackground] = r.background.name
         this[K.showPageNumber] = r.showPageNumber
@@ -151,6 +152,7 @@ internal fun Preferences.toSettings(): Settings {
             tapZones = enum(K.tapZones, TapZones.DEFAULT),
             scaleType = enum(K.scaleType, ScaleType.FIT_SCREEN),
             cropBorders = this[K.cropBorders] ?: d.reader.cropBorders,
+            animatePageTransitions = this[K.animatePageTransitions] ?: d.reader.animatePageTransitions,
             dualPageLandscape = this[K.dualPageLandscape] ?: d.reader.dualPageLandscape,
             background = enum(K.readerBackground, ReaderBackground.BLACK),
             showPageNumber = this[K.showPageNumber] ?: d.reader.showPageNumber,

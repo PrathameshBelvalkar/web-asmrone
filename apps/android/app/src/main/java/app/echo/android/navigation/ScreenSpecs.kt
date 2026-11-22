@@ -59,8 +59,8 @@ object ScreenSpecs {
         s("2.3", "Tags index", Route.Tags, S, Route.TagList("tag-A1")),
         s("2.4", "Tag list", Route.TagList("tag-A1"), S, Route.Gallery("g3")),
         s("2.5", "Gallery", Route.Gallery("g1"), S, Route.Reader("g1", 34), Route.TagList("tag-A1"), Route.MangaArtists),
-        s("2.6", "Reader", Route.Reader("g1", 34), I, Route.EndOfGallery("g1"), hideBars = true),
-        s("2.10", "End of gallery", Route.EndOfGallery("g1"), I, Route.Gallery("g2"), Route.Reader("g1", 1), hideBars = true),
+        s("2.6", "Reader", Route.Reader("g1", 34), I, Route.EndOfGallery("g1")),
+        s("2.10", "End of gallery", Route.EndOfGallery("g1"), I, Route.Gallery("g2"), Route.Reader("g1", 1)),
         s("2.11", "Artists index", Route.MangaArtists, S, Route.TagList("artist-A1")),
         // JAV
         s("3.1", "News", Route.News, S, Route.NewsPost("n1"), Route.Latest, Route.Movies, Route.Idols, Route.Genres),

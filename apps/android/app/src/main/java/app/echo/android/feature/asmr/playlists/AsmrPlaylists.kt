@@ -11,7 +11,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumExtendedFloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -205,7 +205,7 @@ fun AsmrPlaylistsScreen(
                 }
             }
         }
-        MediumExtendedFloatingActionButton(
+        ExtendedFloatingActionButton(
             onClick = onNew,
             icon = { Icon(painterResource(EchoIcons.Add), null) },
             text = { Text(stringResource(R.string.playlists_new)) },

@@ -31,6 +31,10 @@ interface ShellActions {
     val profileInitial: String
     fun open(route: Route)
     fun back()
+    /** Swap the current screen for [route] (for example Read again, from the end screen). */
+    fun replace(route: Route) = open(route)
+    /** Go back to [route] if it's already open, so Back from there keeps working; otherwise open it. */
+    fun returnTo(route: Route) = open(route)
     fun openSourceSwitcher()
     fun openProfile()
     fun playSample()

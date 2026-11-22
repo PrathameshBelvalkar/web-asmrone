@@ -981,6 +981,32 @@ Figma `28:3214` · route `MangaArtists`
 - `EchoSearchAppBar` + `SectionTabs` (Artists). `InlineSearchBar` "Search artists". `ConnectedButtonGroup` A–Z · Popular.
 - "MOST GALLERIES". `SegmentedList` of artists ("1,204 galleries", trailing chevron) → 2.4. Shell.
 
+#### Phase 7 notes (built)
+
+Eleven screens are built. Browse, Gallery and the reader were checked on `Pixel_8`; the rest were checked by previews
+and tests. Deliberate differences, with the reason:
+
+- **Language filter and search are client-side.** The catalogue has no language query, so 2.1 and 2.2 filter the results
+  they get. Chinese matches nothing until the sources provide it.
+- **No paging yet** (as in Phase 5): 2.1, 2.2, 2.4 and 2.5 show their whole list.
+- **2.2 starts with a prompt**, not a query: results appear once something is typed.
+- **2.3 and 2.11 "Popular" is one list** by gallery count, with no letter headers.
+- **2.4 "New · 24h · 7 days · All time" only shows the choice.** The catalogue has no dates to sort by.
+- **2.5 "Choose page" and the Pages arrow open the reader on the pages sheet** (`Route.Reader(showPages = true)`).
+- **2.5 Share, open-on-site and the grid button do nothing yet** (the grid button opens the pages sheet). The heart is kept for the screen only, like Follow on 1.6. Parodies, Characters and Groups come from the Gallery model.
+- **Pages are grey placeholders** until the sources give images, so Scale type is stored but not applied, and Rotate
+  does nothing.
+- **2.6 "Two pages" behaves as left to right.** Only the paged and strip modes are drawn.
+- **2.8 "For this gallery"** turns the gallery's own overrides on (the five reader_prefs columns) or off. Edits then
+  save to the gallery; with it off, they save to the defaults. Background, page number, keep-screen-on and Animate page
+  transitions are always global. The Filter tab is empty (the model has no filters), and the "Right and left" tap-zone
+  chip is left out (the model has five zones).
+- **Selected mode card** uses the design system's outlined selectable card, not Figma's dark filled card.
+- **2.9 thumbnails are four to a row.**
+- **2.10 "Back to gallery" and "Read again" open new routes**, not pop the back stack.
+- **Reader position is clamped** to the gallery's page count. The seeded history rows say 52 pages, but the fake
+  gallery has 23, so the reader opens on 23 / 23.
+
 ### Phase 8: JAV
 
 #### 3.1 News

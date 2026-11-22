@@ -13,6 +13,7 @@ import app.echo.data.repository.AsmrRepository
 import app.echo.data.repository.HentaiRepository
 import app.echo.data.repository.JavRepository
 import app.echo.data.repository.LibraryRepository
+import app.echo.data.repository.ReaderPrefsRepository
 import app.echo.data.repository.MangaRepository
 import app.echo.data.repository.PlayerController
 import app.echo.data.repository.PlaylistRepository
@@ -39,6 +40,7 @@ class AppContainer(context: Context) {
     val profile: ProfileRepository = data.profile
     val library: LibraryRepository = data.library
     val playlists: PlaylistRepository = data.playlists
+    val readerPrefs: ReaderPrefsRepository = data.readerPrefs
 
     val fakeConfig = FakeConfig()
     val asmr: AsmrRepository = FakeAsmrRepository(fakeConfig)

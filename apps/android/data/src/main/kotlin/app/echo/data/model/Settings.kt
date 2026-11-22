@@ -52,6 +52,7 @@ data class ReaderSettings(
     val background: ReaderBackground = ReaderBackground.BLACK,
     val showPageNumber: Boolean = true,
     val keepScreenOn: Boolean = true,
+    val animatePageTransitions: Boolean = false,
 )
 
 /** S.2 Preferences / S.3 Music source. */

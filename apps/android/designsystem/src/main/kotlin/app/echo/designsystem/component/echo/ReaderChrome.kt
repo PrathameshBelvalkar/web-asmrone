@@ -26,6 +26,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -91,7 +92,7 @@ fun ReaderBottomBar(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(EchoSpacing.xxs)) {
                 actions.forEach { action ->
-                    ToolbarAction(action.label, action.icon, action.onClick, Modifier.weight(1f), selected = action.selected)
+                    ToolbarAction(action.label, action.icon, action.onClick, Modifier.weight(1f), selected = action.selected, horizontalPadding = EchoSpacing.xs)
                 }
             }
         }
@@ -125,12 +126,12 @@ fun PageFilmstrip(
                 Modifier.clickable { onPage(number) }.alpha(if (current) 1f else 0.55f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                CoverImage(
-                    thumbnail(number), null,
-                    Modifier.size(if (current) 44.dp else 36.dp, if (current) 62.dp else 50.dp)
-                        .then(if (current) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier),
-                    shape = MaterialTheme.shapes.small,
-                )
+                val thumb = Modifier.size(if (current) 44.dp else 36.dp, if (current) 62.dp else 50.dp)
+                    .then(if (current) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier)
+                val image = thumbnail(number)
+                // No page image yet: the page mock, like the reader and the gallery's page grid.
+                if (image == null) PageMock(thumb.clip(MaterialTheme.shapes.small))
+                else CoverImage(image, null, thumb, shape = MaterialTheme.shapes.small)
                 Text(
                     number.toString(),
                     style = if (current) MaterialTheme.typography.labelSmallEmphasized else MaterialTheme.typography.labelSmall,
@@ -177,10 +178,16 @@ fun ReadingModeHint(text: String, @DrawableRes icon: Int, modifier: Modifier = M
  * tinted with the scrim and labelled, the centre toggles the menus.
  */
 @Composable
-fun TapZonesOverlay(leftLabel: String, rightLabel: String, modifier: Modifier = Modifier) = ReaderTheme {
+fun TapZonesOverlay(leftLabel: String, rightLabel: String, modifier: Modifier = Modifier, centreLabel: String? = null) = ReaderTheme {
     Row(modifier.fillMaxSize()) {
         TapZone(leftLabel, EchoIcons.ArrowLeft, Modifier.weight(1f))
-        Box(Modifier.weight(1f))
+        // Middle third: shows the menus. Lighter than the page-turn zones (Figma 2.7 "Tap zone/MENU").
+        Box(
+            Modifier.weight(1f).fillMaxHeight().background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.1f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (centreLabel != null) ZoneLabel(centreLabel, EchoIcons.MenuBook)
+        }
         TapZone(rightLabel, EchoIcons.ArrowRight, Modifier.weight(1f))
     }
 }
@@ -193,7 +200,12 @@ private fun TapZone(label: String, @DrawableRes icon: Int, modifier: Modifier) {
             .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.35f))
             .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))),
         contentAlignment = Alignment.Center,
-    ) {
+    ) { ZoneLabel(label, icon) }
+}
+
+@Composable
+private fun ZoneLabel(label: String, @DrawableRes icon: Int) {
+    run {
         Surface(shape = EchoShapes.Full, color = MaterialTheme.colorScheme.surfaceContainerHighest) {
             Row(
                 Modifier.padding(horizontal = EchoSpacing.m - EchoSpacing.xxs, vertical = EchoSpacing.s - EchoSpacing.xxs),
