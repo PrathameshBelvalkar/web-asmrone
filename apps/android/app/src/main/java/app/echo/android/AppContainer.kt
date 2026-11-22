@@ -49,6 +49,9 @@ class AppContainer(context: Context) {
     val hentai: HentaiRepository = FakeHentaiRepository(fakeConfig)
     val player: PlayerController = FakePlayerController(appScope)
 
+    /** S.7 Clear all data: Room, settings and profile. The caller restarts at O.1. */
+    suspend fun clearAllData() = data.clearAllData()
+
     /** Debug builds: fill Room with the Figma rows on a fresh install. */
     fun seedFakeData() {
         appScope.launch { data.seedFakeData() }

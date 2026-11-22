@@ -76,10 +76,12 @@ data class UpdateSettings(
     val autoCheck: Boolean = true,
     val wifiOnly: Boolean = true,
     val showWhatsNew: Boolean = true,
+    /** S.14 "Later": this version is not offered again. */
+    val skippedVersion: String? = null,
 )
 
 /** S.4 AI subtitles (UI only for now). */
-data class AiSubtitleSettings(val enabled: Boolean = false, val engine: String = "Whisper", val model: String = "small")
+data class AiSubtitleSettings(val enabled: Boolean = false, val engine: String = "Whisper", val model: String = "base")
 
 /** Everything in the `settings` DataStore. */
 data class Settings(

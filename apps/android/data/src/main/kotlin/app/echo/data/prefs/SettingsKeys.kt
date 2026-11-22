@@ -55,6 +55,7 @@ internal object SettingsKeys {
     val autoCheck = booleanPreferencesKey("autoCheck")
     val wifiOnly = booleanPreferencesKey("wifiOnly")
     val showWhatsNew = booleanPreferencesKey("showWhatsNew")
+    val skippedVersion = stringPreferencesKey("skippedVersion")
 
     // AI subtitles
     val aiEnabled = booleanPreferencesKey("aiSubtitles.enabled")

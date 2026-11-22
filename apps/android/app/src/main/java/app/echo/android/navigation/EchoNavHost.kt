@@ -41,6 +41,12 @@ interface ShellActions {
     /** Queue [tracks] from [index] and open the full player (1.8). */
     fun play(tracks: List<Track>, index: Int, playingFrom: String, source: PlaySource = PlaySource.WORK)
     fun finishOnboarding()
+    /** S.7 Clear all data: wipe the device data, then start again at O.1. */
+    fun clearAllData() = Unit
+    /** S.12 Reset profile: clear name, avatar and age, then run onboarding again. */
+    fun resetProfile() = Unit
+    /** S.13 Update now: the S.15 download sheet. */
+    fun startUpdate() = Unit
     fun sectionIcon(section: Section): Int
 }
 

@@ -104,6 +104,7 @@ class DataStoreSettingsRepository(private val store: DataStore<Preferences>) : S
         this[K.autoCheck] = u.autoCheck
         this[K.wifiOnly] = u.wifiOnly
         this[K.showWhatsNew] = u.showWhatsNew
+        u.skippedVersion?.let { this[K.skippedVersion] = it } ?: remove(K.skippedVersion)
     }
 
     override suspend fun updateAiSubtitles(transform: AiSubtitleSettings.() -> AiSubtitleSettings) = edit { s ->
@@ -172,6 +173,7 @@ internal fun Preferences.toSettings(): Settings {
             autoCheck = this[K.autoCheck] ?: d.updates.autoCheck,
             wifiOnly = this[K.wifiOnly] ?: d.updates.wifiOnly,
             showWhatsNew = this[K.showWhatsNew] ?: d.updates.showWhatsNew,
+            skippedVersion = this[K.skippedVersion],
         ),
         aiSubtitles = AiSubtitleSettings(
             enabled = this[K.aiEnabled] ?: d.aiSubtitles.enabled,

@@ -1277,6 +1277,26 @@ Figma `29:29765` · same sheet, next state
 - `LinearWavyProgressIndicator` (download). `EchoButtonGroup` Cancel (Outlined, M) · Install (Filled, M, enabled when
   done).
 
+#### Phase 10 notes (built)
+
+All 16 frames are built and were checked on `Pixel_8` against Figma. Deliberate differences, with the reason:
+
+- **The update feed is fake** (`FakeUpdates`: installed 0.1.6, 0.1.7 offered). S.14 appears about 1.5 s after launch
+  when "Check automatically" is on and onboarding is done. Later skips that version (`skippedVersion`); swiping the
+  sheet away only hides it until the next launch. S.15's download is simulated (about 20 s) and Install closes the
+  sheet.
+- **S.6 sizes are real**: the image cache is Coil's disk cache, and source caches are everything else in the cache
+  folder. Clear empties them. Clear all data (S.7) also wipes Room and both DataStores, then restarts at O.1.
+- **S.1 Music source** opens the S.3 dialog directly. Picking a catalogue also switches Home and Search to it while ASMR
+  is the active section. JAV appears only when adult sources are allowed.
+- **S.10 reading modes** are the same six cards as 2.8 (Two pages instead of Figma's "Auto · By category"; the model
+  has no Auto mode). Selected cards use the outlined selectable card, as in 2.8.
+- **Pickers** (mirror, language, model, count as finished, quality, tap zones, scale, background) use one radio dialog
+  in the S.3 style. Name and Age (S.12) are dialogs; Change avatar is a sheet with the avatar picker.
+- **The picked avatar icon** shows everywhere the profile avatar does (S.1, P.1, every top bar).
+- **S.4 is UI only**: the switch and model are stored; Engine and Speed are fixed text.
+- **S.11 links** open the Echo and Mihon repositories; Open-source licences opens the Echo licence.
+
 ### Phase 11: Onboarding (built last)
 
 Route group `Onboarding`, shown while `onboardingDone` is false. No shell. Each step saves its answer straight away, so

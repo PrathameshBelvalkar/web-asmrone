@@ -62,6 +62,7 @@ kotlin {
 
 dependencies {
     implementation(project(":designsystem"))
+    implementation(libs.coil.compose)
     implementation(project(":data"))
     implementation(project(":services"))
 

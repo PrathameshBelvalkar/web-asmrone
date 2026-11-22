@@ -9,6 +9,11 @@ import app.echo.data.fake.FakeCatalog
 import app.echo.data.model.Profile
 import app.echo.data.model.Source
 import app.echo.data.repository.PlayerState
+import app.echo.data.fake.FakeUpdates
+import app.echo.data.model.Section
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -23,6 +28,12 @@ data class ShellState(
     val visibleSources: List<Source>,
     val player: PlayerState,
 )
+
+/** P.1 chips: playlists, liked tracks and hours listened. */
+data class ProfileStats(val playlists: Int = 0, val liked: Int = 0, val listenedHours: Int = 0)
+
+/** The update sheet over the shell: S.14 offers the update, S.15 downloads it. */
+enum class UpdateStep { OFFER, DOWNLOADING }
 
 /** Active section / source, the profile, and the player, for the app scaffold (design.md §5.4 `ShellViewModel`). */
 class ShellViewModel(private val container: AppContainer) : ViewModel() {
@@ -59,11 +70,80 @@ class ShellViewModel(private val container: AppContainer) : ViewModel() {
 
     val player get() = container.player
 
-    /** S.12 controls, until Phase 10 builds the Profile screen. */
-    fun updateProfile(change: Profile.() -> Profile) = viewModelScope.launch { container.profile.update(change) }
+    val stats: StateFlow<ProfileStats> = combine(
+        container.playlists.playlists,
+        container.playlists.liked,
+        container.library.history(Section.ASMR),
+    ) { playlists, liked, history ->
+        ProfileStats(playlists.size, liked.size, (history.sumOf { it.positionMs } / HOUR_MS).toInt())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProfileStats())
 
-    /** S.8 controls, until Phase 10 builds the Look and feel screen. */
-    val theme = container.settings.theme
-    fun updateTheme(change: app.echo.data.model.ThemeSettings.() -> app.echo.data.model.ThemeSettings) =
-        viewModelScope.launch { container.settings.updateTheme(change) }
+    private val _update = MutableStateFlow<UpdateStep?>(null)
+    val update: StateFlow<UpdateStep?> = _update
+    private val _updateProgress = MutableStateFlow(0f)
+    val updateProgress: StateFlow<Float> = _updateProgress
+    private var download: Job? = null
+
+    init {
+        // S.13 "Check for updates automatically": once per launch, after onboarding, unless Later skipped it.
+        viewModelScope.launch {
+            delay(UPDATE_CHECK_DELAY_MS)
+            val release = FakeUpdates.available ?: return@launch
+            val updates = container.settings.settings.first().updates
+            val profile = container.profile.profile.first()
+            if (profile.onboardingDone && updates.autoCheck && updates.skippedVersion != release.version && _update.value == null) {
+                _update.value = UpdateStep.OFFER
+            }
+        }
+    }
+
+    /** S.14 Later: don't offer this version again. */
+    fun skipUpdate() {
+        val version = FakeUpdates.available?.version
+        viewModelScope.launch { container.settings.updateUpdates { copy(skippedVersion = version) } }
+        _update.value = null
+    }
+
+    /** S.14 Update now / S.13 Update now → S.15. A fake download: 18.4 MB in about 20 s. */
+    fun startUpdate() {
+        download?.cancel()
+        _updateProgress.value = 0f
+        _update.value = UpdateStep.DOWNLOADING
+        download = viewModelScope.launch {
+            while (_updateProgress.value < 1f) {
+                delay(DOWNLOAD_TICK_MS)
+                _updateProgress.value = (_updateProgress.value + DOWNLOAD_TICK_MS / DOWNLOAD_MS.toFloat()).coerceAtMost(1f)
+            }
+        }
+    }
+
+    /** Swiped away: hidden until the next launch, not skipped. */
+    fun hideUpdate() { _update.value = null }
+
+    fun cancelUpdate() {
+        download?.cancel()
+        _update.value = null
+    }
+
+    /** Install hands the APK to Android once the real GitHub check exists; for now it closes the sheet. */
+    fun installUpdate() { _update.value = null }
+
+    /** S.7: every table and both DataStores, then [onDone] (the shell restarts at O.1). */
+    fun clearAllData(onDone: () -> Unit) = viewModelScope.launch {
+        container.clearAllData()
+        onDone()
+    }
+
+    /** S.12 Reset profile: name, avatar and age, then onboarding again. */
+    fun resetProfile(onDone: () -> Unit) = viewModelScope.launch {
+        container.profile.clear()
+        onDone()
+    }
+
+    private companion object {
+        const val HOUR_MS = 3_600_000L
+        const val UPDATE_CHECK_DELAY_MS = 1_500L
+        const val DOWNLOAD_TICK_MS = 250L
+        const val DOWNLOAD_MS = 20_000L
+    }
 }

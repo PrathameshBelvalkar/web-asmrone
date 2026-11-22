@@ -21,6 +21,17 @@ import app.echo.android.feature.manga.reader.MangaReaderRoute
 import app.echo.android.feature.manga.search.MangaSearchRoute
 import app.echo.android.feature.manga.tags.MangaTagsRoute
 import app.echo.android.feature.manga.taglist.MangaTagListRoute
+import app.echo.android.feature.settings.AboutRoute
+import app.echo.android.feature.settings.AiSubtitlesRoute
+import app.echo.android.feature.settings.AsmrPreferencesRoute
+import app.echo.android.feature.settings.EditProfileRoute
+import app.echo.android.feature.settings.JavSettingsRoute
+import app.echo.android.feature.settings.LookAndFeelRoute
+import app.echo.android.feature.settings.PlaybackRoute
+import app.echo.android.feature.settings.ReaderDefaultsRoute
+import app.echo.android.feature.settings.SettingsRoute
+import app.echo.android.feature.settings.StorageRoute
+import app.echo.android.feature.settings.UpdatesRoute
 import app.echo.android.feature.shared.history.SharedHistoryRoute
 import app.echo.android.feature.shared.library.SharedLibraryRoute
 import app.echo.android.feature.shared.states.SharedStatesRoute
@@ -62,6 +73,18 @@ internal fun NavGraphBuilder.realScreens(
     }
     composable<Route.EndOfGallery> { entry -> MangaEndRoute(entry.toRoute<Route.EndOfGallery>().galleryId, shell) }
     composable<Route.MangaArtists> { MangaArtistsRoute(shell, source.value, contentPadding) }
+    // Settings and profile (S.1–S.13; P.1, S.14 and S.15 are sheets in the shell).
+    composable<Route.Settings> { SettingsRoute(shell) }
+    composable<Route.Preferences> { AsmrPreferencesRoute(shell) }
+    composable<Route.AiSubtitles> { AiSubtitlesRoute(shell) }
+    composable<Route.JavSettings> { JavSettingsRoute(shell) }
+    composable<Route.Storage> { StorageRoute(shell, onClearAll = shell::clearAllData) }
+    composable<Route.LookAndFeel> { LookAndFeelRoute(shell) }
+    composable<Route.Playback> { PlaybackRoute(shell) }
+    composable<Route.ReaderDefaults> { ReaderDefaultsRoute(shell) }
+    composable<Route.About> { AboutRoute(shell) }
+    composable<Route.EditProfile> { EditProfileRoute(shell, onReset = shell::resetProfile) }
+    composable<Route.Updates> { UpdatesRoute(shell) }
     return setOf(
         Route.Playlists::class, Route.Playlist::class,
         Route.AsmrHome::class, Route.AsmrSearch::class, Route.AsmrResults::class,
@@ -69,5 +92,8 @@ internal fun NavGraphBuilder.realScreens(
         Route.Library::class, Route.History::class, Route.NotFound::class,
         Route.MangaBrowse::class, Route.MangaSearch::class, Route.Tags::class, Route.TagList::class, Route.Gallery::class,
         Route.Reader::class, Route.EndOfGallery::class, Route.MangaArtists::class,
+        Route.Settings::class, Route.Preferences::class, Route.AiSubtitles::class, Route.JavSettings::class,
+        Route.Storage::class, Route.LookAndFeel::class, Route.Playback::class, Route.ReaderDefaults::class,
+        Route.About::class, Route.EditProfile::class, Route.Updates::class,
     )
 }

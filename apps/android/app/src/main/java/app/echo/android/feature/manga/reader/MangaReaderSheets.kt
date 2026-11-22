@@ -61,9 +61,9 @@ import app.echo.designsystem.icon.EchoIcons
 import app.echo.designsystem.tokens.EchoSpacing
 
 /** One reading-mode card (Figma 2.8): the title, its subtitle and an icon. */
-private data class ModeCard(val mode: ReadingMode, @StringRes val title: Int, @StringRes val subtitle: Int, @DrawableRes val icon: Int)
+internal data class ModeCard(val mode: ReadingMode, @StringRes val title: Int, @StringRes val subtitle: Int, @DrawableRes val icon: Int)
 
-private val readingModes = listOf(
+internal val readingModes = listOf(
     ModeCard(ReadingMode.PAGED_RTL, R.string.reader_mode_paged, R.string.reader_sub_rtl, EchoIcons.MenuBook),
     ModeCard(ReadingMode.PAGED_LTR, R.string.reader_mode_paged, R.string.reader_sub_ltr, EchoIcons.MenuBook),
     ModeCard(ReadingMode.PAGED_VERTICAL, R.string.reader_mode_paged, R.string.reader_sub_vertical, EchoIcons.SwapVert),
@@ -72,7 +72,7 @@ private val readingModes = listOf(
     ModeCard(ReadingMode.TWO_PAGES, R.string.reader_mode_two_pages, R.string.reader_sub_landscape, EchoIcons.GridView),
 )
 
-private fun TapZones.label() = when (this) {
+internal fun TapZones.label() = when (this) {
     TapZones.DEFAULT -> R.string.reader_zones_default
     TapZones.L_SHAPED -> R.string.reader_zones_l
     TapZones.KINDLE -> R.string.reader_zones_kindle
@@ -80,14 +80,14 @@ private fun TapZones.label() = when (this) {
     TapZones.OFF -> R.string.reader_zones_off
 }
 
-private fun ScaleType.label() = when (this) {
+internal fun ScaleType.label() = when (this) {
     ScaleType.FIT_SCREEN -> R.string.reader_scale_fit_screen
     ScaleType.FIT_WIDTH -> R.string.reader_scale_fit_width
     ScaleType.FIT_HEIGHT -> R.string.reader_scale_fit_height
     ScaleType.ORIGINAL -> R.string.reader_scale_original
 }
 
-private fun ReaderBackground.label() = when (this) {
+internal fun ReaderBackground.label() = when (this) {
     ReaderBackground.BLACK -> R.string.reader_bg_black
     ReaderBackground.GRAY -> R.string.reader_bg_gray
     ReaderBackground.WHITE -> R.string.reader_bg_white

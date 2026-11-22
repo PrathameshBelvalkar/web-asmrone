@@ -44,8 +44,9 @@ sealed interface AvatarChoice {
     data class Icon(@DrawableRes val icon: Int) : AvatarChoice
 }
 
+/** The profile avatar at any size (S.1 40 dp, P.1 64 dp, S.12 96 dp): the initial on primaryContainer, or an icon. */
 @Composable
-private fun AvatarCircle(choice: AvatarChoice, initial: String, size: androidx.compose.ui.unit.Dp, selected: Boolean = false) {
+fun AvatarCircle(choice: AvatarChoice, initial: String, size: androidx.compose.ui.unit.Dp, selected: Boolean = false) {
     val colors = MaterialTheme.colorScheme
     Box(
         Modifier.size(size).clip(EchoShapes.Full)

@@ -46,11 +46,14 @@ import app.echo.android.feature.asmr.player.PlayerPages
 import app.echo.android.feature.asmr.player.PlayerViewModel
 import app.echo.android.ui.echoViewModel
 import app.echo.data.repository.PlaySource
-import app.echo.android.feature.settings.ProfileSettingsBlock
-import app.echo.android.feature.settings.ThemeSettingsBlock
 import app.echo.android.navigation.Chrome
 import app.echo.android.navigation.EchoNavHost
 import app.echo.android.navigation.Route
+import app.echo.data.fake.FakeUpdates
+import app.echo.android.feature.settings.avatarChoice
+import app.echo.designsystem.component.echo.AvatarChoice
+import app.echo.designsystem.component.echo.LocalProfileAvatarIcon
+import androidx.compose.runtime.CompositionLocalProvider
 import app.echo.android.navigation.ScreenSpecs
 import app.echo.android.navigation.SectionNav
 import app.echo.android.navigation.ShellActions
@@ -126,6 +129,15 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
                 nav.navigate(SectionNav.root(section, Tab.HOME)) { popUpTo(nav.graph.id) { inclusive = true } }
             }
             override fun sectionIcon(section: Section) = section.icon()
+            override fun clearAllData() { vm.clearAllData(onDone = ::restart) }
+            override fun resetProfile() { vm.resetProfile(onDone = ::restart) }
+            override fun startUpdate() = vm.startUpdate()
+
+            /** Back to O.1 with nothing behind it. */
+            private fun restart() {
+                showProfile = false
+                nav.navigate(Route.Splash) { popUpTo(nav.graph.id) { inclusive = true } }
+            }
         }
     }
 
@@ -140,23 +152,17 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
 
     // A Surface, not just a background: it also sets the content colour (onSurface), so plain Text reads in dark.
     androidx.compose.material3.Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) { Box(Modifier.fillMaxSize()) {
-        EchoNavHost(
-            nav = nav,
-            start = start,
-            shell = actions,
-            source = shell.source,
-            contentPadding = PaddingValues(bottom = bottomPadding),
-            modifier = Modifier.fillMaxSize(),
-            extras = { route ->
-                if (route == Route.LookAndFeel) {
-                    val theme by vm.theme.collectAsStateWithLifecycle(initialValue = null)
-                    theme?.let { ThemeSettingsBlock(it) { change -> vm.updateTheme(change) } }
-                }
-                if (route == Route.EditProfile) {
-                    ProfileSettingsBlock(shell.profile) { change -> vm.updateProfile(change) }
-                }
-            },
-        )
+        val avatarIcon = (shell.profile.avatarChoice() as? AvatarChoice.Icon)?.icon
+        CompositionLocalProvider(LocalProfileAvatarIcon provides avatarIcon) {
+            EchoNavHost(
+                nav = nav,
+                start = start,
+                shell = actions,
+                source = shell.source,
+                contentPadding = PaddingValues(bottom = bottomPadding),
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
 
         if (showNavBar) {
             EchoNavigationBar(
@@ -217,7 +223,23 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
         )
     }
     if (showProfile) {
-        ProfileSheet(shell.profile, onOpen = { showProfile = false; nav.navigate(it) }, onDismiss = { showProfile = false })
+        val stats by vm.stats.collectAsStateWithLifecycle()
+        ProfileSheet(shell.profile, stats, onOpen = { showProfile = false; nav.navigate(it) }, onDismiss = { showProfile = false })
+    }
+    val updateStep by vm.update.collectAsStateWithLifecycle()
+    val release = FakeUpdates.available
+    if (updateStep != null && release != null) {
+        val progress by vm.updateProgress.collectAsStateWithLifecycle()
+        UpdateSheet(
+            release = release,
+            step = updateStep!!,
+            progress = progress,
+            onLater = vm::skipUpdate,
+            onHide = vm::hideUpdate,
+            onUpdate = vm::startUpdate,
+            onCancel = vm::cancelUpdate,
+            onInstall = vm::installUpdate,
+        )
     }
     if (showPlayerMore) {
         PlayerMoreSheet(playerState, playerVm, playerNav, onDismiss = { showPlayerMore = false })

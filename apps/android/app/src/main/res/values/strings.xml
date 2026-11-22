@@ -8,9 +8,9 @@
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_dynamic_colour">Dynamic colour</string>
-    <string name="settings_dynamic_colour_summary">Use colours from your wallpaper</string>
+    <string name="settings_dynamic_colour_summary">From your wallpaper (Android 12+)</string>
     <string name="settings_pure_black">Pure black</string>
-    <string name="settings_pure_black_summary">Black background in dark theme</string>
+    <string name="settings_pure_black_summary">AMOLED dark theme</string>
 
     <!-- Navigation bar -->
     <string name="nav_home">Home</string>
@@ -45,7 +45,7 @@
     <!-- S.12 Profile -->
     <string name="settings_age">Age</string>
     <string name="settings_adult_sources">Show adult sources</string>
-    <string name="settings_adult_sources_summary">JAV, Hentai, 3hentai and Hentai ASMR. 18+ only.</string>
+    <string name="settings_adult_sources_summary">JAV, Hentai and adult ASMR · 18+ only</string>
 
     <!-- States (0.4, H.10) -->
     <string name="state_try_again">Try again</string>
@@ -316,4 +316,164 @@
     <string name="manga_favourite_cd">Favourite</string>
     <string name="manga_open_cd">Open on site</string>
     <string name="reader_tap_menus">Show menus</string>
+
+    <!-- Phase 10: Settings and profile -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_group_you">You</string>
+    <string name="settings_profile_summary">Profile · avatar, name, age</string>
+    <string name="settings_group_sources">Sources</string>
+    <string name="settings_music_source">Music source</string>
+    <string name="settings_music_source_summary">Home and Search browse this catalogue</string>
+    <string name="settings_music_source_which">Which catalogue Home and Search browse</string>
+    <string name="settings_music_source_body">Home and Search browse this catalogue.</string>
+    <string name="settings_asmr_prefs">%1$s preferences</string>
+    <string name="settings_asmr_prefs_summary">Subtitles, SFW, mirror, language, tags</string>
+    <string name="settings_jav">JAV</string>
+    <string name="settings_group_app">App</string>
+    <string name="settings_look">Look and feel</string>
+    <string name="settings_look_summary">Theme, dynamic colour, pure black</string>
+    <string name="settings_playback">Playback</string>
+    <string name="settings_playback_summary">Speed, skip length, resume</string>
+    <string name="settings_reader">Reader</string>
+    <string name="settings_reader_summary">Reading mode, tap zones, scale</string>
+    <string name="settings_ai">AI subtitles</string>
+    <string name="settings_ai_summary">Phase 2 on Android</string>
+    <string name="settings_group_device">Device</string>
+    <string name="settings_storage">Storage</string>
+    <string name="settings_storage_summary">Image cache, source caches, clear data</string>
+    <string name="settings_updates">App updates</string>
+    <string name="settings_updates_available">%1$s available</string>
+    <string name="settings_updates_none">Up to date</string>
+    <string name="settings_about">About</string>
+    <string name="settings_about_summary">Version %1$s · licences</string>
+
+    <string name="settings_prefs_title">Preferences</string>
+    <string name="settings_prefs_subtitle">%1$s · changes apply straight away</string>
+    <string name="settings_group_browse">Browse</string>
+    <string name="settings_subtitles_only">Only show works with subtitles</string>
+    <string name="settings_sfw_only">Only show SFW works in search</string>
+    <string name="settings_group_source">Source</string>
+    <string name="settings_mirror">Site mirror</string>
+    <string name="settings_translation">Translation language</string>
+    <string name="settings_home_tags">Show tags on home page · %1$d selected</string>
+
+    <string name="settings_ai_subtitle">Subtitles for tracks that have none</string>
+    <string name="settings_ai_note">Desktop feature. Android Phase 1 hides this screen; it arrives in Phase 2.</string>
+    <string name="settings_ai_switch_summary">Runs on this device, free, nothing is uploaded.</string>
+    <string name="settings_group_model">Model</string>
+    <string name="settings_engine">Engine</string>
+    <string name="settings_engine_value">%1$s · CPU</string>
+    <string name="settings_model">Model</string>
+    <string name="settings_speed_device">Speed on this device</string>
+    <string name="settings_speed_device_value">1.8× real time</string>
+
+    <string name="settings_saved_on_device">Saved on this device</string>
+    <string name="settings_hide_upcoming">Hide upcoming movies</string>
+    <string name="settings_hide_upcoming_summary">Lists start with released titles, and Latest has no Coming soon row.</string>
+    <string name="settings_jav_note">Content rules (blocked titles) are built in and can\'t be turned off.</string>
+
+    <string name="settings_storage_subtitle">What Echo keeps on this device</string>
+    <string name="settings_image_cache">Image cache</string>
+    <string name="settings_image_cache_summary">Covers and pages · %1$s</string>
+    <string name="settings_source_caches">Source caches</string>
+    <string name="settings_source_caches_summary">Feeds and search results · %1$s</string>
+    <string name="settings_clear">Clear</string>
+    <string name="settings_group_danger">Danger zone</string>
+    <string name="settings_clear_all">Clear all data</string>
+    <string name="settings_clear_all_summary">Resets Echo: cache, preferences, queue and reading progress.</string>
+    <string name="settings_clear_all_title">Clear all data?</string>
+    <string name="settings_clear_all_body">Echo goes back to how it was when first installed: the cache, every preference, the play queue and reading progress are deleted.</string>
+
+    <string name="settings_look_subtitle">Material You, from the original Echo</string>
+    <string name="settings_group_colour">Colour</string>
+    <string name="settings_group_player">Player</string>
+    <string name="settings_dynamic_player">Dynamic player colour</string>
+    <string name="settings_dynamic_player_summary">Colours from the cover</string>
+    <string name="settings_blurred_cover">Blurred cover background</string>
+    <string name="settings_group_layout">Layout</string>
+    <string name="settings_bigger_covers">Bigger covers</string>
+    <string name="settings_bigger_covers_summary">For tablets</string>
+    <string name="settings_animations">Animations</string>
+
+    <string name="settings_playback_subtitle">Audio and video</string>
+    <string name="settings_default_speed">Default speed</string>
+    <string name="settings_skip_label">Skip length</string>
+    <string name="settings_seconds">%1$d s</string>
+    <string name="settings_group_resume">Resume</string>
+    <string name="settings_resume">Resume where I left off</string>
+    <string name="settings_count_finished">Count as finished</string>
+    <string name="settings_count_finished_summary">Last %1$d min or %2$d %%</string>
+    <string name="settings_minutes">%1$d min</string>
+    <string name="settings_group_video">Video</string>
+    <string name="settings_default_quality">Default quality</string>
+    <string name="settings_quality_auto">Auto</string>
+    <string name="settings_pip">Picture-in-picture</string>
+    <string name="settings_pip_summary">When you leave the theater</string>
+
+    <string name="settings_reader_subtitle">Defaults for every gallery · change per gallery in the reader</string>
+    <string name="settings_default_mode">Default reading mode</string>
+    <string name="settings_group_paged">Paged</string>
+    <string name="settings_tap_zones">Tap zones</string>
+    <string name="settings_group_general">General</string>
+    <string name="settings_background_colour">Background colour</string>
+
+    <string name="settings_about_subtitle">Echo for Android</string>
+    <string name="settings_about_version">Version %1$s · Kotlin · Material 3 Expressive</string>
+    <string name="settings_group_project">Project</string>
+    <string name="settings_source_code">Source code</string>
+    <string name="settings_whats_new">What\'s new</string>
+    <string name="settings_group_licences">Licences &amp; credits</string>
+    <string name="settings_credit_echo">Echo Android (design)</string>
+    <string name="settings_credit_echo_summary">brahmkshatriya · Unabandon Public License</string>
+    <string name="settings_credit_mihon">Mihon (reader design)</string>
+    <string name="settings_credit_mihon_summary">Apache-2.0</string>
+    <string name="settings_oss_licences">Open-source licences</string>
+
+    <string name="settings_profile_title">Profile</string>
+    <string name="settings_profile_subtitle">Saved on this device · no account</string>
+    <string name="settings_change_avatar">Change avatar</string>
+    <string name="settings_group_about_you">About you</string>
+    <string name="settings_name">Name</string>
+    <string name="settings_age_summary">Used to show or hide adult sources</string>
+    <string name="settings_group_content">Content</string>
+    <string name="settings_reset_profile">Reset profile</string>
+    <string name="settings_reset_profile_summary">Clears name, avatar and age; runs onboarding again</string>
+    <string name="settings_reset">Reset</string>
+    <string name="settings_save">Save</string>
+
+    <string name="settings_updates_subtitle">Echo updates itself from GitHub releases</string>
+    <string name="settings_update_available">Echo %1$s is available</string>
+    <string name="settings_update_meta">You have %1$s · %2$s MB · released %3$s</string>
+    <string name="settings_up_to_date">Echo %1$s is up to date</string>
+    <string name="settings_update_now">Update now</string>
+    <string name="settings_release_notes">Release notes</string>
+    <string name="settings_group_channel">Update channel</string>
+    <string name="settings_channel_stable">Stable</string>
+    <string name="settings_channel_beta">Beta</string>
+    <string name="settings_channel_nightly">Nightly</string>
+    <string name="settings_group_options">Options</string>
+    <string name="settings_auto_check">Check for updates automatically</string>
+    <string name="settings_auto_check_summary">Once a day</string>
+    <string name="settings_wifi_only">Download on Wi-Fi only</string>
+    <string name="settings_whats_new_after">Show what\'s new after updating</string>
+    <string name="settings_group_history">Version history</string>
+    <string name="settings_installed_on">Installed · %1$s</string>
+
+    <string name="update_ready">Echo %1$s is ready</string>
+    <string name="update_ready_meta">%1$s MB · released %2$s</string>
+    <string name="update_whats_new">What\'s new</string>
+    <string name="update_later">Later</string>
+    <string name="update_downloading">Downloading Echo %1$s</string>
+    <string name="update_progress">%1$s of %2$s MB · about %3$d s left</string>
+    <string name="update_percent">%1$d%%</string>
+    <string name="update_install_note">When it finishes, Android asks you to confirm the install. Your library and settings are kept.</string>
+    <string name="update_install_when_ready">Install when ready</string>
+    <string name="update_install">Install</string>
+
+    <string name="profile_sheet_subtitle">Your profile · saved on this device</string>
+    <string name="profile_playlists">%1$d playlists</string>
+    <string name="profile_liked">%1$d liked</string>
+    <string name="profile_listened">%1$d h listened</string>
+    <string name="profile_your_library">Your library</string>
+    <string name="profile_your_library_summary">Playlists, favourites</string>
 </resources>

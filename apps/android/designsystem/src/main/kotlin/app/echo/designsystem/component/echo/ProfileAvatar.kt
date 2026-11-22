@@ -7,12 +7,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -25,6 +28,9 @@ import app.echo.designsystem.preview.PreviewData
 import app.echo.designsystem.theme.EchoShapes
 import app.echo.designsystem.tokens.EchoSizes
 import app.echo.designsystem.tokens.EchoSpacing
+
+/** The avatar icon picked in O.6 / S.12, or null for the initial. The shell provides it to every [ProfileAvatar]. */
+val LocalProfileAvatarIcon = staticCompositionLocalOf<Int?> { null }
 
 /**
  * The local profile avatar (Figma "Echo · Profile avatar", 23 screens): a ring around the avatar in a 48 dp
@@ -59,8 +65,14 @@ fun ProfileAvatar(
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center,
             ) {
+                val icon = LocalProfileAvatarIcon.current
                 if (image != null) {
                     image()
+                } else if (icon != null) {
+                    Icon(
+                        painterResource(icon), contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(18.dp),
+                    )
                 } else {
                     Text(
                         initial.take(1).uppercase(),
