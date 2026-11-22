@@ -8,6 +8,7 @@ plugins {
 android {
     namespace = "app.echo.android"
     compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdkMinor = libs.versions.compileSdkMinor.get().toInt()
 
     defaultConfig {
         applicationId = "app.echo.android" // placeholder

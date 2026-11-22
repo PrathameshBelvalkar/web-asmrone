@@ -81,7 +81,9 @@ Commits: one or more per phase on `feat/android`. Open a PR after Phase 4 (found
 
 ## 3. Tech stack
 
-Already pinned in `apps/android/gradle/libs.versions.toml`: Kotlin 2.4.21, AGP 9.5.1, Compose BOM 2026.09.00,
+Already pinned in `apps/android/gradle/libs.versions.toml`: Kotlin 2.4.21, AGP 9.5.1, Compose BOM 2026.11.01
+(Material 3 1.5.0: the first stable release where the Expressive type, shape and motion APIs are public; it needs
+`compileSdkMinor = 1`, i.e. the android-37.1 platform),
 Navigation 2.10.2, Room 2.8.5, DataStore 1.3.0, Coil 3.6.3, Paging 3.5.3, Lifecycle 2.11.0, min SDK 26, target SDK 37.
 
 | Need | Library | Status |
@@ -290,7 +292,9 @@ the system's Noto Sans JP fallback, one step smaller than the line above it.
 | labelMedium 12/16 · 0.5 | Nav bar labels, badges |
 | labelSmall 11/16 · 0.5 | Overlines ("PLAYING FROM") |
 
-**Emphasized** styles (`typography.titleLargeEmphasized` and so on) have the same sizes with a heavier weight. Use them
+**Emphasized** styles (`typography.titleLargeEmphasized` and so on) have the same sizes in **Bold** (Figma's
+"Emphasized · Title Large" specimen is Roboto Bold). The Compose defaults don't match Figma (tracking differs and the
+emphasized styles keep the baseline weight), so `Typography.kt` writes every style out. Use them
 for selected list items, the current lyric line, primary buttons, the Extended FAB, new or unread items, and the full
 player title.
 
@@ -380,7 +384,9 @@ on, imported as vector drawables.
 
 ### 6.8 The Design system debug screen
 
-`debug/DesignSystemScreen.kt`, reachable only in debug builds (a long-press on the version in S.11). One section per
+`debug/DesignSystemScreen.kt` in the `debug` source set, reachable only in debug builds: its own launcher icon
+"Echo · Design system" (`DesignSystemActivity`), and later a long-press on the version in S.11. Screenshot tests
+render each section in Light, Dark and Pure black (`app/src/test/screenshots/ds/`). One section per
 DS frame: colour roles in all modes, the type scale, the shape scale, the spacing scale, component sizes, elevation,
 state layers, motion demos and icons. **Phase 1 is done when this screen matches the DS frames side by side.**
 

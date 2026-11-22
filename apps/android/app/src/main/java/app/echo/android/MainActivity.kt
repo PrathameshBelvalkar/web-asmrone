@@ -65,5 +65,5 @@ internal fun PlaceholderScreen(sources: List<SourceId>) {
 @Preview(showBackground = true)
 @Composable
 private fun PlaceholderScreenPreview() {
-    EchoTheme(dynamicColor = false) { PlaceholderScreen(SourceId.entries) }
+    EchoTheme(darkTheme = false) { PlaceholderScreen(SourceId.entries) }
 }

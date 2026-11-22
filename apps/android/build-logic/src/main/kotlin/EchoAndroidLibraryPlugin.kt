@@ -27,6 +27,7 @@ class EchoAndroidLibraryPlugin : Plugin<Project> {
 
         extensions.configure<LibraryExtension> {
             compileSdk = version("compileSdk").toInt()
+            compileSdkMinor = version("compileSdkMinor").toInt()
             defaultConfig {
                 minSdk = version("minSdk").toInt()
                 testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
