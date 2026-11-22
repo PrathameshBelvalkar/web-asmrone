@@ -2,7 +2,6 @@ package app.echo.android.shell
 
 import android.app.Activity
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -137,7 +136,8 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
     val bottomPadding = (if (showNavBar) navBarHeight else 0.dp) +
         (if (showPlayer && showNavBar) MiniPlayerReserve else 0.dp)
 
-    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
+    // A Surface, not just a background: it also sets the content colour (onSurface), so plain Text reads in dark.
+    androidx.compose.material3.Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) { Box(Modifier.fillMaxSize()) {
         EchoNavHost(
             nav = nav,
             start = start,
@@ -190,7 +190,7 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
         }
 
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(bottom = bottomPadding + EchoSpacing.s))
-    }
+    } }
 
     // Back: a player page → now playing → collapse the sheet; otherwise the NavHost handles it.
     BackHandler(enabled = sheet.currentValue == PlayerSheetValue.Expanded) {

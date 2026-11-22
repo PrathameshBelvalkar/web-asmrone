@@ -96,11 +96,7 @@ fun FullPlayer(
                 Text(state.artists, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                 Text(state.meta, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
             }
-            // Figma "Icon button (Outlined, toggle on)": a round outlined button whose heart fills when liked.
-            EchoIconButton(
-                if (state.liked) EchoIcons.FavoriteFilled else EchoIcons.Favorite, stringResource(R.string.echo_cd_like), onLike,
-                style = IconButtonStyle.Outlined, size = ComponentSize.M,
-            )
+            LikeButton(liked = state.liked, onToggle = onLike)
         }
         PlayerControls(state.playback, actions, Modifier.padding(top = EchoSpacing.m))
         Box(Modifier.weight(1f))

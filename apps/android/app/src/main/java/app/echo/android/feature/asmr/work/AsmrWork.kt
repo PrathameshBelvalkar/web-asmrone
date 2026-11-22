@@ -42,6 +42,7 @@ import app.echo.data.repository.Load
 import app.echo.data.repository.PlayerController
 import app.echo.data.repository.PlaylistRepository
 import app.echo.designsystem.component.echo.CoverCard
+import app.echo.designsystem.component.echo.LikeButton
 import app.echo.designsystem.component.echo.MediaHeader
 import app.echo.designsystem.component.echo.ShelfHeader
 import app.echo.designsystem.component.m3e.ButtonStyle
@@ -226,10 +227,7 @@ private fun WorkContent(
                 EchoButton(stringResource(R.string.work_play), { onPlay(0, false) }, size = ComponentSize.M, icon = EchoIcons.PlayArrowFilled)
                 EchoButton(stringResource(R.string.work_shuffle), { onPlay(0, true) }, style = ButtonStyle.Tonal, size = ComponentSize.M, icon = EchoIcons.Shuffle)
                 Spacer(Modifier.weight(1f))
-                EchoIconButton(
-                    EchoIcons.Favorite, stringResource(R.string.work_like), onLike, style = IconButtonStyle.Tonal,
-                    size = ComponentSize.M, shape = IconButtonShape.Square, checked = state.liked, checkedIcon = EchoIcons.FavoriteFilled,
-                )
+                LikeButton(liked = state.liked, onToggle = onLike)
                 EchoIconButton(EchoIcons.PlaylistAdd, stringResource(R.string.work_add_to_playlist), onAddToPlaylist, size = ComponentSize.M)
             }
         }
