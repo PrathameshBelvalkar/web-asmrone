@@ -110,6 +110,16 @@ data class QueueStateEntity(
     val playingFrom: String,
 )
 
+/** A liked work (1.5 like toggle). */
+@Entity(tableName = "liked_work")
+data class LikedWorkEntity(
+    @PrimaryKey val workId: String,
+    val title: String,
+    val circle: String,
+    val coverUrl: String?,
+    val likedAt: Long,
+)
+
 /** 2.8 "For this gallery" overrides of the reader defaults. Null = use the default. */
 @Entity(tableName = "reader_prefs")
 data class ReaderPrefsEntity(

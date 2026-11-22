@@ -60,6 +60,10 @@ class FakeSeeder(private val db: EchoDatabase, private val now: () -> Long = Sys
                 )
             }
             p.like(LikedTrackEntity("t-liked", track("t-liked", "w4", "02 · Ear cleaning (left → right)"), t))
+            // 1.2 RECENT
+            listOf("Circle Aoi", "ear cleaning binaural", "rain on window").forEachIndexed { i, q ->
+                db.searchHistory().add(SearchHistoryEntity("ASMR", q, t - (3 - i) * min))
+            }
         }
     }
 

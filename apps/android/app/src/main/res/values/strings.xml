@@ -76,4 +76,51 @@
     <string name="asmr_tab_recommended">Recommended</string>
     <string name="asmr_home_continue">Continue listening</string>
     <string name="asmr_home_trending">Trending tracks</string>
+
+    <!-- 1.2 / 1.3 Search -->
+    <string name="asmr_search_placeholder">Search works, tracks, artists</string>
+    <string name="search_trending">Trending</string>
+    <string name="search_recent">Recent</string>
+    <string name="search_suggestions">Suggestions</string>
+    <string name="search_remove">Remove %1$s</string>
+    <string name="search_use">Use %1$s</string>
+    <string name="results_all">All</string>
+    <string name="results_works">Works</string>
+    <string name="results_tracks">Tracks</string>
+    <string name="results_artists">Artists</string>
+    <string name="results_playlists">Playlists</string>
+    <string name="results_tracks_count">%1$d tracks</string>
+    <string name="results_works_count">%1$d works</string>
+    <string name="results_no_matches_title">No matches</string>
+    <string name="results_no_matches_body">Nothing on this source matches “%1$s”.</string>
+
+    <!-- 1.4 Feed -->
+    <string name="asmr_feed_subtitle">%1$s · %2$,d works</string>
+    <string name="feed_today">Today</string>
+    <string name="feed_week">Week</string>
+    <string name="feed_month">Month</string>
+    <string name="feed_all">All</string>
+
+    <!-- 1.5 Work -->
+    <string name="work_play">Play</string>
+    <string name="work_shuffle">Shuffle</string>
+    <string name="work_like">Like</string>
+    <string name="work_add_to_playlist">Add to playlist</string>
+    <string name="work_tracks">Tracks</string>
+    <string name="work_more_like_this">More like this</string>
+    <string name="work_main_audio">Main audio</string>
+    <string name="work_folder_meta">%1$d tracks · %2$s</string>
+    <string name="work_meta">%1$s · %2$d tracks · %3$s</string>
+    <string name="work_playing">Playing · %1$s</string>
+    <string name="work_added">Added to %1$s</string>
+    <string name="work_expand">Show tracks</string>
+
+    <!-- 1.6 Artist -->
+    <string name="artist_voice_actor">Voice actor · %1$d works</string>
+    <string name="artist_circle">Circle · %1$d works</string>
+    <string name="artist_follow">Follow</string>
+    <string name="artist_following">Following</string>
+    <string name="artist_popular">Popular works</string>
+    <string name="artist_latest">Latest releases</string>
+    <string name="artist_appears_with">Appears with</string>
 </resources>

@@ -1,6 +1,7 @@
 package app.echo.data.fake
 
 import app.echo.data.model.Artist
+import app.echo.data.model.ArtistKind
 import app.echo.data.model.Episode
 import app.echo.data.model.Gallery
 import app.echo.data.model.HentaiTitle
@@ -53,9 +54,12 @@ object FakeCatalog {
     }
 
     val artists: List<Artist> = listOf(
-        Artist("a1", "Circle Aoi", 128), Artist("a2", "Studio Komorebi", 64),
-        Artist("a3", "Aoi Mizuno", 212), Artist("a4", "Hana Seto", 97), Artist("a5", "Rin Kagami", 41),
+        Artist("a1", "Circle Aoi", 128, kind = ArtistKind.CIRCLE), Artist("a2", "Studio Komorebi", 64, kind = ArtistKind.CIRCLE),
+        Artist("a3", "Aoi Mizuno", 312), Artist("a4", "Hana Seto", 97), Artist("a5", "Rin Kagami", 41),
     )
+
+    /** "asmr.one · 1,204 works" on 1.4. */
+    const val TOTAL_WORKS = 1204
 
     // Manga -----------------------------------------------------------------------------------------------------
 

@@ -1,6 +1,9 @@
 package app.echo.data.fake
 
+import app.echo.data.model.ArtistPage
 import app.echo.data.model.AsmrHome
+import app.echo.data.model.FeedPeriod
+import app.echo.data.model.AsmrSearchResults
 import app.echo.data.model.HentaiTitle
 import app.echo.data.model.NewsCategory
 import app.echo.data.model.Shelf
@@ -14,6 +17,7 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 
 /**
  * Emits Loading, waits [FakeConfig.latencyMs], then [value] — or what [FakeConfig.forced] says. A null or empty
@@ -32,6 +36,7 @@ internal fun <T> FakeConfig.serve(value: () -> T?): Flow<Load<T>> = flow {
                 when {
                     v == null -> Load.Error(ErrorKind.NOT_FOUND)
                     v is Collection<*> && v.isEmpty() -> Load.Empty
+                    v is AsmrSearchResults && v.isEmpty -> Load.Empty
                     else -> Load.Content(v)
                 },
             )
@@ -54,10 +59,38 @@ class FakeAsmrRepository(private val config: FakeConfig) : AsmrRepository {
     }
     override fun work(id: String) = config.serve { c.works.firstOrNull { it.id == id } }
     override fun artist(id: String) = config.serve {
-        c.artists.firstOrNull { it.id == id }?.let { a -> a to c.works.filter { a.name == it.circle || a.name in it.voiceActors } }
+        c.artists.firstOrNull { it.id == id || it.name.equals(id, ignoreCase = true) }?.let { a ->
+            val works = c.works.filter { a.name == it.circle || a.name in it.voiceActors }.ifEmpty { c.works.take(3) }
+            val names = works.flatMap { it.voiceActors + it.circle }.toSet() - a.name
+            ArtistPage(a, popular = works, latest = works.reversed(), appearsWith = c.artists.filter { it.name in names })
+        }
     }
-    override fun search(query: String) = config.serve { c.works.filter { it.title.matches(query) || it.circle.matches(query) || it.tags.any { t -> t.matches(query) } } }
-    override fun feed() = config.serve { c.works }
+    override fun search(query: String) = config.serve {
+        val words = query.trim().split(' ').filter { it.isNotBlank() }
+        fun String.hit() = words.any { matches(it) }
+        val works = c.works.filter { it.title.hit() || it.circle.hit() || it.tags.any { t -> t.hit() } }
+        // Artists whose name matches, or who made a matching work (Figma: "rain" lists Aoi Mizuno, Hana Seto…).
+        val makers = works.flatMap { it.voiceActors + it.circle }.toSet()
+        AsmrSearchResults(
+            works = works,
+            artists = c.artists.filter { it.name.hit() || it.name in makers },
+            tracks = c.works.flatMap { it.tracks }.filter { it.title.hit() }.distinctBy { it.title },
+        )
+    }
+    override fun trendingSearches() = flowOf(listOf("rain sounds", "binaural", "no talking", "heartbeat", "ear cleaning"))
+    override fun suggestions(query: String) = flowOf(
+        if (query.isBlank()) emptyList()
+        else listOf("rain sounds", "rain and thunder, binaural", "rainy café whispers", "rain + ear cleaning", "ear cleaning binaural",
+            "heartbeat", "soft tapping", "whispered story").filter { it.matches(query) || query.trim().split(' ').any { w -> it.matches(w) } }.take(4),
+    )
+    override fun feed(tab: Int, period: FeedPeriod) = config.serve {
+        val shift = (tab + period.ordinal) % c.works.size
+        (c.works.drop(shift) + c.works.take(shift)).let { it + it.reversed() }.distinctBy { it.id }.let { it + it.map { w -> w.copy(id = w.id + "b") } }
+    }
+    override fun similar(workId: String) = config.serve {
+        val work = c.works.firstOrNull { it.id == workId } ?: return@serve null
+        c.works.filter { it.id != workId && it.tags.any { t -> t in work.tags } }.ifEmpty { c.works.filter { it.id != workId }.take(4) }
+    }
 }
 
 class FakeMangaRepository(private val config: FakeConfig) : MangaRepository {

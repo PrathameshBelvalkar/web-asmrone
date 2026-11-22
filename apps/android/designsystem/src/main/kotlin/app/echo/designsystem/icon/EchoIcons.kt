@@ -308,6 +308,10 @@ object EchoIcons {
     val Headphones: Int = R.drawable.ic_headphones
     val HeadphonesFilled: Int = R.drawable.ic_headphones_filled
 
+    /** Search suggestion: put the suggestion into the query (1.2). */
+    val NorthWest: Int = R.drawable.ic_north_west
+    val NorthWestFilled: Int = R.drawable.ic_north_west_filled
+
     /** Cover placeholder (CoverImage). */
     val Image: Int = R.drawable.ic_image
     val ImageFilled: Int = R.drawable.ic_image_filled
@@ -357,6 +361,7 @@ object EchoIcons {
         EchoIcon("more_vert", MoreVert, MoreVertFilled),
         EchoIcon("movie", Movie, MovieFilled),
         EchoIcon("music_note", MusicNote, MusicNoteFilled),
+        EchoIcon("north_west", NorthWest, NorthWestFilled),
         EchoIcon("open_in_new", OpenInNew, OpenInNewFilled),
         EchoIcon("palette", Palette, PaletteFilled),
         EchoIcon("pause", Pause, PauseFilled),

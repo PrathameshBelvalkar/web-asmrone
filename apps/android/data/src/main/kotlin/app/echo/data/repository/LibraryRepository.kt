@@ -2,6 +2,7 @@ package app.echo.data.repository
 
 import app.echo.data.db.EchoDatabase
 import app.echo.data.db.LikedTrackEntity
+import app.echo.data.db.LikedWorkEntity
 import app.echo.data.db.ListenHistoryEntity
 import app.echo.data.db.PlaylistEntity
 import app.echo.data.db.ReadHistoryEntity
@@ -14,6 +15,7 @@ import app.echo.data.model.Playlist
 import app.echo.data.model.PlaylistPrivacy
 import app.echo.data.model.Section
 import app.echo.data.model.Track
+import app.echo.data.model.Work
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -43,6 +45,7 @@ interface PlaylistRepository {
     val liked: Flow<List<Track>>
     fun tracks(playlistId: Long): Flow<List<Track>>
     fun isLiked(trackId: String): Flow<Boolean>
+    fun isWorkLiked(workId: String): Flow<Boolean>
 
     suspend fun create(name: String, privacy: PlaylistPrivacy): Long
     suspend fun rename(id: Long, name: String, privacy: PlaylistPrivacy)
@@ -51,6 +54,7 @@ interface PlaylistRepository {
     suspend fun move(playlistId: Long, from: Int, to: Int)
     suspend fun remove(playlistId: Long, position: Int)
     suspend fun setLiked(track: Track, liked: Boolean)
+    suspend fun setWorkLiked(work: Work, liked: Boolean)
 }
 
 class RoomLibraryRepository(private val db: EchoDatabase, private val now: () -> Long = System::currentTimeMillis) : LibraryRepository {
@@ -102,6 +106,7 @@ class RoomPlaylistRepository(private val db: EchoDatabase, private val now: () -
     override val liked: Flow<List<Track>> = dao.liked().map { list -> list.map { it.track.toTrack() } }
     override fun tracks(playlistId: Long): Flow<List<Track>> = dao.tracks(playlistId).map { list -> list.map { it.track.toTrack() } }
     override fun isLiked(trackId: String): Flow<Boolean> = dao.isLiked(trackId)
+    override fun isWorkLiked(workId: String): Flow<Boolean> = dao.isWorkLiked(workId)
 
     override suspend fun create(name: String, privacy: PlaylistPrivacy): Long =
         dao.insert(PlaylistEntity(name = name, privacy = privacy.toDb(), createdAt = now()))
@@ -110,6 +115,10 @@ class RoomPlaylistRepository(private val db: EchoDatabase, private val now: () -
     override suspend fun add(playlistId: Long, track: Track) = dao.add(playlistId, track.toFields())
     override suspend fun move(playlistId: Long, from: Int, to: Int) = dao.move(playlistId, from, to)
     override suspend fun remove(playlistId: Long, position: Int) = dao.remove(playlistId, position)
+    override suspend fun setWorkLiked(work: Work, liked: Boolean) {
+        if (liked) dao.likeWork(LikedWorkEntity(work.id, work.title, work.circle, work.coverUrl, now())) else dao.unlikeWork(work.id)
+    }
+
     override suspend fun setLiked(track: Track, liked: Boolean) {
         if (liked) dao.like(LikedTrackEntity(track.id, track.toFields(), now())) else dao.unlike(track.id)
     }

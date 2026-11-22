@@ -20,7 +20,26 @@ data class Work(
     val totalDurationMs: Long = tracks.sumOf { it.durationMs },
 )
 
-data class Artist(val id: String, val name: String, val workCount: Int, val imageUrl: String? = null)
+enum class ArtistKind { VOICE_ACTOR, CIRCLE }
+
+data class Artist(
+    val id: String,
+    val name: String,
+    val workCount: Int,
+    val imageUrl: String? = null,
+    val kind: ArtistKind = ArtistKind.VOICE_ACTOR,
+)
+
+/** 1.4 Feed time range. */
+enum class FeedPeriod { TODAY, WEEK, MONTH, ALL }
+
+/** 1.6 Artist page. */
+data class ArtistPage(val artist: Artist, val popular: List<Work>, val latest: List<Work>, val appearsWith: List<Artist>)
+
+/** 1.3 Search results: every kind at once ("All"), each filter shows one list. */
+data class AsmrSearchResults(val works: List<Work>, val artists: List<Artist>, val tracks: List<Track>) {
+    val isEmpty: Boolean get() = works.isEmpty() && artists.isEmpty() && tracks.isEmpty()
+}
 
 /** 1.1 Home for one tab (For you · Popular · New · Recommended). */
 data class AsmrHome(val featured: List<Work>, val trending: List<Track>, val shelves: List<Shelf<Work>>)

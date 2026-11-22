@@ -55,6 +55,11 @@ class FakePlaylists : PlaylistRepository {
     override val liked: Flow<List<Track>> = likedTracks
     override fun tracks(playlistId: Long) = lists.map { it[playlistId]?.second.orEmpty() }
     override fun isLiked(trackId: String) = likedTracks.map { l -> l.any { it.id == trackId } }
+    private val likedWorks = MutableStateFlow<Set<String>>(emptySet())
+    override fun isWorkLiked(workId: String) = likedWorks.map { workId in it }
+    override suspend fun setWorkLiked(work: app.echo.data.model.Work, liked: Boolean) {
+        likedWorks.value = if (liked) likedWorks.value + work.id else likedWorks.value - work.id
+    }
     override suspend fun create(name: String, privacy: PlaylistPrivacy): Long {
         val id = nextId++
         lists.value = lists.value + (id to (Playlist(id, name, privacy, 0) to emptyList()))

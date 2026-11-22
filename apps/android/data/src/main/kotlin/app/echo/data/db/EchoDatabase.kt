@@ -9,7 +9,7 @@ import androidx.room.RoomDatabase
 @Database(
     entities = [
         ListenHistoryEntity::class, ReadHistoryEntity::class, WatchHistoryEntity::class,
-        PlaylistEntity::class, PlaylistTrackEntity::class, LikedTrackEntity::class,
+        PlaylistEntity::class, PlaylistTrackEntity::class, LikedTrackEntity::class, LikedWorkEntity::class,
         QueueItemEntity::class, QueueStateEntity::class, ReaderPrefsEntity::class, SearchHistoryEntity::class,
     ],
     version = 1,

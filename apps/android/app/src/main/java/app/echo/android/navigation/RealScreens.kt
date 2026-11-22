@@ -4,7 +4,13 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.State
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
+import app.echo.android.feature.asmr.artist.AsmrArtistRoute
+import app.echo.android.feature.asmr.feed.AsmrFeedRoute
 import app.echo.android.feature.asmr.home.AsmrHomeRoute
+import app.echo.android.feature.asmr.work.AsmrWorkRoute
+import app.echo.android.feature.asmr.results.AsmrResultsRoute
+import app.echo.android.feature.asmr.search.AsmrSearchRoute
 import app.echo.data.model.Source
 import kotlin.reflect.KClass
 
@@ -18,5 +24,16 @@ internal fun NavGraphBuilder.realScreens(
     contentPadding: PaddingValues,
 ): Set<KClass<out Route>> {
     composable<Route.AsmrHome> { AsmrHomeRoute(shell, source.value, contentPadding) }
-    return setOf(Route.AsmrHome::class)
+    composable<Route.AsmrSearch> { AsmrSearchRoute(shell, contentPadding) }
+    composable<Route.AsmrResults> { entry ->
+        val s = source.value
+        AsmrResultsRoute(entry.toRoute<Route.AsmrResults>().query, shell, s.name, shell.sectionIcon(s.section), contentPadding)
+    }
+    composable<Route.AsmrFeed> { entry -> AsmrFeedRoute(entry.toRoute<Route.AsmrFeed>().tab, shell, source.value.name, contentPadding) }
+    composable<Route.Work> { entry -> AsmrWorkRoute(entry.toRoute<Route.Work>().id, shell, contentPadding) }
+    composable<Route.Artist> { entry -> AsmrArtistRoute(entry.toRoute<Route.Artist>().id, shell, contentPadding) }
+    return setOf(
+        Route.AsmrHome::class, Route.AsmrSearch::class, Route.AsmrResults::class,
+        Route.AsmrFeed::class, Route.Work::class, Route.Artist::class,
+    )
 }

@@ -98,6 +98,11 @@ interface PlaylistDao {
         insertTracks(list.mapIndexed { i, t -> t.copy(position = i) })
     }
 
+    @Query("SELECT * FROM liked_work ORDER BY likedAt DESC") fun likedWorks(): Flow<List<LikedWorkEntity>>
+    @Query("SELECT EXISTS(SELECT 1 FROM liked_work WHERE workId = :workId)") fun isWorkLiked(workId: String): Flow<Boolean>
+    @Upsert suspend fun likeWork(entry: LikedWorkEntity)
+    @Query("DELETE FROM liked_work WHERE workId = :workId") suspend fun unlikeWork(workId: String)
+
     @Query("SELECT * FROM liked_track ORDER BY likedAt DESC") fun liked(): Flow<List<LikedTrackEntity>>
     @Query("SELECT EXISTS(SELECT 1 FROM liked_track WHERE trackId = :trackId)") fun isLiked(trackId: String): Flow<Boolean>
     @Upsert suspend fun like(entry: LikedTrackEntity)

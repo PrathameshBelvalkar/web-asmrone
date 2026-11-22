@@ -1,7 +1,9 @@
 package app.echo.data.repository
 
-import app.echo.data.model.Artist
+import app.echo.data.model.ArtistPage
+import app.echo.data.model.FeedPeriod
 import app.echo.data.model.AsmrHome
+import app.echo.data.model.AsmrSearchResults
 import app.echo.data.model.Gallery
 import app.echo.data.model.HentaiTitle
 import app.echo.data.model.Idol
@@ -21,9 +23,17 @@ import kotlinx.coroutines.flow.Flow
 interface AsmrRepository {
     fun home(tab: Int): Flow<Load<AsmrHome>>
     fun work(id: String): Flow<Load<Work>>
-    fun artist(id: String): Flow<Load<Pair<Artist, List<Work>>>>
-    fun search(query: String): Flow<Load<List<Work>>>
-    fun feed(): Flow<Load<List<Work>>>
+    /** By id or by name (work chips carry names). */
+    fun artist(id: String): Flow<Load<ArtistPage>>
+    fun search(query: String): Flow<Load<AsmrSearchResults>>
+    /** 1.2 TRENDING chips. */
+    fun trendingSearches(): Flow<List<String>>
+    /** 1.2 SUGGESTIONS while typing. */
+    fun suggestions(query: String): Flow<List<String>>
+    /** 1.4 Feed: tab 1 Popular · 2 New · 3 Recommended, over [period]. */
+    fun feed(tab: Int, period: FeedPeriod): Flow<Load<List<Work>>>
+    /** 1.5 "More like this". */
+    fun similar(workId: String): Flow<Load<List<Work>>>
 }
 
 interface MangaRepository {
