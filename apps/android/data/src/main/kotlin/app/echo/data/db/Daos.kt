@@ -41,6 +41,8 @@ interface HistoryDao {
     @Query("SELECT * FROM history_watch WHERE finished = 0 ORDER BY updatedAt DESC LIMIT :limit")
     fun continueWatching(limit: Int = 20): Flow<List<WatchHistoryEntity>>
 
+    @Query("DELETE FROM history_listen WHERE workId = :workId") suspend fun removeListen(workId: String)
+    @Query("DELETE FROM history_read WHERE galleryId = :galleryId") suspend fun removeRead(galleryId: String)
     @Query("DELETE FROM history_listen") suspend fun clearListen()
     @Query("DELETE FROM history_read") suspend fun clearRead()
     @Query("DELETE FROM history_watch WHERE kind = :kind") suspend fun clearWatch(kind: WatchKind)

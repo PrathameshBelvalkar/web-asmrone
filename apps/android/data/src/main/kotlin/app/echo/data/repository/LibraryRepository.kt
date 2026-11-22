@@ -32,7 +32,8 @@ interface LibraryRepository {
     fun history(section: Section): Flow<List<ContinueItem>>
 
     suspend fun clearHistory(section: Section)
-    suspend fun removeWatched(section: Section, id: String)
+    /** Removes one row from [section]'s history (the X on a 0.3 row). */
+    suspend fun removeHistory(section: Section, id: String)
 
     fun recentSearches(section: Section): Flow<List<String>>
     suspend fun addSearch(section: Section, query: String)
@@ -85,7 +86,11 @@ class RoomLibraryRepository(private val db: EchoDatabase, private val now: () ->
         Section.JAV, Section.HENTAI -> h.clearWatch(section.kind)
     }
 
-    override suspend fun removeWatched(section: Section, id: String) = h.removeWatch(section.kind, id)
+    override suspend fun removeHistory(section: Section, id: String) = when (section) {
+        Section.ASMR -> h.removeListen(id)
+        Section.MANGA -> h.removeRead(id)
+        Section.JAV, Section.HENTAI -> h.removeWatch(section.kind, id)
+    }
 
     override fun recentSearches(section: Section): Flow<List<String>> =
         db.searchHistory().recent(section.name).map { list -> list.map { it.query } }
@@ -132,6 +137,7 @@ class RoomPlaylistRepository(private val db: EchoDatabase, private val now: () -
 private fun ListenHistoryEntity.toItem() = ContinueItem(
     section = Section.ASMR, id = workId, title = workTitle, subtitle = "$trackTitle · $artist", coverUrl = coverUrl,
     positionMs = positionMs, durationMs = durationMs, updatedAt = updatedAt, finished = finished,
+    track = Track(trackId, workId, sourceId, trackTitle, artist, coverUrl, durationMs),
 )
 
 private fun ReadHistoryEntity.toItem() = ContinueItem(

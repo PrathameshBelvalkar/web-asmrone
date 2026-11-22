@@ -35,7 +35,9 @@ class FakeLibrary(items: List<ContinueItem> = emptyList()) : LibraryRepository {
     override fun continueIn(section: Section) = items.map { l -> l.filter { it.section == section && !it.finished } }
     override fun history(section: Section) = items.map { l -> l.filter { it.section == section } }
     override suspend fun clearHistory(section: Section) { items.value = items.value.filterNot { it.section == section } }
-    override suspend fun removeWatched(section: Section, id: String) { items.value = items.value.filterNot { it.id == id } }
+    override suspend fun removeHistory(section: Section, id: String) {
+        items.value = items.value.filterNot { it.section == section && it.id == id }
+    }
     override fun recentSearches(section: Section) = searches.map { it[section].orEmpty() }
     override suspend fun addSearch(section: Section, query: String) {
         searches.value = searches.value + (section to (listOf(query) + searches.value[section].orEmpty().minus(query)))

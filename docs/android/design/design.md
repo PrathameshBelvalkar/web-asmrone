@@ -889,6 +889,19 @@ Figma `28:6895` · `feature/shared/states/` · not a route: the shared `EmptySta
 - **You're offline**: `EchoButton(Tonal, S)` "Try again".
 - **Nothing watched yet**: "Movies you start show up here." (no button). Every list has an empty variant like this.
 
+#### Phase 6 notes (built)
+
+All three screens are built and checked against Figma on `Pixel_8`. Deliberate differences, with the reason:
+
+- **0.2 "Watching" and "Playlists" chips open 3.12 and 1.12** rather than filtering, as the prototype links them. "All",
+  "Listening" and "Reading" filter the shelves.
+- **0.2 shelves show the three most recent rows.** The "Listening" and "JAV / Hentai" headers open 0.3 and 3.12.
+- **0.3 opens on ASMR.** Figma's frame shows Manga selected; the segments follow the order in §11 (ASMR · Manga).
+- **0.3 rows carry an X** (Figma), so `LibraryRepository.removeHistory(section, id)` now covers all four sections.
+- **ASMR rows play the last track listened to (1.8).** `ContinueItem.track` carries it, from `history_listen`.
+- **0.3 rows for JAV and Hentai** are not on this screen; the 0.2 rows open 3.6 / H.7, not the theater.
+- **0.4 "Try again"** does nothing yet: the catalogue is fake, so there is nothing to retry.
+
 ### Phase 7: Manga
 
 #### 2.1 Browse

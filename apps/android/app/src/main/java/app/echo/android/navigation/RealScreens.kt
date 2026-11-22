@@ -13,6 +13,9 @@ import app.echo.android.feature.asmr.playlists.AsmrPlaylistsRoute
 import app.echo.android.feature.asmr.work.AsmrWorkRoute
 import app.echo.android.feature.asmr.results.AsmrResultsRoute
 import app.echo.android.feature.asmr.search.AsmrSearchRoute
+import app.echo.android.feature.shared.history.SharedHistoryRoute
+import app.echo.android.feature.shared.library.SharedLibraryRoute
+import app.echo.android.feature.shared.states.SharedStatesRoute
 import app.echo.data.model.Source
 import kotlin.reflect.KClass
 
@@ -36,9 +39,13 @@ internal fun NavGraphBuilder.realScreens(
     composable<Route.Artist> { entry -> AsmrArtistRoute(entry.toRoute<Route.Artist>().id, shell, contentPadding) }
     composable<Route.Playlists> { AsmrPlaylistsRoute(shell, contentPadding) }
     composable<Route.Playlist> { entry -> AsmrPlaylistRoute(entry.toRoute<Route.Playlist>().id, shell, contentPadding) }
+    composable<Route.Library> { SharedLibraryRoute(shell, contentPadding) }
+    composable<Route.History> { SharedHistoryRoute(shell, contentPadding) }
+    composable<Route.NotFound> { SharedStatesRoute(shell, source.value, contentPadding) }
     return setOf(
         Route.Playlists::class, Route.Playlist::class,
         Route.AsmrHome::class, Route.AsmrSearch::class, Route.AsmrResults::class,
         Route.AsmrFeed::class, Route.Work::class, Route.Artist::class,
+        Route.Library::class, Route.History::class, Route.NotFound::class,
     )
 }

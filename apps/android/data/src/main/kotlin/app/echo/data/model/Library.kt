@@ -15,6 +15,8 @@ data class ContinueItem(
     val coverUrl: String? = null,
     val updatedAt: Long,
     val finished: Boolean,
+    /** ASMR only: the last track listened to, so 0.2 and 0.3 can play it (1.8). */
+    val track: Track? = null,
 ) {
     /** 0…1 for progress bars. */
     val progress: Float
