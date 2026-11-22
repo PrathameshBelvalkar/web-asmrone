@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -29,8 +30,8 @@ import app.echo.designsystem.theme.EchoShapes
 import app.echo.designsystem.tokens.EchoSizes
 import app.echo.designsystem.tokens.EchoSpacing
 
-/** The avatar icon picked in O.6 / S.12, or null for the initial. The shell provides it to every [ProfileAvatar]. */
-val LocalProfileAvatarIcon = staticCompositionLocalOf<Int?> { null }
+/** The avatar picked in O.6 / S.12 (icon or photo); the initial when unset. The shell provides it to every [ProfileAvatar]. */
+val LocalProfileAvatar = staticCompositionLocalOf<AvatarChoice> { AvatarChoice.Initial }
 
 /**
  * The local profile avatar (Figma "Echo · Profile avatar", 23 screens): a ring around the avatar in a 48 dp
@@ -65,14 +66,16 @@ fun ProfileAvatar(
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center,
             ) {
-                val icon = LocalProfileAvatarIcon.current
+                val avatar = LocalProfileAvatar.current
                 if (image != null) {
                     image()
-                } else if (icon != null) {
+                } else if (avatar is AvatarChoice.Icon) {
                     Icon(
-                        painterResource(icon), contentDescription = null,
+                        painterResource(avatar.icon), contentDescription = null,
                         tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(18.dp),
                     )
+                } else if (avatar is AvatarChoice.Photo) {
+                    CoverImage(avatar.uri, null, Modifier.fillMaxSize(), shape = EchoShapes.Full)
                 } else {
                     Text(
                         initial.take(1).uppercase(),

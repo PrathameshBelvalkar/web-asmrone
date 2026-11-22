@@ -1343,6 +1343,21 @@ Figma `29:28321` · `RichTooltip` over 1.1
 - Shown once (`firstRunTipShown`). Building it last means Home, the source switcher and onboarding are all finished, so
   the whole first-run path can be tested from O.1 to here.
 
+#### Phase 11 notes (built)
+
+O.1–O.8 are built and were checked on `Pixel_8` against Figma, from Reset profile to Home. **O.9 is not built yet**:
+it comes after the JAV and Hentai sections. Deliberate differences, with the reason:
+
+- **Resume** uses `Profile.onboardingStep` (O.2 = 0 … O.8 = 4). O.1 waits for the profile (at least 0.9 s), then
+  replaces itself with the step reached, so relaunching mid-way opens that step.
+- **O.5 starts with ASMR and Manga ticked** the first time (Figma), and every tap saves `enabledSections`.
+- **O.7 starts at 18** when no age is stored. Continue saves the age and sets "Show adult sources" to age ≥ 18, so
+  adult sections picked in O.5 appear for adults and stay hidden otherwise.
+- **The O.6 "+" opens the system photo picker.** The photo is stored as `photo:<uri>` with a kept read permission, and
+  shows wherever the avatar does. S.12's avatar sheet has the same "+".
+- **Welcome art** is drawn from cover placeholders (tilted covers, the switcher, progress cards), not images.
+- The avatar icons follow Figma: note, book, movie, play, heart, star, palette, person.
+
 ### Phase 12: Polish
 
 - Wire every tap to match the Figma prototype flows ("Echo phone · Full app (from splash)", ASMR, Manga, JAV, Hentai,

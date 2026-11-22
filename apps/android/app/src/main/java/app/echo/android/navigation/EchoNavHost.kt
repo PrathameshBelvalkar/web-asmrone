@@ -41,6 +41,8 @@ interface ShellActions {
     /** Queue [tracks] from [index] and open the full player (1.8). */
     fun play(tracks: List<Track>, index: Int, playingFrom: String, source: PlaySource = PlaySource.WORK)
     fun finishOnboarding()
+    /** O.1: the settings have loaded; swap the splash for the onboarding step to resume at. */
+    fun leaveSplash(route: Route) = Unit
     /** S.7 Clear all data: wipe the device data, then start again at O.1. */
     fun clearAllData() = Unit
     /** S.12 Reset profile: clear name, avatar and age, then run onboarding again. */

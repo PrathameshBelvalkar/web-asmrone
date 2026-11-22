@@ -198,6 +198,7 @@ class DataStoreProfileRepository(private val store: DataStore<Preferences>) : Pr
             prefs[ProfileKeys.enabledSections] = p.enabledSections.map { it.name }.toSet()
             prefs[ProfileKeys.onboardingDone] = p.onboardingDone
             prefs[ProfileKeys.firstRunTipShown] = p.firstRunTipShown
+            prefs[ProfileKeys.onboardingStep] = p.onboardingStep
         }
     }
 
@@ -218,5 +219,6 @@ internal fun Preferences.toProfile(): Profile {
             ?: d.enabledSections,
         onboardingDone = this[ProfileKeys.onboardingDone] ?: d.onboardingDone,
         firstRunTipShown = this[ProfileKeys.firstRunTipShown] ?: d.firstRunTipShown,
+        onboardingStep = this[ProfileKeys.onboardingStep] ?: d.onboardingStep,
     )
 }

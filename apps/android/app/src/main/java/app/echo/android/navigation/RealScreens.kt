@@ -21,6 +21,12 @@ import app.echo.android.feature.manga.reader.MangaReaderRoute
 import app.echo.android.feature.manga.search.MangaSearchRoute
 import app.echo.android.feature.manga.tags.MangaTagsRoute
 import app.echo.android.feature.manga.taglist.MangaTagListRoute
+import app.echo.android.feature.onboarding.AgeRoute
+import app.echo.android.feature.onboarding.ChooseSourcesRoute
+import app.echo.android.feature.onboarding.MakeItYoursRoute
+import app.echo.android.feature.onboarding.SplashRoute
+import app.echo.android.feature.onboarding.WelcomeRoute
+import app.echo.android.feature.onboarding.YourProfileRoute
 import app.echo.android.feature.settings.AboutRoute
 import app.echo.android.feature.settings.AiSubtitlesRoute
 import app.echo.android.feature.settings.AsmrPreferencesRoute
@@ -85,6 +91,13 @@ internal fun NavGraphBuilder.realScreens(
     composable<Route.About> { AboutRoute(shell) }
     composable<Route.EditProfile> { EditProfileRoute(shell, onReset = shell::resetProfile) }
     composable<Route.Updates> { UpdatesRoute(shell) }
+    // Onboarding (O.1–O.8; O.9 comes after the JAV and Hentai sections).
+    composable<Route.Splash> { SplashRoute(shell) }
+    composable<Route.Welcome> { entry -> WelcomeRoute(entry.toRoute<Route.Welcome>().page, shell) }
+    composable<Route.ChooseSources> { ChooseSourcesRoute(shell) }
+    composable<Route.YourProfile> { YourProfileRoute(shell) }
+    composable<Route.Age> { AgeRoute(shell) }
+    composable<Route.MakeItYours> { MakeItYoursRoute(shell) }
     return setOf(
         Route.Playlists::class, Route.Playlist::class,
         Route.AsmrHome::class, Route.AsmrSearch::class, Route.AsmrResults::class,
@@ -95,5 +108,7 @@ internal fun NavGraphBuilder.realScreens(
         Route.Settings::class, Route.Preferences::class, Route.AiSubtitles::class, Route.JavSettings::class,
         Route.Storage::class, Route.LookAndFeel::class, Route.Playback::class, Route.ReaderDefaults::class,
         Route.About::class, Route.EditProfile::class, Route.Updates::class,
+        Route.Splash::class, Route.Welcome::class, Route.ChooseSources::class, Route.YourProfile::class,
+        Route.Age::class, Route.MakeItYours::class,
     )
 }

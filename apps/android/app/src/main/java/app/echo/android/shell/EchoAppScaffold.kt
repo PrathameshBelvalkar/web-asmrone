@@ -51,8 +51,7 @@ import app.echo.android.navigation.EchoNavHost
 import app.echo.android.navigation.Route
 import app.echo.data.fake.FakeUpdates
 import app.echo.android.feature.settings.avatarChoice
-import app.echo.designsystem.component.echo.AvatarChoice
-import app.echo.designsystem.component.echo.LocalProfileAvatarIcon
+import app.echo.designsystem.component.echo.LocalProfileAvatar
 import androidx.compose.runtime.CompositionLocalProvider
 import app.echo.android.navigation.ScreenSpecs
 import app.echo.android.navigation.SectionNav
@@ -129,6 +128,9 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
                 nav.navigate(SectionNav.root(section, Tab.HOME)) { popUpTo(nav.graph.id) { inclusive = true } }
             }
             override fun sectionIcon(section: Section) = section.icon()
+            override fun leaveSplash(route: Route) {
+                nav.navigate(route) { popUpTo(Route.Splash) { inclusive = true } }
+            }
             override fun clearAllData() { vm.clearAllData(onDone = ::restart) }
             override fun resetProfile() { vm.resetProfile(onDone = ::restart) }
             override fun startUpdate() = vm.startUpdate()
@@ -152,8 +154,7 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
 
     // A Surface, not just a background: it also sets the content colour (onSurface), so plain Text reads in dark.
     androidx.compose.material3.Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) { Box(Modifier.fillMaxSize()) {
-        val avatarIcon = (shell.profile.avatarChoice() as? AvatarChoice.Icon)?.icon
-        CompositionLocalProvider(LocalProfileAvatarIcon provides avatarIcon) {
+        CompositionLocalProvider(LocalProfileAvatar provides shell.profile.avatarChoice()) {
             EchoNavHost(
                 nav = nav,
                 start = start,

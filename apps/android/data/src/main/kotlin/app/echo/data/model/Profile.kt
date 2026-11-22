@@ -14,6 +14,8 @@ data class Profile(
     val showAdultSources: Boolean = false,
     val enabledSections: Set<Section> = Section.entries.toSet(),
     val onboardingDone: Boolean = false,
+    /** The onboarding step reached (O.2 = 0 … O.8 = 4), so leaving and coming back resumes there. */
+    val onboardingStep: Int = 0,
     val firstRunTipShown: Boolean = false,
 ) {
     /** Adult content rule (O.7, S.12): 18+ and the switch on. */

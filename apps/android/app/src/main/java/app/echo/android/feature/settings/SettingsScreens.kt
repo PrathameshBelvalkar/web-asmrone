@@ -46,14 +46,20 @@ import app.echo.designsystem.preview.EchoScreenPreviews
 import app.echo.designsystem.theme.EchoTheme
 import app.echo.designsystem.tokens.EchoSpacing
 
-/** The stored avatar ("initial" or an icon's name) as the picker's choice. */
-internal fun Profile.avatarChoice(): AvatarChoice =
-    EchoIcons.All.firstOrNull { it.name == avatar }?.let { AvatarChoice.Icon(it.outlined) } ?: AvatarChoice.Initial
+/** Prefix of a stored photo avatar: "photo:content://…". */
+private const val PHOTO_PREFIX = "photo:"
+
+/** The stored avatar ("initial", an icon's name or "photo:<uri>") as the picker's choice. */
+internal fun Profile.avatarChoice(): AvatarChoice = when {
+    avatar.startsWith(PHOTO_PREFIX) -> AvatarChoice.Photo(avatar.removePrefix(PHOTO_PREFIX))
+    else -> EchoIcons.All.firstOrNull { it.name == avatar }?.let { AvatarChoice.Icon(it.outlined) } ?: AvatarChoice.Initial
+}
 
 /** The picker's choice as the stored avatar. */
 internal fun AvatarChoice.key(): String = when (this) {
     AvatarChoice.Initial -> Profile.AVATAR_INITIAL
     is AvatarChoice.Icon -> EchoIcons.All.firstOrNull { it.outlined == icon }?.name ?: Profile.AVATAR_INITIAL
+    is AvatarChoice.Photo -> PHOTO_PREFIX + uri
 }
 
 /** The ASMR catalogues the profile may use (S.3): adult ones only when adult content is allowed. */

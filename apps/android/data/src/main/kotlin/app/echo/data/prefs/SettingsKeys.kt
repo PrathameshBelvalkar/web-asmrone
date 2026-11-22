@@ -75,4 +75,5 @@ internal object ProfileKeys {
     val enabledSections = stringSetPreferencesKey("enabledSections")
     val onboardingDone = booleanPreferencesKey("onboardingDone")
     val firstRunTipShown = booleanPreferencesKey("firstRunTipShown")
+    val onboardingStep = intPreferencesKey("onboardingStep")
 }

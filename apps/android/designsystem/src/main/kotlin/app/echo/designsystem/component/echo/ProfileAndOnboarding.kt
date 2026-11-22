@@ -1,5 +1,14 @@
 package app.echo.designsystem.component.echo
 
+import androidx.compose.material3.ContainedLoadingIndicator
+import androidx.compose.foundation.layout.navigationBarsPadding
+import app.echo.designsystem.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.foundation.clickable
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -38,18 +47,26 @@ import app.echo.designsystem.theme.EchoTheme
 import app.echo.designsystem.theme.ThemeConfig
 import app.echo.designsystem.tokens.EchoSpacing
 
-/** The profile's avatar: either the name's initial or one of the picker icons. */
+/** The profile's avatar: the name's initial, one of the picker icons, or a photo from the gallery. */
 sealed interface AvatarChoice {
     data object Initial : AvatarChoice
     data class Icon(@DrawableRes val icon: Int) : AvatarChoice
+    /** A gallery photo; [uri] is anything Coil loads (a content:// Uri string). */
+    data class Photo(val uri: String) : AvatarChoice
 }
 
-/** The profile avatar at any size (S.1 40 dp, P.1 64 dp, S.12 96 dp): the initial on primaryContainer, or an icon. */
+/** The profile avatar at any size (S.1 40 dp, P.1 64 dp, S.12 96 dp): the initial on primaryContainer, an icon or a photo. */
 @Composable
-fun AvatarCircle(choice: AvatarChoice, initial: String, size: androidx.compose.ui.unit.Dp, selected: Boolean = false) {
+fun AvatarCircle(
+    choice: AvatarChoice,
+    initial: String,
+    size: androidx.compose.ui.unit.Dp,
+    modifier: Modifier = Modifier,
+    selected: Boolean = false,
+) {
     val colors = MaterialTheme.colorScheme
     Box(
-        Modifier.size(size).clip(EchoShapes.Full)
+        modifier.size(size).clip(EchoShapes.Full)
             .background(if (selected || choice == AvatarChoice.Initial) colors.primaryContainer else colors.surfaceContainerHighest),
         contentAlignment = Alignment.Center,
     ) {
@@ -60,6 +77,7 @@ fun AvatarCircle(choice: AvatarChoice, initial: String, size: androidx.compose.u
                 color = colors.onPrimaryContainer,
             )
             is AvatarChoice.Icon -> Icon(painterResource(choice.icon), null, Modifier.size(size * 0.45f))
+            is AvatarChoice.Photo -> CoverImage(choice.uri, null, Modifier.fillMaxSize(), shape = EchoShapes.Full)
         }
     }
 }
@@ -81,8 +99,8 @@ fun ProfileHeader(name: String, subtitle: String, avatar: AvatarChoice, modifier
 }
 
 /** The icons offered next to the initial (Figma "Avatar/note", "/book", "/video", "/play" …). */
-val DefaultAvatarIcons = listOf(EchoIcons.MusicNote, EchoIcons.Book, EchoIcons.Movie, EchoIcons.PlayArrow, EchoIcons.Star,
-    EchoIcons.Favorite, EchoIcons.Palette, EchoIcons.Headphones)
+val DefaultAvatarIcons = listOf(EchoIcons.MusicNote, EchoIcons.Book, EchoIcons.Movie, EchoIcons.PlayArrow, EchoIcons.Favorite,
+    EchoIcons.Star, EchoIcons.Palette, EchoIcons.Person)
 
 /**
  * Single-select avatar picker (Figma "M3E · Avatar picker (single-select)", O.6 / S.12): the initial first, then
@@ -96,8 +114,10 @@ fun AvatarPicker(
     onSelect: (AvatarChoice) -> Unit,
     modifier: Modifier = Modifier,
     icons: List<Int> = DefaultAvatarIcons,
+    onPickPhoto: (() -> Unit)? = null,
 ) {
-    val choices = listOf<AvatarChoice>(AvatarChoice.Initial) + icons.map { AvatarChoice.Icon(it) }
+    val photo = selected as? AvatarChoice.Photo
+    val choices = listOf<AvatarChoice>(AvatarChoice.Initial) + icons.map { AvatarChoice.Icon(it) } + listOfNotNull(photo)
     FlowRow(
         modifier.fillMaxWidth().padding(horizontal = EchoSpacing.sectionPadding),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -115,6 +135,29 @@ fun AvatarPicker(
                 AvatarCircle(choice, name, 58.dp, selected = isSelected)
             }
         }
+        if (onPickPhoto != null) AddPhotoCircle(onPickPhoto)
+    }
+}
+
+/** The last circle of the picker (Figma O.6 "+"): a dashed outline that opens the photo picker. */
+@Composable
+private fun AddPhotoCircle(onClick: () -> Unit) {
+    val outline = MaterialTheme.colorScheme.outline
+    val description = stringResource(R.string.echo_cd_choose_photo)
+    Box(
+        Modifier.size(58.dp).clip(EchoShapes.Full)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = description }
+            .drawBehind {
+                drawCircle(
+                    color = outline,
+                    radius = size.minDimension / 2 - 1.dp.toPx(),
+                    style = Stroke(1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx()))),
+                )
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(painterResource(EchoIcons.Add), null)
     }
 }
 
@@ -150,6 +193,7 @@ fun ThemePreviews(
                 Text(
                     labels.getOrElse(index) { theme.name },
                     style = if (isSelected) MaterialTheme.typography.labelLargeEmphasized else MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.clickable { onSelect(index) },
                 )
             }
         }
@@ -185,27 +229,34 @@ fun OnboardingIllustration(@DrawableRes icon: Int, modifier: Modifier = Modifier
 }
 
 /**
- * The in-app part of O.1 Splash (Figma "Echo · Splash"): the app mark, "Echo", the tagline and the version. The
- * system SplashScreen API shows the icon first; this takes over while the first settings load.
+ * The in-app part of O.1 Splash (Figma "Echo · Splash", 29:27967): the app mark, "Echo" and the tagline in the
+ * middle; a contained loading indicator and the version at the bottom. The system SplashScreen API shows the icon
+ * first; this takes over while the first settings load.
  */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun EchoSplash(tagline: String, version: String, modifier: Modifier = Modifier) {
-    Column(
-        modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Box(
-            Modifier.size(96.dp).clip(MaterialTheme.shapes.extraLargeIncreased).background(MaterialTheme.colorScheme.primary),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(painterResource(EchoIcons.GraphicEq), null, Modifier.size(56.dp), tint = MaterialTheme.colorScheme.onPrimary)
+    Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
+        Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
+                Modifier.size(112.dp).clip(MaterialTheme.shapes.extraLargeIncreased).background(MaterialTheme.colorScheme.primary),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(painterResource(EchoIcons.MusicNoteFilled), null, Modifier.size(56.dp), tint = MaterialTheme.colorScheme.onPrimary)
+            }
+            Spacer(Modifier.height(EchoSpacing.xl))
+            Text("Echo", style = MaterialTheme.typography.displayMediumEmphasized)
+            Spacer(Modifier.height(EchoSpacing.m))
+            Text(tagline, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         }
-        Spacer(Modifier.height(EchoSpacing.xxl))
-        Text("Echo", style = MaterialTheme.typography.displaySmall)
-        Text(tagline, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-        Spacer(Modifier.height(EchoSpacing.xxxl))
-        Text(version, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column(
+            Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = EchoSpacing.xxl),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(EchoSpacing.m),
+        ) {
+            ContainedLoadingIndicator()
+            Text(version, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 

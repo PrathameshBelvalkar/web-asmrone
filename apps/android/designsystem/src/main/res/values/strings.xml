@@ -2,6 +2,7 @@
 <resources>
     <!-- Content descriptions and built-in labels of :designsystem components. -->
     <string name="echo_cd_profile">Your profile</string>
+    <string name="echo_cd_choose_photo">Choose a photo</string>
     <string name="echo_cd_switch_source">Switch source, current: %1$s</string>
     <string name="echo_cd_search">Search</string>
     <string name="echo_cd_more">More options</string>

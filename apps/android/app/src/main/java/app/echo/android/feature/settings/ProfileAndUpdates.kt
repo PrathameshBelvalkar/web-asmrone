@@ -124,10 +124,12 @@ fun EditProfileScreen(profile: Profile, onBack: () -> Unit, onProfile: (Profile.
     }
     when (dialog) {
         DIALOG_AVATAR -> EchoSheet(onDismiss = { dialog = null }, title = stringResource(R.string.settings_change_avatar)) {
+            val pickPhoto = rememberAvatarPhotoPicker { photo -> onProfile { copy(avatar = photo.key()) }; dialog = null }
             AvatarPicker(
                 name = profile.name,
                 selected = profile.avatarChoice(),
                 onSelect = { choice -> onProfile { copy(avatar = choice.key()) }; dialog = null },
+                onPickPhoto = pickPhoto,
                 modifier = Modifier.padding(bottom = EchoSpacing.xl),
             )
         }
