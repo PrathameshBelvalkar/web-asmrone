@@ -478,8 +478,18 @@ DataStore (settings)  ──Flow<ThemeConfig>──▶  MainActivity
 - **Batches.** 2a (done first) is everything 1.1 Home and the shell need: icon button, button, segmented list,
   floating navigation bar, search / flexible / small app bars, tabs, carousels, connected and standard button
   groups, chips, badge, sheet, switch, and the Echo `ProfileAvatar`, `SourceSwitcherButton`, `ShelfHeader`,
-  `CoverImage`, `CoverCard` / `ContinueCard`, `MiniPlayer`, `TrackRow`, `EmptyState`. 2b builds the rest just before
-  the screens that need them.
+  `CoverImage`, `CoverCard` / `ContinueCard`, `MiniPlayer`, `TrackRow`, `EmptyState`. 2b is the rest: search
+  fields, floating toolbar, sliders (`EchoSlider`, `EchoRangeSlider`, wavy `SeekSlider`, `ValueIndicatorSlider`),
+  `CoverGrid`, `SelectableCard`, `EchoSplitButton`, `PageIndicator`, `RadioOptionList`, and the Echo
+  `GalleryCard` / `HanimeCard` / `MovieCard` / `IdolCard`, `MediaHeader`, `PlayerControls`, `FullPlayer`,
+  `PlayerSheet`, `SyncedLyrics`, reader chrome, `EndOfGallery`, `ArticleHero` / `TitleHero`, `StatusLine`,
+  `StudioLink`, `ProfileHeader`, `AvatarPicker`, `ThemePreviews`, `OnboardingIllustration`, `EchoSplash`.
+- **Stock M3 pieces** used without a wrapper (Extended FAB, loading indicator, snackbar, text field, checkbox,
+  dialog, menu, tooltip) are themed as they are; `StockComponentsPreview` screenshot-tests them in the Echo theme.
+- **The reader is always dark**: reader chrome wraps itself in `ReaderTheme` (the app theme forced to dark).
+- **PlayerSheet** is built on `Animatable` + `draggable` with three rest points (Expanded / Collapsed / Hidden),
+  not the foundation anchored-drag API, which keeps changing between releases.
+- Sliders with more than 10 stops hide the tick dots (page and age sliders), as in Figma.
 - **Previews are the tests.** Every `@Preview` in `:designsystem` becomes a Roborazzi test (Roborazzi's preview
   scanner, ComposablePreviewScanner pinned to 0.9.3 because 0.10 breaks Roborazzi 1.79). Component previews use
   `@EchoPreviews` + `EchoThemesPreview { }`, which draws Light, Dark and Pure black in one image.

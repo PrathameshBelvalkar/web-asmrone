@@ -304,6 +304,10 @@ object EchoIcons {
     val GraphicEq: Int = R.drawable.ic_graphic_eq
     val GraphicEqFilled: Int = R.drawable.ic_graphic_eq_filled
 
+    /** Avatar picker choice. */
+    val Headphones: Int = R.drawable.ic_headphones
+    val HeadphonesFilled: Int = R.drawable.ic_headphones_filled
+
     /** Cover placeholder (CoverImage). */
     val Image: Int = R.drawable.ic_image
     val ImageFilled: Int = R.drawable.ic_image_filled
@@ -339,6 +343,7 @@ object EchoIcons {
         EchoIcon("fullscreen", Fullscreen, FullscreenFilled),
         EchoIcon("graphic_eq", GraphicEq, GraphicEqFilled),
         EchoIcon("grid_view", GridView, GridViewFilled),
+        EchoIcon("headphones", Headphones, HeadphonesFilled),
         EchoIcon("history", History, HistoryFilled),
         EchoIcon("home", Home, HomeFilled),
         EchoIcon("image", Image, ImageFilled),

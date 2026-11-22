@@ -44,9 +44,10 @@ fun CoverCarousel(
     modifier: Modifier = Modifier,
     style: CarouselStyle = CarouselStyle.MultiBrowse,
     height: Dp = HeroItemHeight,
+    initialItem: Int = 0,
     itemContent: @Composable CarouselItemScope.(index: Int) -> Unit,
 ) {
-    val state = rememberCarouselState { count }
+    val state = rememberCarouselState(initialItem) { count }
     val padding = PaddingValues(horizontal = EchoSpacing.screenMargin)
     val sized = modifier.fillMaxWidth().height(height)
     when (style) {
@@ -103,6 +104,7 @@ fun CarouselItemScope.HeroCarouselItem(
             .maskClip(MaterialTheme.shapes.extraLargeIncreased),
     ) {
         CoverImage(image, contentDescription = title, onClick = onClick, modifier = Modifier.fillMaxSize(), shape = null)
+        if (title.isBlank()) return@Box
         val info = carouselItemDrawInfo
         Box(
             Modifier

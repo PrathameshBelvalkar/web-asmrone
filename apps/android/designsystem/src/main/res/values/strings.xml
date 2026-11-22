@@ -11,6 +11,16 @@
     <string name="echo_cd_open">Open %1$s</string>
     <string name="echo_cd_back">Back</string>
     <string name="echo_cd_close">Close</string>
+    <string name="echo_cd_clear">Clear</string>
+    <string name="echo_cd_menu">More choices</string>
+    <string name="echo_cd_first_page">First page</string>
+    <string name="echo_cd_last_page">Last page</string>
+    <string name="echo_cd_like">Like</string>
+    <string name="echo_cd_previous">Previous track</string>
+    <string name="echo_cd_shuffle">Shuffle</string>
+    <string name="echo_cd_repeat">Repeat</string>
+    <string name="echo_cd_reorder">Reorder</string>
+    <string name="echo_cd_seek">Seek</string>
     <string name="echo_cd_no_image">No image</string>
     <string name="echo_search_placeholder">Search</string>
 </resources>
