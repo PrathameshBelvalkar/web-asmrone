@@ -21,6 +21,7 @@ import app.echo.android.feature.placeholder.PlaceholderScreen
 import app.echo.data.model.Section
 import app.echo.data.model.Source
 import app.echo.data.model.Track
+import app.echo.data.repository.PlaySource
 import app.echo.designsystem.component.m3e.EchoSearchAppBar
 import app.echo.designsystem.component.m3e.EchoSmallAppBar
 import kotlin.reflect.KClass
@@ -34,7 +35,7 @@ interface ShellActions {
     fun openProfile()
     fun playSample()
     /** Queue [tracks] from [index] and open the full player (1.8). */
-    fun play(tracks: List<Track>, index: Int, playingFrom: String)
+    fun play(tracks: List<Track>, index: Int, playingFrom: String, source: PlaySource = PlaySource.WORK)
     fun finishOnboarding()
     fun sectionIcon(section: Section): Int
 }

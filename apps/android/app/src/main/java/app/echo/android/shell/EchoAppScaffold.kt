@@ -41,11 +41,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import app.echo.android.R
+import app.echo.android.feature.asmr.player.PlayerMoreSheet
+import app.echo.android.feature.asmr.player.PlayerNav
+import app.echo.android.feature.asmr.player.PlayerPages
+import app.echo.android.feature.asmr.player.PlayerViewModel
+import app.echo.android.ui.echoViewModel
+import app.echo.data.repository.PlaySource
 import app.echo.android.feature.settings.ProfileSettingsBlock
 import app.echo.android.feature.settings.ThemeSettingsBlock
-import app.echo.android.feature.placeholder.OverlayKind
-import app.echo.android.feature.placeholder.OverlayPlaceholder
-import app.echo.android.feature.placeholder.OverlaySpec
 import app.echo.android.navigation.Chrome
 import app.echo.android.navigation.EchoNavHost
 import app.echo.android.navigation.Route
@@ -55,13 +58,7 @@ import app.echo.android.navigation.ShellActions
 import app.echo.android.navigation.Tab
 import app.echo.data.model.Section
 import app.echo.data.model.Track
-import app.echo.data.repository.PlayerState
-import app.echo.designsystem.component.echo.FullPlayer
-import app.echo.designsystem.component.echo.FullPlayerLabels
 import app.echo.designsystem.component.echo.MiniPlayer
-import app.echo.designsystem.component.echo.NowPlayingUi
-import app.echo.designsystem.component.echo.PlaybackActions
-import app.echo.designsystem.component.echo.PlaybackUi
 import app.echo.designsystem.component.echo.PlayerPage
 import app.echo.designsystem.component.echo.PlayerSheet
 import app.echo.designsystem.component.echo.PlayerSheetValue
@@ -94,6 +91,17 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
     var playerPage by rememberSaveable { mutableStateOf(PlayerPage.NowPlaying) }
     var showPlayerMore by rememberSaveable { mutableStateOf(false) }
     val sheet = rememberPlayerSheetState()
+    val playerVm = echoViewModel { PlayerViewModel(it.player, it.playlists, it.asmr) }
+    val playerState by playerVm.state.collectAsStateWithLifecycle()
+    val playerNav = remember(nav) {
+        PlayerNav(
+            collapse = sheet::collapse,
+            openPage = { playerPage = it },
+            openMore = { showPlayerMore = true },
+            goToWork = { sheet.collapse(); nav.navigate(Route.Work(it)) },
+            goToArtist = { sheet.collapse(); nav.navigate(Route.Artist(it)) },
+        )
+    }
     val snackbar = remember { SnackbarHostState() }
 
     ImmersiveSystemBars(hidden = spec?.hidesSystemBars == true)
@@ -106,8 +114,9 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
             override fun openSourceSwitcher() { showSwitcher = true }
             override fun openProfile() { showProfile = true }
             override fun playSample() = vm.playSample()
-            override fun play(tracks: List<Track>, index: Int, playingFrom: String) {
-                vm.player.play(tracks, index, playingFrom)
+            override fun play(tracks: List<Track>, index: Int, playingFrom: String, source: PlaySource) {
+                vm.player.play(tracks, index, playingFrom, source)
+                playerPage = PlayerPage.NowPlaying
                 sheet.expand()
             }
             override fun finishOnboarding() {
@@ -176,30 +185,7 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
                         modifier = Modifier.testTag("miniplayer"),
                     )
                 },
-                fullPlayer = {
-                    when (playerPage) {
-                        PlayerPage.NowPlaying -> FullPlayer(
-                            state = shell.player.toNowPlaying(stringResource(R.string.player_playing_from)),
-                            actions = PlaybackActions(
-                                onPlayPause = vm.player::playPause, onPrevious = vm.player::previous, onNext = vm.player::next,
-                                onSeek = vm.player::seekToFraction, onShuffle = vm.player::toggleShuffle, onRepeat = vm.player::toggleRepeat,
-                            ),
-                            onCollapse = sheet::collapse,
-                            onMore = { showPlayerMore = true },
-                            onLike = {},
-                            onPage = { playerPage = it },
-                            onSleep = { vm.player.setSleepTimer(30) },
-                            onSpeed = { vm.player.setSpeed(if (shell.player.speed >= 2f) 1f else shell.player.speed + 0.25f) },
-                            labels = FullPlayerLabels(
-                                next = stringResource(R.string.player_next), upNext = stringResource(R.string.player_up_next),
-                                lyrics = stringResource(R.string.player_lyrics), sleep = stringResource(R.string.player_sleep),
-                            ),
-                            modifier = Modifier.testTag("screen:1.8"),
-                        )
-                        PlayerPage.UpNext -> PlayerPagePlaceholder("1.9 Up Next") { playerPage = PlayerPage.NowPlaying }
-                        PlayerPage.Lyrics -> PlayerPagePlaceholder("1.10 Lyrics") { playerPage = PlayerPage.NowPlaying }
-                    }
-                },
+                fullPlayer = { PlayerPages(playerState, playerPage, playerVm, playerNav) },
             )
         }
 
@@ -232,7 +218,7 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
         ProfileSheet(shell.profile, onOpen = { showProfile = false; nav.navigate(it) }, onDismiss = { showProfile = false })
     }
     if (showPlayerMore) {
-        OverlayPlaceholder(OverlaySpec("1.11", "Player › More sheet", OverlayKind.SHEET), onDismiss = { showPlayerMore = false })
+        PlayerMoreSheet(playerState, playerVm, playerNav, onDismiss = { showPlayerMore = false })
     }
 }
 
@@ -246,19 +232,6 @@ fun NavHostController.navigateToTab(section: Section, tab: Tab) {
         popUpTo(home) { saveState = true }
         launchSingleTop = true
         restoreState = true
-    }
-}
-
-@Composable
-private fun PlayerPagePlaceholder(title: String, onBack: () -> Unit) {
-    Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).testTag("screen:${title.substringBefore(' ')}")) {
-        EchoSmallAppBar(title, onBack = onBack, navigationIcon = EchoIcons.ExpandMore)
-        Text(
-            stringResource(R.string.placeholder_note, title),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.fillMaxWidth().padding(EchoSpacing.screenMargin),
-        )
     }
 }
 
@@ -279,39 +252,3 @@ private fun ImmersiveSystemBars(hidden: Boolean) {
         onDispose { }
     }
 }
-
-private fun formatTime(ms: Long): String {
-    val total = ms / 1000
-    val h = total / 3600
-    val m = (total % 3600) / 60
-    val s = total % 60
-    return if (h > 0) "%d:%02d:%02d".format(h, m, s) else "%d:%02d".format(m, s)
-}
-
-/** 1.0×, 1.25×, 1.5× (Figma "1.0×"). */
-internal fun formatSpeed(speed: Float): String {
-    val t = "%.2f".format(java.util.Locale.ROOT, speed).trimEnd('0')
-    return (if (t.endsWith('.')) t + "0" else t) + "×"
-}
-
-private fun PlayerState.toNowPlaying(playingFromLabel: String) = NowPlayingUi(
-    title = current?.title.orEmpty(),
-    artists = current?.artist.orEmpty(),
-    meta = "Track ${index + 1} of ${queue.size}",
-    playingFrom = playingFromLabel,
-    source = playingFrom,
-    covers = queue.map { null },
-    coverIndex = index.coerceAtLeast(0),
-    liked = false,
-    nextTitle = queue.getOrNull(index + 1)?.title,
-    speed = formatSpeed(speed),
-    playback = PlaybackUi(
-        isPlaying = isPlaying,
-        progress = progress,
-        elapsed = formatTime(positionMs),
-        remaining = "−" + formatTime((durationMs - positionMs).coerceAtLeast(0)),
-        shuffle = shuffle,
-        repeat = repeat,
-    ),
-)
-

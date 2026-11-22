@@ -53,6 +53,18 @@ object FakeCatalog {
         )
     }
 
+    /** 1.10 lyrics (Figma), repeated for any track. */
+    val lyricLines: List<Pair<String, String?>> = listOf(
+        "Good evening… you came back." to "おかえりなさい…",
+        "Lie down. I’ll start on your right side." to "横になって。右からね。",
+        "Close your eyes for me." to "目を閉じて。",
+        "(soft brushing)" to null,
+        "That’s it… just breathe." to "そう…ゆっくり息して。",
+        "Now, the left side…" to "次は、左ね…",
+        "Can you hear the rain?" to "雨の音、聞こえる？",
+        "Stay with me a little longer." to "もう少しだけ、ここにいて。",
+    ).let { it + it + it }
+
     val artists: List<Artist> = listOf(
         Artist("a1", "Circle Aoi", 128, kind = ArtistKind.CIRCLE), Artist("a2", "Studio Komorebi", 64, kind = ArtistKind.CIRCLE),
         Artist("a3", "Aoi Mizuno", 312), Artist("a4", "Hana Seto", 97), Artist("a5", "Rin Kagami", 41),

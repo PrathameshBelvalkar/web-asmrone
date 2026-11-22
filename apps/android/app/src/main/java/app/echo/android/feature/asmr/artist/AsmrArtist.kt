@@ -39,6 +39,7 @@ import app.echo.data.model.ArtistPage
 import app.echo.data.model.Work
 import app.echo.data.repository.AsmrRepository
 import app.echo.data.repository.Load
+import app.echo.data.repository.PlaySource
 import app.echo.designsystem.component.echo.CoverCard
 import app.echo.designsystem.component.echo.CoverImage
 import app.echo.designsystem.component.echo.IdolCard
@@ -84,7 +85,7 @@ fun AsmrArtistRoute(id: String, shell: ShellActions, contentPadding: PaddingValu
         onPlay = { shuffle ->
             (state as? Load.Content)?.value?.let { page ->
                 val tracks = page.popular.flatMap { it.tracks }.let { if (shuffle) it.shuffled() else it }
-                shell.play(tracks, 0, page.artist.name)
+                shell.play(tracks, 0, page.artist.name, PlaySource.ARTIST)
             }
         },
         onFollow = { following = !following },

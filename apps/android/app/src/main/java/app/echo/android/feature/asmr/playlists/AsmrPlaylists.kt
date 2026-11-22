@@ -46,6 +46,7 @@ import app.echo.data.model.Section
 import app.echo.data.model.Track
 import app.echo.data.model.Work
 import app.echo.data.repository.LibraryRepository
+import app.echo.data.repository.PlaySource
 import app.echo.data.repository.PlaylistRepository
 import app.echo.designsystem.component.echo.CoverImage
 import app.echo.designsystem.component.echo.EmptyState
@@ -103,7 +104,7 @@ fun AsmrPlaylistsRoute(shell: ShellActions, contentPadding: PaddingValues) {
         onBack = shell::back, onProfile = shell::openProfile, onTab = vm::setTab,
         onPlaylist = { shell.open(Route.Playlist(it)) },
         onWork = { shell.open(Route.Work(it)) },
-        onTrack = { i -> shell.play(state.liked, i, "Liked tracks") },
+        onTrack = { i -> shell.play(state.liked, i, "", PlaySource.LIKED) },
         onNew = { naming = true },
     )
     if (naming) NewPlaylistDialog(onDismiss = { naming = false }, onCreate = { name -> naming = false; vm.create(name) { shell.open(Route.Playlist(it)) } })

@@ -50,6 +50,7 @@ import app.echo.data.fake.FakeCatalog
 import app.echo.data.model.Playlist
 import app.echo.data.model.PlaylistPrivacy
 import app.echo.data.model.Track
+import app.echo.data.repository.PlaySource
 import app.echo.data.repository.PlayerController
 import app.echo.data.repository.PlaylistRepository
 import app.echo.designsystem.component.echo.CoverImage
@@ -119,7 +120,7 @@ fun AsmrPlaylistRoute(id: Long, shell: ShellActions, contentPadding: PaddingValu
         onBack = shell::back, onEdit = { renaming = true },
         onPlay = { index, shuffle ->
             val list = if (shuffle) state.tracks.shuffled() else state.tracks
-            shell.play(list, index, state.playlist?.name.orEmpty())
+            shell.play(list, index, state.playlist?.name.orEmpty(), PlaySource.PLAYLIST)
         },
         onPrivacy = vm::togglePrivacy, onMove = vm::move, onAddTracks = { shell.open(Route.AsmrSearch) },
     )

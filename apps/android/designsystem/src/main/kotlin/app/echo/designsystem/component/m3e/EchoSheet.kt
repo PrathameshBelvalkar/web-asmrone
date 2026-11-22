@@ -40,10 +40,12 @@ fun EchoSheet(
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = EchoSizes.SCRIM_ALPHA),
     ) {
-        if (title != null) {
-            SheetHeader(title, subtitle)
+        androidx.compose.runtime.CompositionLocalProvider(LocalSegmentContainer provides MaterialTheme.colorScheme.surfaceContainerHigh) {
+            if (title != null) {
+                SheetHeader(title, subtitle)
+            }
+            content()
         }
-        content()
     }
 }
 

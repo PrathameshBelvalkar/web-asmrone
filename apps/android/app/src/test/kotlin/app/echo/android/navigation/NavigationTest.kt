@@ -33,7 +33,7 @@ class NavigationTest {
         override fun openSourceSwitcher() = Unit
         override fun openProfile() = Unit
         override fun playSample() = Unit
-        override fun play(tracks: List<app.echo.data.model.Track>, index: Int, playingFrom: String) = Unit
+        override fun play(tracks: List<app.echo.data.model.Track>, index: Int, playingFrom: String, source: app.echo.data.repository.PlaySource) = Unit
         override fun finishOnboarding() = Unit
         override fun sectionIcon(section: Section) = EchoIcons.MusicNote
     }

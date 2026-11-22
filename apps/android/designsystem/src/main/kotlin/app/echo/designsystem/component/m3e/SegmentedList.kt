@@ -59,6 +59,12 @@ class SegmentedListScope internal constructor() {
  */
 data class SegmentPosition(val index: Int, val count: Int)
 
+/**
+ * Tile colour of segmented lists below. Screens use surfaceContainerLow; [EchoSheet] (itself surfaceContainerLow)
+ * provides a darker container so tiles still separate from the sheet, as in Figma.
+ */
+val LocalSegmentContainer = compositionLocalOf<androidx.compose.ui.graphics.Color?> { null }
+
 private val LocalSegmentShapes = compositionLocalOf<ListItemShapes?> { null }
 
 /**
@@ -83,7 +89,7 @@ fun SegmentedListItem(
         ?: LocalSegmentShapes.current
         ?: ListItemDefaults.segmentedShapes(index = 0, count = 1)
     val colors = ListItemDefaults.segmentedColors(
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        containerColor = LocalSegmentContainer.current ?: MaterialTheme.colorScheme.surfaceContainerLow,
         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
         selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     )

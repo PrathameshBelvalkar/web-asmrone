@@ -10,6 +10,7 @@ import app.echo.android.navigation.Route
 import app.echo.android.navigation.ShellActions
 import app.echo.android.ui.echoViewModel
 import app.echo.data.model.Source
+import app.echo.data.repository.PlaySource
 
 /** 1.1 Home: the only file that knows navigation (design.md §5.5). */
 @Composable
@@ -32,7 +33,7 @@ fun AsmrHomeRoute(shell: ShellActions, source: Source, contentPadding: PaddingVa
                 is AsmrHomeEvent.OpenWork -> shell.open(Route.Work(event.id))
                 AsmrHomeEvent.OpenFeed -> shell.open(Route.AsmrFeed(1))
                 is AsmrHomeEvent.PlayTrending -> (state as? AsmrHomeUiState.Content)?.let {
-                    shell.play(it.trending, event.index, trendingTitle)
+                    shell.play(it.trending, event.index, trendingTitle, PlaySource.TRENDING)
                 }
                 AsmrHomeEvent.Retry -> vm.retry()
             }

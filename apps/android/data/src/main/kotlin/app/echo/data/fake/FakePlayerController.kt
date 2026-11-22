@@ -2,6 +2,7 @@ package app.echo.data.fake
 
 import app.echo.data.model.Track
 import app.echo.data.repository.PlayerController
+import app.echo.data.repository.PlaySource
 import app.echo.data.repository.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -26,10 +27,13 @@ class FakePlayerController(
     override val state: StateFlow<PlayerState> = _state
     private var ticker: Job? = null
 
-    override fun play(queue: List<Track>, startIndex: Int, playingFrom: String) {
+    override fun play(queue: List<Track>, startIndex: Int, playingFrom: String, source: PlaySource) {
         if (queue.isEmpty()) return stop()
         _state.update {
-            it.copy(queue = queue, index = startIndex.coerceIn(0, queue.lastIndex), positionMs = 0, isPlaying = true, playingFrom = playingFrom)
+            it.copy(
+                queue = queue, index = startIndex.coerceIn(0, queue.lastIndex), positionMs = 0, isPlaying = true,
+                playingFrom = playingFrom, playSource = source,
+            )
         }
         startTicking()
     }
@@ -81,7 +85,10 @@ class FakePlayerController(
     override fun setSpeed(speed: Float) = _state.update { it.copy(speed = speed.coerceIn(0.5f, 3f)) }
     override fun toggleShuffle() = _state.update { it.copy(shuffle = !it.shuffle) }
     override fun toggleRepeat() = _state.update { it.copy(repeat = !it.repeat) }
-    override fun setSleepTimer(minutes: Int?) = _state.update { it.copy(sleepAt = minutes?.let { m -> now() + m * 60_000L }) }
+    override fun setSleepTimer(minutes: Int?) =
+        _state.update { it.copy(sleepAt = minutes?.let { m -> now() + m * 60_000L }, sleepAtEndOfTrack = false) }
+    override fun sleepAtEndOfTrack() = _state.update { it.copy(sleepAt = null, sleepAtEndOfTrack = true) }
+    override fun clearUpNext() = _state.update { s -> s.current?.let { s.copy(queue = listOf(it), index = 0) } ?: s }
 
     override fun stop() {
         ticker?.cancel()
@@ -100,7 +107,11 @@ class FakePlayerController(
                     break
                 }
                 val pos = s.positionMs + (tickMs * s.speed).toLong()
-                if (pos >= s.durationMs) next() else _state.value = s.copy(positionMs = pos)
+                when {
+                    pos < s.durationMs -> _state.value = s.copy(positionMs = pos)
+                    s.sleepAtEndOfTrack -> { _state.value = s.copy(isPlaying = false, positionMs = s.durationMs, sleepAtEndOfTrack = false); break }
+                    else -> next()
+                }
             }
         }
     }

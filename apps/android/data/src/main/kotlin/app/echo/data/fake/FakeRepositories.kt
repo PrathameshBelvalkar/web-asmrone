@@ -3,6 +3,7 @@ package app.echo.data.fake
 import app.echo.data.model.ArtistPage
 import app.echo.data.model.AsmrHome
 import app.echo.data.model.FeedPeriod
+import app.echo.data.model.Lyric
 import app.echo.data.model.AsmrSearchResults
 import app.echo.data.model.HentaiTitle
 import app.echo.data.model.NewsCategory
@@ -87,6 +88,9 @@ class FakeAsmrRepository(private val config: FakeConfig) : AsmrRepository {
         val shift = (tab + period.ordinal) % c.works.size
         (c.works.drop(shift) + c.works.take(shift)).let { it + it.reversed() }.distinctBy { it.id }.let { it + it.map { w -> w.copy(id = w.id + "b") } }
     }
+    override fun lyrics(trackId: String) = flowOf(
+        FakeCatalog.lyricLines.mapIndexed { i, (text, original) -> Lyric(i * 12_000L, text, original) },
+    )
     override fun similar(workId: String) = config.serve {
         val work = c.works.firstOrNull { it.id == workId } ?: return@serve null
         c.works.filter { it.id != workId && it.tags.any { t -> t in work.tags } }.ifEmpty { c.works.filter { it.id != workId }.take(4) }

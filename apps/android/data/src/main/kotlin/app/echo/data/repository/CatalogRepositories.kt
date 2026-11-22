@@ -2,6 +2,7 @@ package app.echo.data.repository
 
 import app.echo.data.model.ArtistPage
 import app.echo.data.model.FeedPeriod
+import app.echo.data.model.Lyric
 import app.echo.data.model.AsmrHome
 import app.echo.data.model.AsmrSearchResults
 import app.echo.data.model.Gallery
@@ -32,6 +33,8 @@ interface AsmrRepository {
     fun suggestions(query: String): Flow<List<String>>
     /** 1.4 Feed: tab 1 Popular · 2 New · 3 Recommended, over [period]. */
     fun feed(tab: Int, period: FeedPeriod): Flow<Load<List<Work>>>
+    /** 1.10 synced lyrics of a track; empty when it has none. */
+    fun lyrics(trackId: String): Flow<List<Lyric>>
     /** 1.5 "More like this". */
     fun similar(workId: String): Flow<Load<List<Work>>>
 }

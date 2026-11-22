@@ -35,6 +35,7 @@ import app.echo.data.model.Playlist
 import app.echo.data.model.Work
 import app.echo.data.repository.AsmrRepository
 import app.echo.data.repository.Load
+import app.echo.data.repository.PlaySource
 import app.echo.data.repository.PlayerController
 import app.echo.data.repository.PlaylistRepository
 import app.echo.designsystem.component.echo.CoverCard
@@ -131,7 +132,7 @@ fun AsmrResultsRoute(query: String, shell: ShellActions, sourceName: String, sec
         onArtist = { shell.open(Route.Artist(it)) },
         onPlaylist = { shell.open(Route.Playlist(it)) },
         onTrack = { tracksIndex ->
-            (state.results as? Load.Content)?.value?.tracks?.let { shell.play(it, tracksIndex, query) }
+            (state.results as? Load.Content)?.value?.tracks?.let { shell.play(it, tracksIndex, query, PlaySource.SEARCH) }
         },
         onRetry = vm::retry,
     )

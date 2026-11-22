@@ -41,7 +41,6 @@
     <string name="player_up_next">Up next</string>
     <string name="player_lyrics">Lyrics</string>
     <string name="player_sleep">Sleep</string>
-    <string name="player_playing_from">Playing from work</string>
 
     <!-- S.12 Profile -->
     <string name="settings_age">Age</string>
@@ -140,4 +139,36 @@
     <string name="playlist_meta">You · %1$s · %2$d tracks · %3$s</string>
     <string name="playlist_rename">Rename playlist</string>
     <string name="playlist_add_tracks">Add tracks</string>
+
+    <!-- 1.8–1.11 Player -->
+    <string name="player_from_work">Playing from work</string>
+    <string name="player_from_playlist">Playing from playlist</string>
+    <string name="player_from_artist">Playing from artist</string>
+    <string name="player_from_search">Playing from search</string>
+    <string name="player_from_trending">Playing from trending</string>
+    <string name="player_from_liked">Playing from liked tracks</string>
+    <string name="player_track_of">Track %1$d of %2$d</string>
+    <string name="player_artist_track_of">%1$s · Track %2$d of %3$d</string>
+    <string name="player_playing_from_label">Playing from · %1$s</string>
+    <string name="player_repeat">Repeat</string>
+    <string name="player_clear">Clear</string>
+    <string name="player_speed">Playback speed</string>
+    <string name="player_sleep_timer">Sleep timer</string>
+    <string name="player_track_info">Track info</string>
+    <string name="player_go_to_work">Go to work</string>
+    <string name="player_go_to_artist">Go to artist</string>
+    <string name="sleep_off">Off</string>
+    <string name="sleep_15">15 min</string>
+    <string name="sleep_30">30 min</string>
+    <string name="sleep_60">1 h</string>
+    <string name="sleep_end">End of track</string>
+    <string name="lyrics_synced">Synced</string>
+    <string name="lyrics_translated">Translated</string>
+    <string name="lyrics_english">English</string>
+    <string name="lyrics_both">Both</string>
+    <string name="lyrics_en">EN</string>
+    <string name="lyrics_jp">JP</string>
+    <string name="lyrics_text_size">Text size</string>
+    <string name="lyrics_share">Share</string>
+    <string name="lyrics_none">No lyrics for this track</string>
 </resources>

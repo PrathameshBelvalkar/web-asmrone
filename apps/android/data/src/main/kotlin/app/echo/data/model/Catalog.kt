@@ -33,6 +33,9 @@ data class Artist(
 /** 1.4 Feed time range. */
 enum class FeedPeriod { TODAY, WEEK, MONTH, ALL }
 
+/** A lyric line (1.10): when it starts, the translated text, and the Japanese original. */
+data class Lyric(val timeMs: Long, val text: String, val original: String? = null)
+
 /** 1.6 Artist page. */
 data class ArtistPage(val artist: Artist, val popular: List<Work>, val latest: List<Work>, val appearsWith: List<Artist>)
 

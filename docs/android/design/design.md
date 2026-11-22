@@ -843,6 +843,24 @@ Figma `35:1348` · route `AsmrPlaylists` (from the 0.2 "Playlists" chip and P.1)
 4. `MediumExtendedFloatingActionButton` "New playlist" → name dialog.
 5. Shell. Data: `PlaylistRepository` (Room).
 
+#### Phase 5 notes (built)
+
+All 13 screens are built and checked against Figma on `Pixel_8`. Deliberate differences, with the reason:
+
+- **Tag chips on 1.5 open 1.3 Search results for the tag**, not 1.6 Artist as the Figma prototype links them: a tag
+  isn't an artist.
+- **Follow on 1.6 isn't stored** (no account, no table yet): it lasts for the screen only.
+- **1.4 Feed is a fixed list, not paged** with `LazyPagingItems`: the fake catalogue is small. Paging comes with the
+  real asmr.one service.
+- **1.12 "History" chip** shows ASMR listening history (Room); the full cross-section history is 0.3 (Phase 6).
+- **1.8 overline follows where playback started** ("PLAYING FROM WORK / PLAYLIST / ARTIST / SEARCH / TRENDING / LIKED
+  TRACKS"); Figma only shows the work case.
+- **Player colours**: fake covers have no image, so the sheet uses Figma's sample seed `#904A43`, as §7.2 says.
+- **Segmented tiles inside sheets** use surfaceContainerHigh so they separate from the sheet (surfaceContainerLow),
+  matching Figma's white sheet with grey tiles.
+- **1.10 Both · EN · JP** segments size to their labels (`ConnectedButtonGroup(equalWidth = false)`), as in Figma.
+- Work likes are stored in a new `liked_work` table (schema still version 1, nothing shipped yet).
+
 ### Phase 6: Shared
 
 #### 0.2 Library

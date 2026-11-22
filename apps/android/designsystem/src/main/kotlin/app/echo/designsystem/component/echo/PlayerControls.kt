@@ -76,7 +76,7 @@ fun PlayerControls(
             )
             EchoIconButton(
                 EchoIcons.SkipPreviousFilled, stringResource(R.string.echo_cd_previous), actions.onPrevious,
-                style = IconButtonStyle.Tonal, size = ComponentSize.M, width = IconButtonWidth.Narrow,
+                style = IconButtonStyle.Tonal, size = ComponentSize.M,
             )
             EchoIconButton(
                 icon = if (state.isPlaying) EchoIcons.PauseFilled else EchoIcons.PlayArrowFilled,
@@ -89,7 +89,7 @@ fun PlayerControls(
             )
             EchoIconButton(
                 EchoIcons.SkipNextFilled, stringResource(R.string.echo_cd_next), actions.onNext,
-                style = IconButtonStyle.Tonal, size = ComponentSize.M, width = IconButtonWidth.Narrow,
+                style = IconButtonStyle.Tonal, size = ComponentSize.M,
             )
             EchoIconButton(EchoIcons.Repeat, stringResource(R.string.echo_cd_repeat), actions.onRepeat, checked = state.repeat)
         }

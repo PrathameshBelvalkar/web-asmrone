@@ -61,6 +61,8 @@ fun ConnectedButtonGroup(
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
     size: ComponentSize = ComponentSize.S,
+    /** True: segments share the width equally. False: each is as wide as its label (e.g. 1.10 Both · EN · JP). */
+    equalWidth: Boolean = true,
 ) {
     Row(
         modifier.selectableGroup(),
@@ -81,7 +83,8 @@ fun ConnectedButtonGroup(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 ),
-                modifier = Modifier.weight(1f).heightIn(min = size.height).semantics { role = Role.RadioButton },
+                modifier = (if (equalWidth) Modifier.weight(1f) else Modifier)
+                    .heightIn(min = size.height).semantics { role = Role.RadioButton },
             ) {
                 val icon = if (checked) EchoIcons.Check else option.icon
                 if (icon != null) {

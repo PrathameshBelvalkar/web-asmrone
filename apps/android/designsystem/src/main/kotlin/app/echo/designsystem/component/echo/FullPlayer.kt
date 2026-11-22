@@ -116,7 +116,7 @@ fun FullPlayer(
         }
         Box(Modifier.fillMaxWidth().padding(vertical = EchoSpacing.m), contentAlignment = Alignment.Center) {
             EchoFloatingToolbar {
-                ToolbarAction(labels.upNext, EchoIcons.QueueMusic, { onPage(PlayerPage.UpNext) })
+                ToolbarAction(labels.upNext, EchoIcons.QueueMusic, { onPage(PlayerPage.UpNext) }, selected = true)
                 ToolbarAction(labels.lyrics, EchoIcons.Chat, { onPage(PlayerPage.Lyrics) })
                 ToolbarAction(labels.sleep, EchoIcons.Timer, onSleep)
                 ToolbarAction(state.speed, EchoIcons.Speed, onSpeed)
