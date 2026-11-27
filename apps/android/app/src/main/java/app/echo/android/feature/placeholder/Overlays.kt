@@ -16,6 +16,5 @@ object Overlays {
         "3.8" to listOf(OverlaySpec("3.8", "Idols filter sheet", OverlayKind.SHEET)),
         "H.3" to listOf(OverlaySpec("H.4", "Filters sheet", OverlayKind.SHEET)),
         "H.7" to listOf(OverlaySpec("H.8", "Preview viewer", OverlayKind.DIALOG)),
-        "1.1" to listOf(OverlaySpec("O.9", "First-run tip", OverlayKind.DIALOG)),
     )
 }

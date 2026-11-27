@@ -62,6 +62,9 @@ class ShellViewModel(private val container: AppContainer) : ViewModel() {
 
     fun finishOnboarding() = viewModelScope.launch { container.profile.update { copy(onboardingDone = true) } }
 
+    /** O.9 is shown once: finished, skipped or dismissed. */
+    fun finishTour() = viewModelScope.launch { container.profile.update { copy(firstRunTipShown = true) } }
+
     /** Placeholders' "Play": queue the sample work so the mini player and full player can be checked. */
     fun playSample() {
         val work = FakeCatalog.works.first()

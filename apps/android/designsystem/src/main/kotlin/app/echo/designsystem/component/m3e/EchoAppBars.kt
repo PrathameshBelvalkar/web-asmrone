@@ -1,5 +1,9 @@
 package app.echo.designsystem.component.m3e
 
+import app.echo.designsystem.component.echo.tipAnchor
+import app.echo.designsystem.component.echo.TipTarget
+import app.echo.designsystem.component.echo.LocalTipAnchors
+import androidx.compose.runtime.DisposableEffect
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -55,6 +59,9 @@ fun EchoSearchAppBar(
     modifier: Modifier = Modifier,
     placeholder: String = stringResource(R.string.echo_search_placeholder),
 ) {
+    // O.9: report where the pill, the search field and the avatar are, for the first-run tour.
+    val anchors = LocalTipAnchors.current
+    DisposableEffect(anchors) { onDispose { anchors?.clear() } }
     Row(
         modifier
             .fillMaxWidth()
@@ -65,7 +72,7 @@ fun EchoSearchAppBar(
     ) {
         Surface(
             onClick = onSearch,
-            modifier = Modifier.weight(1f).height(EchoSizes.searchBarHeight),
+            modifier = Modifier.weight(1f).height(EchoSizes.searchBarHeight).tipAnchor(anchors, TipTarget.SEARCH),
             shape = EchoShapes.Full,
             color = MaterialTheme.colorScheme.surfaceContainerHighest,
         ) {
@@ -74,7 +81,7 @@ fun EchoSearchAppBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(EchoSpacing.m),
             ) {
-                SourceSwitcherButton(source, sectionIcon, onClick = onSwitchSource)
+                SourceSwitcherButton(source, sectionIcon, onClick = onSwitchSource, modifier = Modifier.tipAnchor(anchors, TipTarget.SOURCE))
                 Text(
                     placeholder,
                     style = MaterialTheme.typography.bodyLarge,
@@ -90,7 +97,7 @@ fun EchoSearchAppBar(
                 )
             }
         }
-        ProfileAvatar(profileInitial, onClick = onProfile)
+        ProfileAvatar(profileInitial, onClick = onProfile, modifier = Modifier.tipAnchor(anchors, TipTarget.PROFILE))
     }
 }
 

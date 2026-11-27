@@ -1392,8 +1392,8 @@ Figma `29:28321` · `RichTooltip` over 1.1
 
 #### Phase 11 notes (built)
 
-O.1–O.8 are built and were checked on `Pixel_8` against Figma, from Reset profile to Home. **O.9 is not built yet**:
-it comes after the JAV and Hentai sections. Deliberate differences, with the reason:
+O.1–O.9 are built and were checked on `Pixel_8` against Figma, from Reset profile to Home. Deliberate differences,
+with the reason:
 
 - **Resume** uses `Profile.onboardingStep` (O.2 = 0 … O.8 = 4). O.1 waits for the profile (at least 0.9 s), then
   replaces itself with the step reached, so relaunching mid-way opens that step.
@@ -1404,6 +1404,11 @@ it comes after the JAV and Hentai sections. Deliberate differences, with the rea
   shows wherever the avatar does. S.12's avatar sheet has the same "+".
 - **Welcome art** is drawn from cover placeholders (tilted covers, the switcher, progress cards), not images.
 - The avatar icons follow Figma: note, book, movie, play, heart, star, palette, person.
+- **O.9 follows Figma, not the text above**: a three-step tour ("1 of 3", Skip tips · Next, Got it on the last) over
+  the section Home, pointing at the source pill, the search field and the avatar through a ringed hole in the scrim.
+  The search app bar reports those positions (`LocalTipAnchors`); the shell draws `FirstRunTour` once, after
+  onboarding, and sets `firstRunTipShown` when it's finished, skipped, dismissed with Back or the scrim. Long-pressing
+  the source pill opens Settings, as the first tip says (`LocalSourceLongPress`).
 
 ### Phase 12: Polish
 

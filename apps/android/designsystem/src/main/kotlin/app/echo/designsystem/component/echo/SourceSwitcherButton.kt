@@ -1,5 +1,8 @@
 package app.echo.designsystem.component.echo
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.combinedClickable
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -29,7 +32,7 @@ import app.echo.designsystem.tokens.EchoSpacing
 
 /**
  * The source pill inside the search app bar (Figma "Echo · Source switcher", 20 screens): section icon,
- * source name, expand arrow. Opens 0.1 Source switcher.
+ * source name, expand arrow. Opens 0.1 Source switcher; long-press opens Source settings.
  */
 @Composable
 fun SourceSwitcherButton(
@@ -39,9 +42,12 @@ fun SourceSwitcherButton(
     modifier: Modifier = Modifier,
 ) {
     val description = stringResource(R.string.echo_cd_switch_source, source)
+    // Long-press opens the source settings where the shell provides it (O.9 "Long-press for source settings").
+    val onLongClick = LocalSourceLongPress.current
     Surface(
-        onClick = onClick,
-        modifier = modifier.height(SwitcherHeight).semantics { contentDescription = description },
+        modifier = modifier.height(SwitcherHeight).clip(EchoShapes.Full)
+            .combinedClickable(role = Role.Button, onClick = onClick, onLongClick = onLongClick)
+            .semantics { contentDescription = description },
         shape = EchoShapes.Full,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),

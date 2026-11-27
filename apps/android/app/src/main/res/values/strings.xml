@@ -736,4 +736,16 @@
     <string name="hentai_back">Back</string>
     <string name="hentai_theater_overline">Episode %1$d · Sub %2$s</string>
     <string name="hentai_source">Source</string>
+
+    <!-- O.9 First-run tip -->
+    <string name="tip_source_title">Switch sources here</string>
+    <string name="tip_source_body">Tap the pill to move between ASMR, Manga, JAV and Hentai. Long-press for source settings.</string>
+    <string name="tip_search_title">Search this source</string>
+    <string name="tip_search_body">Search finds titles, artists and tags in the source you\'re on.</string>
+    <string name="tip_profile_title">Your library and settings</string>
+    <string name="tip_profile_body">Tap your avatar for your library, history and settings.</string>
+    <string name="tip_progress">%1$d of %2$d</string>
+    <string name="tip_skip">Skip tips</string>
+    <string name="tip_next">Next</string>
+    <string name="tip_done">Got it</string>
 </resources>

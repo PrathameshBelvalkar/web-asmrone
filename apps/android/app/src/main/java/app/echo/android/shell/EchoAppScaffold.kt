@@ -1,5 +1,11 @@
 package app.echo.android.shell
 
+import app.echo.designsystem.component.echo.TourStep
+import app.echo.designsystem.component.echo.TipTarget
+import app.echo.designsystem.component.echo.TipAnchors
+import app.echo.designsystem.component.echo.LocalTipAnchors
+import app.echo.designsystem.component.echo.LocalSourceLongPress
+import app.echo.designsystem.component.echo.FirstRunTour
 import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
@@ -91,6 +97,8 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
     var showProfile by rememberSaveable { mutableStateOf(false) }
     var playerPage by rememberSaveable { mutableStateOf(PlayerPage.NowPlaying) }
     var showPlayerMore by rememberSaveable { mutableStateOf(false) }
+    val tipAnchors = remember { TipAnchors() }
+    var tourStep by rememberSaveable { mutableIntStateOf(0) }
     val sheet = rememberPlayerSheetState()
     val playerVm = echoViewModel { PlayerViewModel(it.player, it.playlists, it.asmr) }
     val playerState by playerVm.state.collectAsStateWithLifecycle()
@@ -154,7 +162,11 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
 
     // A Surface, not just a background: it also sets the content colour (onSurface), so plain Text reads in dark.
     androidx.compose.material3.Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) { Box(Modifier.fillMaxSize()) {
-        CompositionLocalProvider(LocalProfileAvatar provides shell.profile.avatarChoice()) {
+        CompositionLocalProvider(
+            LocalProfileAvatar provides shell.profile.avatarChoice(),
+            LocalTipAnchors provides tipAnchors,
+            LocalSourceLongPress provides { nav.navigate(Route.Settings) },
+        ) {
             EchoNavHost(
                 nav = nav,
                 start = start,
@@ -199,6 +211,31 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
         }
 
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(bottom = bottomPadding + EchoSpacing.s))
+
+        // O.9 First-run tip: once, after onboarding, over a section Home (the only screens with the search app bar).
+        val tourSteps = listOf(
+            TourStep(TipTarget.SOURCE, stringResource(R.string.tip_source_title), stringResource(R.string.tip_source_body)),
+            TourStep(TipTarget.SEARCH, stringResource(R.string.tip_search_title), stringResource(R.string.tip_search_body)),
+            TourStep(TipTarget.PROFILE, stringResource(R.string.tip_profile_title), stringResource(R.string.tip_profile_body)),
+        )
+        val step = tourSteps.getOrNull(tourStep)
+        val anchor = step?.let { tipAnchors[it.target] }
+        val tourOpen = shell.profile.onboardingDone && !shell.profile.firstRunTipShown && showNavBar &&
+            !showSwitcher && !showProfile && sheet.currentValue != PlayerSheetValue.Expanded
+        if (tourOpen && step != null && anchor != null) {
+            BackHandler { vm.finishTour() }
+            FirstRunTour(
+                step = step,
+                anchor = anchor,
+                index = tourStep,
+                count = tourSteps.size,
+                progressLabel = stringResource(R.string.tip_progress, tourStep + 1, tourSteps.size),
+                skipLabel = stringResource(R.string.tip_skip),
+                nextLabel = stringResource(if (tourStep == tourSteps.lastIndex) R.string.tip_done else R.string.tip_next),
+                onSkip = vm::finishTour,
+                onNext = { if (tourStep == tourSteps.lastIndex) vm.finishTour() else tourStep += 1 },
+            )
+        }
     } }
 
     // Back: a player page → now playing → collapse the sheet; otherwise the NavHost handles it.
