@@ -144,32 +144,31 @@ fun PageFilmstrip(
 /** "34 / 52" pill when the menus are hidden (Figma "Echo · Page number (menus hidden)"). */
 @Composable
 fun PageNumber(page: Int, pageCount: Int, modifier: Modifier = Modifier) = ReaderTheme {
-    Surface(
-        modifier = modifier,
-        shape = EchoShapes.Full,
-        color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.86f),
-        contentColor = MaterialTheme.colorScheme.onSurface,
-    ) {
-        Text(
-            "$page / $pageCount",
-            style = MaterialTheme.typography.labelMediumEmphasized,
-            modifier = Modifier.padding(horizontal = EchoSpacing.m, vertical = EchoSpacing.xs),
-        )
-    }
+    // Drawn, not a Surface: it sits over the page, and a tap on it must still reach the reader.
+    Text(
+        "$page / $pageCount",
+        style = MaterialTheme.typography.labelMediumEmphasized,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = modifier.clip(EchoShapes.Full)
+            .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.86f))
+            .padding(horizontal = EchoSpacing.m, vertical = EchoSpacing.xs),
+    )
 }
 
 /** "Paged (right to left)" chip shown briefly on open (Figma "Echo · Reading-mode hint"). */
 @Composable
 fun ReadingModeHint(text: String, @DrawableRes icon: Int, modifier: Modifier = Modifier) {
-    Surface(modifier = modifier, shape = EchoShapes.Full, color = MaterialTheme.colorScheme.inverseSurface) {
-        Row(
-            Modifier.padding(horizontal = EchoSpacing.l, vertical = EchoSpacing.s + EchoSpacing.xxs),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(EchoSpacing.s),
-        ) {
-            Icon(painterResource(icon), null, Modifier.size(EchoSizes.iconSmall))
-            Text(text, style = MaterialTheme.typography.labelLargeEmphasized)
-        }
+    // Drawn, not a Surface: a Surface takes touches, and a tap on the hint must still reach the reader.
+    Row(
+        modifier.clip(EchoShapes.Full)
+            .background(MaterialTheme.colorScheme.inverseSurface)
+            .padding(horizontal = EchoSpacing.l, vertical = EchoSpacing.s + EchoSpacing.xxs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(EchoSpacing.s),
+    ) {
+        val color = MaterialTheme.colorScheme.inverseOnSurface
+        Icon(painterResource(icon), null, Modifier.size(EchoSizes.iconSmall), tint = color)
+        Text(text, style = MaterialTheme.typography.labelLargeEmphasized, color = color)
     }
 }
 
