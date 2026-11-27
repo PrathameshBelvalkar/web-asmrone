@@ -1,5 +1,9 @@
 package app.echo.designsystem.component.m3e
 
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.Surface
+import androidx.compose.material3.ListItem
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -128,6 +132,30 @@ fun SegmentedListItem(
             onLongClick = onLongClick,
             colors = colors,
             content = headlineContent,
+        )
+    }
+}
+
+/**
+ * A tile that only shows something (S.4 Engine, S.13 version history): the [SegmentedListItem] look, no ripple and
+ * nothing to tap.
+ */
+@Composable
+fun SegmentedInfoItem(
+    headline: String,
+    modifier: Modifier = Modifier,
+    supporting: String? = null,
+    leading: (@Composable () -> Unit)? = null,
+    trailing: (@Composable () -> Unit)? = null,
+) {
+    val shape = (LocalSegmentShapes.current ?: ListItemDefaults.segmentedShapes(index = 0, count = 1)).shape
+    Surface(shape = shape, color = LocalSegmentContainer.current ?: MaterialTheme.colorScheme.surfaceContainerLow, modifier = modifier.fillMaxWidth()) {
+        ListItem(
+            headlineContent = { Text(headline, style = MaterialTheme.typography.titleMedium) },
+            supportingContent = supporting?.let { { Text(it, maxLines = 2) } },
+            leadingContent = leading,
+            trailingContent = trailing,
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         )
     }
 }

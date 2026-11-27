@@ -49,6 +49,8 @@ interface ShellActions {
     fun resetProfile() = Unit
     /** S.13 Update now: the S.15 download sheet. */
     fun startUpdate() = Unit
+    /** S.13 "Check for updates automatically" turned on: check now, and offer S.14 if there's one. */
+    fun checkForUpdates() = Unit
     fun sectionIcon(section: Section): Int
 }
 

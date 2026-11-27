@@ -1,5 +1,8 @@
 package app.echo.android.feature.jav.search
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -104,9 +107,12 @@ class JavSearchViewModel(private val jav: JavRepository) : ViewModel() {
 
 @Composable
 fun JavSearchRoute(shell: ShellActions, contentPadding: PaddingValues) {
-    val vm = echoViewModel { JavSearchViewModel(it.jav) }
+    // Try again builds a fresh ViewModel, which loads again.
+    var attempt by rememberSaveable { mutableIntStateOf(0) }
+    val vm = echoViewModel(key = "javsearch-$attempt") { JavSearchViewModel(it.jav) }
     val state by vm.state.collectAsStateWithLifecycle()
     JavSearchScreen(
+        onRetry = { attempt++ },
         state = state,
         contentPadding = contentPadding,
         onBack = { shell.returnTo(SectionNav.root(Section.JAV, Tab.HOME)) },
@@ -129,6 +135,7 @@ fun JavSearchScreen(
     onCensorship: (Censorship) -> Unit,
     onMovie: (String) -> Unit,
     onIdol: (String) -> Unit,
+    onRetry: () -> Unit = {},
 ) {
     Column(Modifier.fillMaxSize().testTag("screen:3.11")) {
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
@@ -156,10 +163,10 @@ fun JavSearchScreen(
                 EchoIcons.Search, stringResource(R.string.jav_search_prompt_title), stringResource(R.string.jav_search_prompt_body),
                 Modifier.padding(top = EchoSpacing.xxl),
             )
-            state.movies != null -> Results(state.movies, bottom) { movie ->
+            state.movies != null -> Results(state.movies, bottom, onRetry) { movie ->
                 MovieRow(movie) { onMovie(movie.id) }
             }
-            state.idols != null -> Results(state.idols, bottom) { idol ->
+            state.idols != null -> Results(state.idols, bottom, onRetry) { idol ->
                 SegmentedListItem(
                     headline = idol.name,
                     supporting = movieCount(idol.movieCount),
@@ -173,9 +180,9 @@ fun JavSearchScreen(
 
 /** A list of results in a segmented list, or the load state. */
 @Composable
-private fun <T> Results(load: Load<List<T>>, bottom: androidx.compose.ui.unit.Dp, row: @Composable (T) -> Unit) {
+private fun <T> Results(load: Load<List<T>>, bottom: androidx.compose.ui.unit.Dp, onRetry: () -> Unit, row: @Composable (T) -> Unit) {
     if (load !is Load.Content) {
-        LoadFallback(load, onRetry = {})
+        LoadFallback(load, onRetry = onRetry)
         return
     }
     LazyColumn(contentPadding = PaddingValues(top = EchoSpacing.s, bottom = bottom)) {

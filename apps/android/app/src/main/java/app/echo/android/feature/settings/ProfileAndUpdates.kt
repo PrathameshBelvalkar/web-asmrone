@@ -1,5 +1,6 @@
 package app.echo.android.feature.settings
 
+import app.echo.designsystem.component.m3e.SegmentedInfoItem
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -61,7 +62,7 @@ private const val MIN_AGE = 13
 private const val MAX_AGE = 80
 
 @Composable
-fun EditProfileRoute(shell: ShellActions, onReset: () -> Unit) = WithSettings { state, vm ->
+fun EditProfileRoute(shell: ShellActions, onReset: () -> Unit) = WithSettings("S.12") { state, vm ->
     EditProfileScreen(state.profile, onBack = shell::back, onProfile = vm::profile, onReset = onReset)
 }
 
@@ -180,8 +181,16 @@ private fun AgeDialog(initial: Int, onSave: (Int) -> Unit, onDismiss: () -> Unit
 // S.13 App updates ---------------------------------------------------------------------------------------------------
 
 @Composable
-fun UpdatesRoute(shell: ShellActions) = WithSettings { state, vm ->
-    UpdatesScreen(state.settings.updates, onBack = shell::back, onUpdates = vm::updates, onUpdateNow = shell::startUpdate)
+fun UpdatesRoute(shell: ShellActions) = WithSettings("S.13") { state, vm ->
+    UpdatesScreen(
+        state.settings.updates, onBack = shell::back, onUpdateNow = shell::startUpdate,
+        onUpdates = { change ->
+            // Turning the automatic check on checks straight away (Figma: the switch → S.14).
+            val turnedOn = !state.settings.updates.autoCheck && state.settings.updates.change().autoCheck
+            vm.updates(change)
+            if (turnedOn) shell.checkForUpdates()
+        },
+    )
 }
 
 /** Figma S.13 App updates (29:29511). "Update now" opens the S.15 download sheet in the shell. */
@@ -199,8 +208,8 @@ fun UpdatesScreen(
         if (available != null) {
             UpdateCard(available, installed, onUpdateNow, onNotes = { notes = true })
         } else {
-            SegmentedListItem(
-                headline = stringResource(R.string.settings_up_to_date, installed.version), onClick = {},
+            SegmentedInfoItem(
+                headline = stringResource(R.string.settings_up_to_date, installed.version),
                 leading = { TileIcon(EchoIcons.Check) },
                 modifier = Modifier.padding(horizontal = EchoSpacing.screenMargin),
             )
@@ -237,10 +246,9 @@ fun UpdatesScreen(
             FakeUpdates.history.forEach { release ->
                 item {
                     val current = release.version == installed.version
-                    SegmentedListItem(
+                    SegmentedInfoItem(
                         headline = release.version,
                         supporting = if (current) stringResource(R.string.settings_installed_on, release.date) else release.date,
-                        onClick = {},
                         leading = { TileIcon(if (current) EchoIcons.Check else EchoIcons.History) },
                     )
                 }

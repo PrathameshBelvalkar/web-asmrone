@@ -1,5 +1,6 @@
 package app.echo.android.feature.hentai.title
 
+import app.echo.designsystem.component.m3e.InfoChips
 import android.content.ClipData
 import android.content.Intent
 import androidx.compose.foundation.background
@@ -165,6 +166,7 @@ fun HentaiTitleRoute(id: String, shell: ShellActions, contentPadding: PaddingVal
         onBack = shell::back,
         onRetry = vm::retry,
         onCopy = { t -> scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(t.title, t.title))) } },
+        onCopyText = { text -> scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(text, text))) } },
         onOpenSite = { uri.openUri(SITE) },
         onShare = { t ->
             val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "${t.title}\n$SITE")
@@ -191,6 +193,7 @@ fun HentaiTitleScreen(
     onWatch: (episode: Int) -> Unit,
     onSimilar: (String) -> Unit,
     onTitle: (String) -> Unit,
+    onCopyText: (String) -> Unit = {},
 ) {
     var preview by rememberSaveable { mutableIntStateOf(-1) }
     var liked by rememberSaveable { mutableStateOf(false) }
@@ -241,15 +244,14 @@ fun HentaiTitleScreen(
                 )
             }
             item("chips") {
-                ChipRow(
-                    chips = listOfNotNull(
+                // Facts about the video, not actions.
+                InfoChips(
+                    listOfNotNull(
                         ChipSpec(t.quality, EchoIcons.MovieFilled),
                         ChipSpec(stringResource(R.string.hentai_minutes, minutes), EchoIcons.Timer),
                         t.subtitles?.let { ChipSpec(stringResource(R.string.hentai_sub, it), EchoIcons.Subtitles) },
                         t.dub?.let { ChipSpec(stringResource(R.string.hentai_dub, it), EchoIcons.Language) },
                     ),
-                    onClick = {},
-                    style = ChipStyle.Assist,
                 )
             }
             item("actions") {
@@ -286,7 +288,8 @@ fun HentaiTitleScreen(
                 item("alt") {
                     Column {
                         ShelfHeader(stringResource(R.string.hentai_alt_names))
-                        ChipRow(t.altNames.map { ChipSpec(it) }, onClick = {}, style = ChipStyle.Assist)
+                        // Tapping a name copies it.
+                        ChipRow(t.altNames.map { ChipSpec(it, EchoIcons.ContentCopy) }, onClick = { onCopyText(t.altNames[it]) }, style = ChipStyle.Assist)
                     }
                 }
             }

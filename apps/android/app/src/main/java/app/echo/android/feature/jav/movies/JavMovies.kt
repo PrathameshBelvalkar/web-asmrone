@@ -1,5 +1,6 @@
 package app.echo.android.feature.jav.movies
 
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -127,9 +128,12 @@ class JavLatestViewModel(jav: JavRepository, settings: SettingsRepository) : Vie
 
 @Composable
 fun JavLatestRoute(shell: ShellActions, source: Source, contentPadding: PaddingValues) {
-    val vm = echoViewModel { JavLatestViewModel(it.jav, it.settings) }
+    // Try again builds a fresh ViewModel, which loads again.
+    var attempt by rememberSaveable { mutableIntStateOf(0) }
+    val vm = echoViewModel(key = "latest-$attempt") { JavLatestViewModel(it.jav, it.settings) }
     val state by vm.state.collectAsStateWithLifecycle()
     JavLatestScreen(
+        onRetry = { attempt++ },
         state = state,
         header = { JavHeader(JavTab.LATEST, shell, source) },
         contentPadding = contentPadding,
@@ -148,6 +152,7 @@ fun JavLatestScreen(
     onCensorship: (Censorship) -> Unit,
     onUpcoming: (Boolean) -> Unit,
     onMovie: (String) -> Unit,
+    onRetry: () -> Unit = {},
 ) {
     Column(Modifier.fillMaxSize().testTag("screen:3.3")) {
         header()
@@ -160,7 +165,7 @@ fun JavLatestScreen(
             chips = chips, onClick = { onUpcoming(it == 1) }, selected = setOf(if (state.upcoming) 1 else 0),
             modifier = Modifier.padding(vertical = EchoSpacing.xs + EchoSpacing.xxs),
         )
-        MovieGrid(state.movies, contentPadding, onMovie)
+        MovieGrid(state.movies, contentPadding, onMovie, onRetry = onRetry)
     }
 }
 
@@ -181,12 +186,13 @@ private fun MovieGrid(
     onMovie: (String) -> Unit,
     modifier: Modifier = Modifier,
     top: (androidx.compose.foundation.lazy.grid.LazyGridScope.() -> Unit)? = null,
+    onRetry: () -> Unit = {},
 ) {
     CoverGrid(columns = 2, modifier = modifier.fillMaxSize(), contentPadding = gridPadding(contentPadding)) {
         top?.invoke(this)
         when (movies) {
             is Load.Content -> movieItems(movies.value, onMovie)
-            else -> fullWidth("state") { LoadFallback(movies, onRetry = {}) }
+            else -> fullWidth("state") { LoadFallback(movies, onRetry = onRetry) }
         }
     }
 }
@@ -217,9 +223,12 @@ class JavMoviesViewModel(jav: JavRepository) : ViewModel() {
 
 @Composable
 fun JavMoviesRoute(shell: ShellActions, source: Source, contentPadding: PaddingValues) {
-    val vm = echoViewModel { JavMoviesViewModel(it.jav) }
+    // Try again builds a fresh ViewModel, which loads again.
+    var attempt by rememberSaveable { mutableIntStateOf(0) }
+    val vm = echoViewModel(key = "movies-$attempt") { JavMoviesViewModel(it.jav) }
     val state by vm.state.collectAsStateWithLifecycle()
     JavMoviesScreen(
+        onRetry = { attempt++ },
         state = state,
         header = { JavHeader(JavTab.MOVIES, shell, source) },
         contentPadding = contentPadding,
@@ -238,6 +247,7 @@ fun JavMoviesScreen(
     onSort: (MovieSort) -> Unit,
     onCensorship: (Censorship?) -> Unit,
     onMovie: (String) -> Unit,
+    onRetry: () -> Unit = {},
 ) {
     var filtering by rememberSaveable { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().testTag("screen:3.4")) {
@@ -254,7 +264,7 @@ fun JavMoviesScreen(
                 style = IconButtonStyle.Tonal, checked = state.censorship != null,
             )
         }
-        MovieGrid(state.movies, contentPadding, onMovie)
+        MovieGrid(state.movies, contentPadding, onMovie, onRetry = onRetry)
     }
     if (filtering) {
         EchoSheet(onDismiss = { filtering = false }, title = stringResource(R.string.jav_filters)) {
@@ -289,11 +299,14 @@ private const val SITE = "https://www.javdatabase.com/"
 
 @Composable
 fun JavMovieListRoute(filter: String, shell: ShellActions, contentPadding: PaddingValues) {
-    val vm = echoViewModel(key = "list-$filter") { JavMovieListViewModel(filter, it.jav) }
+    // Try again builds a fresh ViewModel, which loads again.
+    var attempt by rememberSaveable { mutableIntStateOf(0) }
+    val vm = echoViewModel(key = "list-$filter-$attempt") { JavMovieListViewModel(filter, it.jav) }
     val list by vm.list.collectAsStateWithLifecycle()
     val sort by vm.sortState.collectAsStateWithLifecycle()
     val uri = LocalUriHandler.current
     JavMovieListScreen(
+        onRetry = { attempt++ },
         list = list,
         sort = sort,
         contentPadding = contentPadding,
@@ -317,6 +330,7 @@ fun JavMovieListScreen(
     onOpenSite: () -> Unit,
     onSort: (MovieSort) -> Unit,
     onMovie: (String) -> Unit,
+    onRetry: () -> Unit = {},
 ) {
     val scroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val loaded = list as? Load.Content
@@ -336,6 +350,7 @@ fun JavMovieListScreen(
             contentPadding = contentPadding,
             onMovie = onMovie,
             top = { fullWidth("sort") { SortMenu(sort, onSort) } },
+            onRetry = onRetry,
         )
     }
 }

@@ -1,5 +1,10 @@
 package app.echo.android.feature.asmr.playlist
 
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import app.echo.android.feature.asmr.playlists.DeletePlaylistDialog
+import app.echo.android.feature.shared.TrackExtra
+import app.echo.android.feature.shared.LocalTrackActions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +20,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumExtendedFloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -108,6 +113,7 @@ class AsmrPlaylistViewModel(private val id: Long, private val repo: PlaylistRepo
     }
 
     fun rename(name: String) = viewModelScope.launch { state.value.playlist?.let { repo.rename(id, name.trim(), it.privacy) } }
+    fun delete(onDone: () -> Unit) = viewModelScope.launch { repo.delete(id); onDone() }
 }
 
 @Composable
@@ -123,6 +129,7 @@ fun AsmrPlaylistRoute(id: Long, shell: ShellActions, contentPadding: PaddingValu
             shell.play(list, index, state.playlist?.name.orEmpty(), PlaySource.PLAYLIST)
         },
         onPrivacy = vm::togglePrivacy, onMove = vm::move, onAddTracks = { shell.open(Route.AsmrSearch) },
+        onRemove = vm::remove, onDelete = { vm.delete(onDone = shell::back) },
     )
     if (renaming) {
         NewPlaylistDialog(
@@ -144,7 +151,13 @@ fun AsmrPlaylistScreen(
     onMove: (from: Int, to: Int) -> Unit,
     onAddTracks: () -> Unit,
     modifier: Modifier = Modifier,
+    onRemove: (position: Int) -> Unit = {},
+    onDelete: () -> Unit = {},
 ) {
+    var menu by remember { mutableStateOf(false) }
+    var deleting by remember { mutableStateOf(false) }
+    val trackActions = LocalTrackActions.current
+    val removeLabel = stringResource(R.string.track_remove_from_playlist)
     // Local order while dragging; follows the stored order otherwise.
     var tracks by remember(state.tracks) { mutableStateOf(state.tracks) }
     val listState = rememberLazyListState()
@@ -157,11 +170,21 @@ fun AsmrPlaylistScreen(
             onMove(f, t)
         }
     }
+    if (deleting) DeletePlaylistDialog(onConfirm = { deleting = false; onDelete() }, onDismiss = { deleting = false })
     Box(modifier.fillMaxSize().testTag("screen:1.7")) {
         Column {
             EchoSmallAppBar(title = "", onBack = onBack) {
                 EchoIconButton(EchoIcons.Edit, stringResource(R.string.playlist_rename), onEdit)
-                EchoIconButton(EchoIcons.MoreVert, stringResource(app.echo.designsystem.R.string.echo_cd_more), {})
+                Box {
+                    EchoIconButton(EchoIcons.MoreVert, stringResource(app.echo.designsystem.R.string.echo_cd_more), { menu = true })
+                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.playlist_delete)) },
+                            onClick = { menu = false; deleting = true },
+                            leadingIcon = { Icon(painterResource(EchoIcons.Delete), null) },
+                        )
+                    }
+                }
             }
             val p = state.playlist
             if (state.loaded && p == null) {
@@ -176,8 +199,15 @@ fun AsmrPlaylistScreen(
                 item(key = "header") { if (p != null) Header(p, tracks) }
                 item(key = "buttons") {
                     EchoButtonGroup(Modifier.padding(vertical = EchoSpacing.m)) {
-                        EchoButton(stringResource(R.string.work_play), { onPlay(0, false) }, size = ComponentSize.M, icon = EchoIcons.PlayArrowFilled)
-                        EchoButton(stringResource(R.string.work_shuffle), { onPlay(0, true) }, style = ButtonStyle.Tonal, size = ComponentSize.M, icon = EchoIcons.Shuffle)
+                        // Nothing to play in an empty playlist.
+                        EchoButton(
+                            stringResource(R.string.work_play), { onPlay(0, false) }, size = ComponentSize.M,
+                            icon = EchoIcons.PlayArrowFilled, enabled = tracks.isNotEmpty(),
+                        )
+                        EchoButton(
+                            stringResource(R.string.work_shuffle), { onPlay(0, true) }, style = ButtonStyle.Tonal, size = ComponentSize.M,
+                            icon = EchoIcons.Shuffle, enabled = tracks.isNotEmpty(),
+                        )
                         Spacer(Modifier.weight(1f))
                         EchoIconButton(
                             EchoIcons.Lock, stringResource(R.string.playlist_private), onPrivacy, style = IconButtonStyle.Outlined,
@@ -185,11 +215,20 @@ fun AsmrPlaylistScreen(
                         )
                     }
                 }
+                if (state.loaded && tracks.isEmpty()) {
+                    item(key = "empty") {
+                        EmptyState(
+                            EchoIcons.QueueMusic, stringResource(R.string.playlist_empty_title), stringResource(R.string.playlist_empty_body),
+                            Modifier.padding(top = EchoSpacing.l),
+                        )
+                    }
+                }
                 itemsIndexed(tracks, key = { i, t -> "${t.id}-$i" }) { i, t ->
                     ReorderableItem(reorder, key = "${t.id}-$i") { dragging ->
                         TrackRow(
                             title = t.title, artist = t.artist, duration = formatDuration(t.durationMs), cover = t.coverUrl,
-                            playing = t.id == state.playingTrackId, onClick = { onPlay(i, false) }, onMore = {},
+                            playing = t.id == state.playingTrackId, onClick = { onPlay(i, false) },
+                            onMore = { trackActions(t, listOf(TrackExtra(removeLabel, EchoIcons.Remove) { onRemove(i) })) },
                             position = SegmentPosition(i, tracks.size),
                             modifier = Modifier.padding(horizontal = EchoSpacing.screenMargin)
                                 .then(if (dragging) Modifier.shadow(EchoElevation.level5, MaterialTheme.shapes.largeIncreased) else Modifier)
@@ -205,7 +244,7 @@ fun AsmrPlaylistScreen(
                 }
             }
         }
-        MediumExtendedFloatingActionButton(
+        ExtendedFloatingActionButton(
             onClick = onAddTracks,
             icon = { Icon(painterResource(EchoIcons.Add), null) },
             text = { Text(stringResource(R.string.playlist_add_tracks)) },

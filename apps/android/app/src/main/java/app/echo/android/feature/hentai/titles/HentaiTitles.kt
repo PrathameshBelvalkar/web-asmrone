@@ -1,5 +1,6 @@
 package app.echo.android.feature.hentai.titles
 
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -185,9 +186,12 @@ private fun HentaiTitle.passes(c: TitleCensorship) = when (c) {
 
 @Composable
 fun HentaiTitlesRoute(route: Route.HentaiTitles, shell: ShellActions, source: Source, contentPadding: PaddingValues) {
-    val vm = echoViewModel(key = "titles-$route") { HentaiTitlesViewModel(route, it.hentai) }
+    // Try again builds a fresh ViewModel, which loads again.
+    var attempt by rememberSaveable { mutableIntStateOf(0) }
+    val vm = echoViewModel(key = "titles-$route-$attempt") { HentaiTitlesViewModel(route, it.hentai) }
     val state by vm.state.collectAsStateWithLifecycle()
     HentaiTitlesScreen(
+        onRetry = { attempt++ },
         state = state,
         header = { HentaiHeader(HentaiTab.TITLES, shell, source) },
         contentPadding = contentPadding,
@@ -221,6 +225,7 @@ fun HentaiTitlesScreen(
     onCensorship: (TitleCensorship) -> Unit,
     onFilters: (TitleFilters) -> Unit,
     onTitle: (String) -> Unit,
+    onRetry: () -> Unit = {},
 ) {
     var sheet by rememberSaveable { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().testTag("screen:H.3")) {
@@ -250,7 +255,7 @@ fun HentaiTitlesScreen(
         ActiveFilters(state.filters, onFilters, onOpen = { sheet = true })
         val titles = state.titles
         if (titles !is Load.Content) {
-            LoadFallback(titles, onRetry = {})
+            LoadFallback(titles, onRetry = onRetry)
         } else {
             Text(
                 titleCount(titles.value.size),

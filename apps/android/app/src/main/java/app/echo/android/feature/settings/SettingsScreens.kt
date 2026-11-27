@@ -1,5 +1,8 @@
 package app.echo.android.feature.settings
 
+import androidx.compose.ui.platform.testTag
+import androidx.compose.foundation.layout.fillMaxSize
+import app.echo.designsystem.component.m3e.SegmentedInfoItem
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -68,12 +71,15 @@ internal fun Profile.musicSources(): List<Source> = visibleSources().filter { it
 internal fun Settings.musicSourceName(): String =
     (Sources.all.firstOrNull { it.id == asmr.musicSource } ?: Sources.asmrOne).name
 
-/** Opens a settings screen with its ViewModel, once settings and profile have loaded. */
+/** Opens settings screen [code] with its ViewModel, once settings and profile have loaded. */
 @Composable
-internal fun WithSettings(content: @Composable (SettingsUiState, SettingsViewModel) -> Unit) {
+internal fun WithSettings(code: String, content: @Composable (SettingsUiState, SettingsViewModel) -> Unit) {
     val vm = echoViewModel { SettingsViewModel(it) }
     val state by vm.state.collectAsStateWithLifecycle()
-    state?.let { content(it, vm) }
+    // While the settings load (a moment), an empty frame already carries the screen's code.
+    state?.let { content(it, vm) } ?: androidx.compose.foundation.layout.Box(
+        androidx.compose.ui.Modifier.fillMaxSize().testTag("screen:$code"),
+    )
 }
 
 /** S.3 Music source dialog. Picking one also makes it the active ASMR source, so Home and Search follow it. */
@@ -93,7 +99,7 @@ internal fun MusicSourceDialog(state: SettingsUiState, onPick: (Source) -> Unit,
 // S.1 Settings ------------------------------------------------------------------------------------------------------
 
 @Composable
-fun SettingsRoute(shell: ShellActions) = WithSettings { state, vm ->
+fun SettingsRoute(shell: ShellActions) = WithSettings("S.1") { state, vm ->
     SettingsScreen(state, onBack = shell::back, onOpen = shell::open, onMusicSource = { vm.musicSource(it.id) })
 }
 
@@ -212,7 +218,7 @@ internal val TranslationLanguages = listOf("English", "Japanese", "Chinese", "Ko
 internal val HomeTagChoices = listOf("Binaural", "Ear cleaning", "Rain", "Whisper", "Heartbeat", "Roleplay", "No talking", "Sleep")
 
 @Composable
-fun AsmrPreferencesRoute(shell: ShellActions) = WithSettings { state, vm ->
+fun AsmrPreferencesRoute(shell: ShellActions) = WithSettings("S.2") { state, vm ->
     AsmrPreferencesScreen(state, onBack = shell::back, onMusicSource = { vm.musicSource(it.id) }, onAsmr = vm::asmr)
 }
 
@@ -311,7 +317,7 @@ private const val DIALOG_LANGUAGE = "language"
 internal val AiModels = listOf("tiny" to "Tiny · 75 MB", "base" to "Base · 142 MB", "small" to "Small · 466 MB")
 
 @Composable
-fun AiSubtitlesRoute(shell: ShellActions) = WithSettings { state, vm ->
+fun AiSubtitlesRoute(shell: ShellActions) = WithSettings("S.4") { state, vm ->
     AiSubtitlesScreen(state, onBack = shell::back, onAi = vm::aiSubtitles)
 }
 
@@ -335,8 +341,8 @@ fun AiSubtitlesScreen(
         GroupLabel(stringResource(R.string.settings_group_model))
         SegmentedList {
             item {
-                SegmentedListItem(
-                    headline = stringResource(R.string.settings_engine), onClick = {},
+                SegmentedInfoItem(
+                    headline = stringResource(R.string.settings_engine),
                     leading = { TileIcon(EchoIcons.Settings) },
                     trailing = { ValueTrailing(stringResource(R.string.settings_engine_value, ai.engine), chevron = false) },
                 )
@@ -349,8 +355,8 @@ fun AiSubtitlesScreen(
                 )
             }
             item {
-                SegmentedListItem(
-                    headline = stringResource(R.string.settings_speed_device), onClick = {},
+                SegmentedInfoItem(
+                    headline = stringResource(R.string.settings_speed_device),
                     leading = { TileIcon(EchoIcons.Speed) },
                     trailing = { ValueTrailing(stringResource(R.string.settings_speed_device_value), chevron = false) },
                 )
@@ -371,7 +377,7 @@ fun AiSubtitlesScreen(
 // S.5 JAV ------------------------------------------------------------------------------------------------------------
 
 @Composable
-fun JavSettingsRoute(shell: ShellActions) = WithSettings { state, vm ->
+fun JavSettingsRoute(shell: ShellActions) = WithSettings("S.5") { state, vm ->
     JavSettingsScreen(state, onBack = shell::back, onHideUpcoming = { on -> vm.jav { copy(hideUpcoming = on) } })
 }
 

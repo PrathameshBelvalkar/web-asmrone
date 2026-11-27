@@ -1,5 +1,7 @@
 package app.echo.designsystem.component.echo
 
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -67,7 +69,8 @@ data class TourStep(val target: TipTarget, val title: String, val body: String)
 
 /**
  * O.9 First-run tip (Figma 29:28321): a scrim with a ringed hole around [anchor], and a card under it with the
- * step's title and body, "1 of 3", Skip tips · Next (Got it on the last step). Tapping the scrim skips.
+ * step's title and body, "1 of 3", Skip tips · Next (Got it on the last step). Tapping the scrim skips;
+ * tapping the highlighted target runs [onTarget].
  */
 @Composable
 fun FirstRunTour(
@@ -81,6 +84,8 @@ fun FirstRunTour(
     onSkip: () -> Unit,
     onNext: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Tapping the highlighted target (Figma: the tip → 0.1): it does its own job and the tour ends. */
+    onTarget: () -> Unit = onSkip,
 ) {
     val density = LocalDensity.current
     val ringColor = MaterialTheme.colorScheme.surface
@@ -88,7 +93,7 @@ fun FirstRunTour(
     val hole = Rect(anchor.left - pad, anchor.top - pad, anchor.right + pad, anchor.bottom + pad)
     BoxWithConstraints(
         modifier.fillMaxSize().testTag("overlay:O.9")
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onSkip),
+            .pointerInput(hole) { detectTapGestures { at -> if (hole.contains(at)) onTarget() else onSkip() } },
     ) {
         Canvas(Modifier.fillMaxSize().graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }) {
             drawRect(Color.Black.copy(alpha = SCRIM_ALPHA))

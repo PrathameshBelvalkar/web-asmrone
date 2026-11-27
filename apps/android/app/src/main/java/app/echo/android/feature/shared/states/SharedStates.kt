@@ -37,8 +37,8 @@ fun SharedStatesRoute(shell: ShellActions, source: Source, contentPadding: Paddi
         contentPadding = contentPadding,
         onBack = shell::back,
         onHome = { shell.open(SectionNav.root(source.section, Tab.HOME)) },
-        // "Try again" has nothing to retry yet: the catalogue is fake until the real services arrive.
-        onRetry = {},
+        // Try again goes back to the screen that failed, which loads again.
+        onRetry = shell::back,
     )
 }
 

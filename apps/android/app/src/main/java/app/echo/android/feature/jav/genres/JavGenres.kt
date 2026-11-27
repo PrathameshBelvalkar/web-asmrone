@@ -1,5 +1,8 @@
 package app.echo.android.feature.jav.genres
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -55,9 +58,12 @@ class JavGenresViewModel(jav: JavRepository) : ViewModel() {
 
 @Composable
 fun JavGenresRoute(shell: ShellActions, source: Source, contentPadding: PaddingValues) {
-    val vm = echoViewModel { JavGenresViewModel(it.jav) }
+    // Try again builds a fresh ViewModel, which loads again.
+    var attempt by rememberSaveable { mutableIntStateOf(0) }
+    val vm = echoViewModel(key = "genres-$attempt") { JavGenresViewModel(it.jav) }
     val groups by vm.groups.collectAsStateWithLifecycle()
     JavGenresScreen(
+        onRetry = { attempt++ },
         groups = groups,
         header = { JavHeader(JavTab.GENRES, shell, source) },
         contentPadding = contentPadding,
@@ -73,11 +79,12 @@ fun JavGenresScreen(
     header: @Composable () -> Unit,
     contentPadding: PaddingValues,
     onGenre: (String) -> Unit,
+    onRetry: () -> Unit = {},
 ) {
     Column(Modifier.fillMaxSize().testTag("screen:3.10")) {
         header()
         if (groups !is Load.Content) {
-            LoadFallback(groups, onRetry = {})
+            LoadFallback(groups, onRetry = onRetry)
             return@Column
         }
         LazyColumn(

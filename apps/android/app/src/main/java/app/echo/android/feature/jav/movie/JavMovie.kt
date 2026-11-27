@@ -1,5 +1,6 @@
 package app.echo.android.feature.jav.movie
 
+import androidx.compose.runtime.mutableIntStateOf
 import android.content.ClipData
 import android.content.Intent
 import androidx.compose.foundation.border
@@ -118,13 +119,16 @@ private const val SITE = "https://www.javdatabase.com/movies/"
 
 @Composable
 fun JavMovieRoute(id: String, shell: ShellActions, contentPadding: PaddingValues) {
-    val vm = echoViewModel(key = "movie-$id") { JavMovieViewModel(id, it.jav, it.library) }
+    // Try again builds a fresh ViewModel, which loads again.
+    var attempt by rememberSaveable { mutableIntStateOf(0) }
+    val vm = echoViewModel(key = "movie-$id-$attempt") { JavMovieViewModel(id, it.jav, it.library) }
     val state by vm.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val uri = LocalUriHandler.current
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     JavMovieScreen(
+        onRetry = { attempt++ },
         state = state,
         contentPadding = contentPadding,
         onBack = shell::back,
@@ -160,6 +164,7 @@ fun JavMovieScreen(
     onCast: () -> Unit,
     onGenre: (String) -> Unit,
     onMovie: (String) -> Unit,
+    onRetry: () -> Unit = {},
 ) {
     val movie = (state.movie as? Load.Content)?.value
     var menu by rememberSaveable { mutableStateOf(false) }
@@ -181,7 +186,7 @@ fun JavMovieScreen(
             },
         )
         if (movie == null) {
-            LoadFallback(state.movie, onRetry = {})
+            LoadFallback(state.movie, onRetry = onRetry)
             return@Column
         }
         LazyColumn(

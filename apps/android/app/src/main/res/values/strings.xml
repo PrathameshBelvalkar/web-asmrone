@@ -88,7 +88,10 @@
     <string name="results_tracks">Tracks</string>
     <string name="results_artists">Artists</string>
     <string name="results_playlists">Playlists</string>
-    <string name="results_tracks_count">%1$d tracks</string>
+    <plurals name="results_tracks_count">
+        <item quantity="one">%1$d track</item>
+        <item quantity="other">%1$d tracks</item>
+    </plurals>
     <string name="results_works_count">%1$d works</string>
     <string name="results_no_matches_title">No matches</string>
     <string name="results_no_matches_body">Nothing on this source matches “%1$s”.</string>
@@ -125,7 +128,10 @@
 
     <!-- 1.12 Playlists / 1.7 Playlist -->
     <string name="playlists_title">Playlists</string>
-    <string name="playlists_subtitle">On this device · %1$d playlists</string>
+    <plurals name="playlists_subtitle">
+        <item quantity="one">On this device · %1$d playlist</item>
+        <item quantity="other">On this device · %1$d playlists</item>
+    </plurals>
     <string name="playlists_favourites">Favourites</string>
     <string name="playlists_liked">Liked tracks</string>
     <string name="playlists_history">History</string>
@@ -135,10 +141,15 @@
     <string name="playlists_empty_body">Like works and tracks to find them here.</string>
     <string name="playlist_private">Private</string>
     <string name="playlist_public">Public</string>
-    <string name="playlist_privacy_count">%1$s · %2$d tracks</string>
+    <plurals name="playlist_privacy_count">
+        <item quantity="one">%1$s · %2$d track</item>
+        <item quantity="other">%1$s · %2$d tracks</item>
+    </plurals>
     <string name="playlist_meta">You · %1$s · %2$d tracks · %3$s</string>
     <string name="playlist_rename">Rename playlist</string>
     <string name="playlist_add_tracks">Add tracks</string>
+    <string name="playlist_empty_title">No tracks yet</string>
+    <string name="playlist_empty_body">Tap Add tracks to search, or use ⋮ on any track to add it here.</string>
 
     <!-- 1.8–1.11 Player -->
     <string name="player_from_work">Playing from work</string>
@@ -471,7 +482,10 @@
     <string name="update_install">Install</string>
 
     <string name="profile_sheet_subtitle">Your profile · saved on this device</string>
-    <string name="profile_playlists">%1$d playlists</string>
+    <plurals name="profile_playlists">
+        <item quantity="one">%1$d playlist</item>
+        <item quantity="other">%1$d playlists</item>
+    </plurals>
     <string name="profile_liked">%1$d liked</string>
     <string name="profile_listened">%1$d h listened</string>
     <string name="profile_your_library">Your library</string>
@@ -748,4 +762,24 @@
     <string name="tip_skip">Skip tips</string>
     <string name="tip_next">Next</string>
     <string name="tip_done">Got it</string>
+
+    <!-- Phase 12: track actions, menus and the remaining taps -->
+    <string name="track_like">Like</string>
+    <string name="track_unlike">Remove from liked</string>
+    <string name="track_share">Share</string>
+    <string name="track_remove_from_playlist">Remove from playlist</string>
+    <string name="track_remove_from_queue">Remove from Up next</string>
+    <string name="track_info_duration">Length</string>
+    <string name="track_info_artist">Artist</string>
+    <string name="track_info_source">Source</string>
+    <string name="playlist_delete">Delete playlist</string>
+    <string name="playlist_delete_title">Delete this playlist?</string>
+    <string name="playlist_delete_body">The playlist goes; the tracks stay in their works.</string>
+    <string name="playlist_delete_confirm">Delete</string>
+    <string name="menu_share">Share</string>
+    <string name="menu_open_site">Open on %1$s</string>
+    <string name="menu_open">Open</string>
+    <string name="menu_remove_history">Remove from history</string>
+    <string name="reader_rotate_locked">Rotation: %1$s</string>
+    <string name="copied">Copied</string>
 </resources>

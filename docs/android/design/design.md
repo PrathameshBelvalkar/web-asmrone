@@ -1417,6 +1417,33 @@ with the reason:
 - Shared-element transitions for covers (shelf → media page, mini player → full player) with `slowSpatialSpec`.
 - An accessibility pass ([§12.4](#124-accessibility)). A final side-by-side pass over all 75 screens.
 
+#### Phase 12 notes (in progress)
+
+**Every tap does something.** An audit for empty handlers outside previews now finds none. The Figma prototype links
+(about 700, all 75 phone frames) were compared with the app; differences are deliberate (below).
+
+- **Track ⋮ everywhere** (1.1, 1.3, 1.5, 1.7, 1.9, 1.12 Liked, 0.2) opens one shared sheet (`TrackActionsSheet` via
+  `LocalTrackActions`, owned by the shell): Like / Remove from liked, Add to playlist, Go to work, Go to artist, Share,
+  plus the screen's extras (Remove from playlist on 1.7, Remove from Up next on 1.9, Remove from history on 0.2).
+- **Menus**: 1.5 and 1.6 ⋮ (Share, Open on asmr.one); 1.7 ⋮ Delete playlist and 1.12 row ⋮ Rename · Delete, both
+  confirmed; 2.6 ⋮ (Share, Open on 3hentai). 2.5 / 2.4 share and open icons work. 2.6 Rotate turns the reader.
+- **Shelf arrows**: 1.5 More like this → 1.3 for the first tag; 1.6 shelves → 1.3 for the artist; "Appears with" has
+  no list, so it has no arrow.
+- **Player**: 1.10 Text size steps 1 / 1.2 / 1.4×; Share sends the current line; 1.11 Track info opens a dialog.
+- **Labels aren't buttons**: 1.10's Synced · Translated · English and H.7's FHD · 23 min · Sub · Dub are `InfoChips`;
+  S.4 Engine / Speed and S.13 version rows are `SegmentedInfoItem`s (no ripple). H.7 alternate names copy on tap.
+- **Try again** works on every JAV and Hentai error (the route's ViewModel key changes, so it loads again); 0.4 Try
+  again goes back to the screen that failed.
+- **From the prototype**: tapping the O.9 highlight opens what it points at (0.1, search, P.1); turning on S.13
+  "Check for updates automatically" checks straight away and offers S.14.
+- **Deliberately not as the prototype**: 3.6 genre chips open that genre's 3.5 list (Figma: the 3.10 index); 3.6 code
+  chip copies the code; 3.2 idol chip opens the idol (Figma: all to 3.6); H.6 tag and studio rows open H.3 filtered
+  (Figma: H.7); 2.6 Rotate rotates (Figma: 2.8).
+- 1.7: the "Add tracks" FAB is the 56 dp extended FAB from Figma; an empty playlist shows "No tracks yet" and Play /
+  Shuffle are disabled. Counts use plurals ("1 playlist", "1 track").
+
+Still to do: shared-element transitions for covers, and the accessibility pass (§12.4).
+
 ---
 
 ## 12. Testing

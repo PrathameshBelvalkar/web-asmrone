@@ -1,5 +1,20 @@
 package app.echo.android.feature.manga.reader
 
+import app.echo.android.feature.manga.galleryUrl
+import app.echo.android.ui.shareText
+import androidx.compose.ui.res.painterResource
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalContext
+import android.content.pm.ActivityInfo
+import android.content.ContextWrapper
+import android.content.Context
 import app.echo.designsystem.theme.BaselineLightColorScheme
 import app.echo.data.model.ReaderBackground
 import androidx.compose.foundation.layout.Column
@@ -402,6 +417,15 @@ private fun ReaderOverlays(
     onEditReading: (ReaderSettings.() -> ReaderSettings) -> Unit,
 ) {
     ReaderSystemBars(state.menusShown)
+    val activity = LocalContext.current.findActivity()
+    var landscape by rememberSaveable { mutableStateOf(false) }
+    val rotate = {
+        landscape = !landscape
+        activity?.requestedOrientation =
+            if (landscape) ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+    }
+    // Leaving the reader gives the screen back its orientation.
+    DisposableEffect(Unit) { onDispose { activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED } }
     val rtl = state.settings.readingMode == ReadingMode.PAGED_RTL
     val paged = rtl || state.settings.readingMode == ReadingMode.PAGED_LTR || state.settings.readingMode == ReadingMode.TWO_PAGES
 
@@ -446,7 +470,7 @@ private fun ReaderOverlays(
                             modifier = Modifier.padding(horizontal = EchoSpacing.m, vertical = EchoSpacing.xs),
                         )
                     }
-                    EchoIconButton(EchoIcons.MoreVert, stringResource(app.echo.designsystem.R.string.echo_cd_more), {})
+                    ReaderMenu(gallery)
                 }
             }
         }
@@ -463,7 +487,8 @@ private fun ReaderOverlays(
                         // The current reading mode is the highlighted action (Figma 2.6).
                         selected = true,
                     ),
-                    ReaderAction(stringResource(R.string.reader_action_rotate), EchoIcons.RotateLeft, onClick = {}),
+                    // Rotate flips between portrait and landscape while the reader is open.
+                    ReaderAction(stringResource(R.string.reader_action_rotate), EchoIcons.RotateLeft, onClick = rotate, selected = landscape),
                     ReaderAction(
                         label = stringResource(R.string.reader_action_crop), icon = EchoIcons.Crop,
                         onClick = { onEditReading { copy(cropBorders = !cropBorders) } },
@@ -501,4 +526,33 @@ private fun MangaReaderScreenPreview(@PreviewParameter(EchoPreviewThemes::class)
             onRetry = {}, onEditDisplay = {}, onEditReading = {}, onToggleForGallery = {},
         )
     }
+}
+
+/** The reader's ⋮: Share and Open on 3hentai. */
+@Composable
+private fun ReaderMenu(gallery: Gallery) {
+    var open by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val uri = LocalUriHandler.current
+    Box {
+        EchoIconButton(EchoIcons.MoreVert, stringResource(app.echo.designsystem.R.string.echo_cd_more), { open = true })
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.menu_share)) },
+                leadingIcon = { Icon(painterResource(EchoIcons.Share), null) },
+                onClick = { open = false; context.shareText("${gallery.title}\n${galleryUrl(gallery.id)}") },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.menu_open_site, "3hentai")) },
+                leadingIcon = { Icon(painterResource(EchoIcons.OpenInNew), null) },
+                onClick = { open = false; uri.openUri(galleryUrl(gallery.id)) },
+            )
+        }
+    }
+}
+
+private fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }

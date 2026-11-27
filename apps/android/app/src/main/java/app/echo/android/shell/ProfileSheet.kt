@@ -1,5 +1,6 @@
 package app.echo.android.shell
 
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -35,7 +36,7 @@ fun ProfileSheet(profile: Profile, stats: ProfileStats, onOpen: (Route) -> Unit,
         )
         ChipRow(
             chips = listOf(
-                ChipSpec(stringResource(R.string.profile_playlists, stats.playlists), EchoIcons.QueueMusic),
+                ChipSpec(pluralStringResource(R.plurals.profile_playlists, stats.playlists, stats.playlists), EchoIcons.QueueMusic),
                 ChipSpec(stringResource(R.string.profile_liked, stats.liked), EchoIcons.FavoriteFilled),
                 ChipSpec(stringResource(R.string.profile_listened, stats.listenedHours), EchoIcons.History),
             ),

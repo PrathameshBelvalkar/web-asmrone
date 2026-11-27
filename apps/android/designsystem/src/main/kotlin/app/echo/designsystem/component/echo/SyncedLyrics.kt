@@ -45,6 +45,8 @@ fun SyncedLyrics(
     modifier: Modifier = Modifier,
     showOriginal: Boolean = true,
     showTranslation: Boolean = true,
+    /** 1.10 Text size: 1 = default; the lyric lines grow with it, the timestamps don't. */
+    textScale: Float = 1f,
 ) {
     val listState = rememberLazyListState()
     LaunchedEffect(current) { if (current >= 0) listState.animateScrollToItem((current - 1).coerceAtLeast(0)) }
@@ -73,14 +75,14 @@ fun SyncedLyrics(
                     if (showTranslation) {
                         Text(
                             line.text,
-                            style = if (isCurrent) MaterialTheme.typography.headlineSmallEmphasized else MaterialTheme.typography.titleLarge,
+                            style = (if (isCurrent) MaterialTheme.typography.headlineSmallEmphasized else MaterialTheme.typography.titleLarge).scaled(textScale),
                             color = if (isCurrent) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     if (showOriginal && line.original != null) {
                         Text(
                             line.original,
-                            style = if (isCurrent) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium,
+                            style = (if (isCurrent) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium).scaled(textScale),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -89,6 +91,9 @@ fun SyncedLyrics(
         }
     }
 }
+
+private fun androidx.compose.ui.text.TextStyle.scaled(scale: Float) =
+    if (scale == 1f) this else copy(fontSize = fontSize * scale, lineHeight = lineHeight * scale)
 
 internal val PreviewLyrics = listOf(
     LyricLine("1:12", "Good evening… you came back.", "おかえりなさい…"),

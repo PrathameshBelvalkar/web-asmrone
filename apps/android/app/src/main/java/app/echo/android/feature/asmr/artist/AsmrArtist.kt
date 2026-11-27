@@ -1,5 +1,14 @@
 package app.echo.android.feature.asmr.artist
 
+import androidx.compose.ui.res.painterResource
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -92,6 +101,7 @@ fun AsmrArtistRoute(id: String, shell: ShellActions, contentPadding: PaddingValu
         onWork = { shell.open(Route.Work(it)) },
         onArtist = { shell.open(Route.Artist(it)) },
         onRetry = vm::retry,
+        onAllWorks = { shell.open(Route.AsmrResults(it)) },
     )
 }
 
@@ -109,11 +119,13 @@ fun AsmrArtistScreen(
     onArtist: (String) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    /** A shelf arrow: search results for the artist's name. */
+    onAllWorks: (String) -> Unit = {},
 ) {
     Column(modifier.fillMaxSize().testTag("screen:1.6")) {
         EchoSmallAppBar(title = "", onBack = onBack) {
             EchoIconButton(EchoIcons.Search, stringResource(R.string.nav_search), onSearch)
-            EchoIconButton(EchoIcons.MoreVert, stringResource(app.echo.designsystem.R.string.echo_cd_more), {})
+            (state as? Load.Content)?.value?.let { ArtistMenu(it.artist.name) }
         }
         LoadContent(state, onRetry, contentPadding = contentPadding) { page ->
             LazyColumn(contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding() + EchoSpacing.l)) {
@@ -129,10 +141,10 @@ fun AsmrArtistScreen(
                         )
                     }
                 }
-                shelf(R.string.artist_popular, page.popular, onWork)
-                shelf(R.string.artist_latest, page.latest, onWork)
+                shelf(R.string.artist_popular, page.popular, onWork) { onAllWorks(page.artist.name) }
+                shelf(R.string.artist_latest, page.latest, onWork) { onAllWorks(page.artist.name) }
                 if (page.appearsWith.isNotEmpty()) {
-                    item { ShelfHeader(stringResource(R.string.artist_appears_with), onClick = {}) }
+                    item { ShelfHeader(stringResource(R.string.artist_appears_with)) }
                     item {
                         CoverRow(page.appearsWith.size) { i ->
                             page.appearsWith[i].let { IdolCard(it.name, null, it.imageUrl, { onArtist(it.id) }, width = 88.dp) }
@@ -144,10 +156,37 @@ fun AsmrArtistScreen(
     }
 }
 
-private fun androidx.compose.foundation.lazy.LazyListScope.shelf(title: Int, works: List<Work>, onWork: (String) -> Unit) {
+private fun androidx.compose.foundation.lazy.LazyListScope.shelf(title: Int, works: List<Work>, onWork: (String) -> Unit, onAll: () -> Unit) {
     if (works.isEmpty()) return
-    item { ShelfHeader(stringResource(title), onClick = {}) }
+    item { ShelfHeader(stringResource(title), onClick = onAll) }
     item { CoverRow(works.size) { i -> works[i].let { CoverCard(it.title, it.circle, it.coverUrl, { onWork(it.id) }) } } }
+}
+
+/** The artist's ⋮: Share and Open on asmr.one. */
+@Composable
+private fun ArtistMenu(name: String) {
+    var open by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val uri = LocalUriHandler.current
+    val url = "https://asmr.one/works?keyword=${android.net.Uri.encode(name)}"
+    Box {
+        EchoIconButton(EchoIcons.MoreVert, stringResource(app.echo.designsystem.R.string.echo_cd_more), { open = true })
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.menu_share)) },
+                leadingIcon = { Icon(painterResource(EchoIcons.Share), null) },
+                onClick = {
+                    open = false
+                    context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "$name\n$url"), null))
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.menu_open_site, "asmr.one")) },
+                leadingIcon = { Icon(painterResource(EchoIcons.OpenInNew), null) },
+                onClick = { open = false; uri.openUri(url) },
+            )
+        }
+    }
 }
 
 /** Large header: 96 dp avatar, name (headlineLarge), role and work count (Figma "App bar (Large flexible)"). */

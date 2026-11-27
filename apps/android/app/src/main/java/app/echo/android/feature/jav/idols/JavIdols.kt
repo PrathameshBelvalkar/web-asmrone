@@ -1,5 +1,6 @@
 package app.echo.android.feature.jav.idols
 
+import androidx.compose.runtime.mutableIntStateOf
 import android.content.Intent
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -137,9 +138,12 @@ class JavIdolsViewModel(agency: String?, jav: JavRepository) : ViewModel() {
 
 @Composable
 fun JavIdolsRoute(agency: String?, shell: ShellActions, source: Source, contentPadding: PaddingValues) {
-    val vm = echoViewModel(key = "idols-$agency") { JavIdolsViewModel(agency, it.jav) }
+    // Try again builds a fresh ViewModel, which loads again.
+    var attempt by rememberSaveable { mutableIntStateOf(0) }
+    val vm = echoViewModel(key = "idols-$agency-$attempt") { JavIdolsViewModel(agency, it.jav) }
     val state by vm.state.collectAsStateWithLifecycle()
     JavIdolsScreen(
+        onRetry = { attempt++ },
         state = state,
         header = { JavHeader(JavTab.IDOLS, shell, source) },
         contentPadding = contentPadding,
@@ -158,6 +162,7 @@ fun JavIdolsScreen(
     onSort: (IdolSort) -> Unit,
     onFilters: (IdolFilters) -> Unit,
     onIdol: (String) -> Unit,
+    onRetry: () -> Unit = {},
 ) {
     var sheet by rememberSaveable { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().testTag("screen:3.8")) {
@@ -186,7 +191,7 @@ fun JavIdolsScreen(
                         onClick = { onIdol(idol.id) },
                     )
                 }
-                else -> fullWidth("state") { LoadFallback(idols, onRetry = {}) }
+                else -> fullWidth("state") { LoadFallback(idols, onRetry = onRetry) }
             }
         }
     }
@@ -324,11 +329,14 @@ private const val IDOLS_URL = "https://www.javdatabase.com/idols/"
 
 @Composable
 fun JavIdolRoute(id: String, shell: ShellActions, contentPadding: PaddingValues) {
-    val vm = echoViewModel(key = "idol-$id") { JavIdolViewModel(id, it.jav, it.settings) }
+    // Try again builds a fresh ViewModel, which loads again.
+    var attempt by rememberSaveable { mutableIntStateOf(0) }
+    val vm = echoViewModel(key = "idol-$id-$attempt") { JavIdolViewModel(id, it.jav, it.settings) }
     val state by vm.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val uri = LocalUriHandler.current
     JavIdolScreen(
+        onRetry = { attempt++ },
         state = state,
         contentPadding = contentPadding,
         onBack = shell::back,
@@ -356,6 +364,7 @@ fun JavIdolScreen(
     onFilter: (IdolMovieFilter) -> Unit,
     onMovie: (String) -> Unit,
     onUpcoming: () -> Unit = {},
+    onRetry: () -> Unit = {},
 ) {
     var following by rememberSaveable { mutableStateOf(false) }
     val idol = state.idol
@@ -367,7 +376,7 @@ fun JavIdolScreen(
             EchoIconButton(EchoIcons.OpenInNew, stringResource(R.string.jav_open_site), onOpenSite)
         }
         if (idol == null) {
-            LoadFallback(state.movies, onRetry = {})
+            LoadFallback(state.movies, onRetry = onRetry)
             return@Column
         }
         // Rows of two cards, not a grid: the chips and shelf headers keep their own screen margins.

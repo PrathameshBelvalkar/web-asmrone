@@ -86,3 +86,9 @@ fun groupTags(tags: List<Tag>, query: String, sort: TagSort): List<LetterGroup<T
         TagSort.POPULAR -> listOf(LetterGroup("", matching.sortedByDescending { it.count }))
     }
 }
+
+/** The gallery's page on 3hentai (2.5 Share / Open, 2.6 ⋮). */
+fun galleryUrl(id: String): String = "https://3hentai.net/d/$id"
+
+/** A tag's or artist's list on 3hentai (2.4 Open). */
+fun tagUrl(tagId: String): String = "https://3hentai.net/search?q=${android.net.Uri.encode(tagId)}"

@@ -1,5 +1,10 @@
 package app.echo.android.feature.asmr.playlists
 
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.runtime.remember
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import app.echo.android.feature.shared.LocalTrackActions
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -92,6 +97,8 @@ class AsmrPlaylistsViewModel(private val repo: PlaylistRepository, library: Libr
     fun create(name: String, onCreated: (Long) -> Unit = {}) = viewModelScope.launch {
         onCreated(repo.create(name.trim(), PlaylistPrivacy.PRIVATE))
     }
+    fun rename(playlist: Playlist, name: String) = viewModelScope.launch { repo.rename(playlist.id, name.trim(), playlist.privacy) }
+    fun delete(id: Long) = viewModelScope.launch { repo.delete(id) }
 }
 
 @Composable
@@ -106,9 +113,50 @@ fun AsmrPlaylistsRoute(shell: ShellActions, contentPadding: PaddingValues) {
         onWork = { shell.open(Route.Work(it)) },
         onTrack = { i -> shell.play(state.liked, i, "", PlaySource.LIKED) },
         onNew = { naming = true },
+        onRename = vm::rename, onDelete = vm::delete,
     )
     if (naming) NewPlaylistDialog(onDismiss = { naming = false }, onCreate = { name -> naming = false; vm.create(name) { shell.open(Route.Playlist(it)) } })
 }
+
+/** A playlist row's ⋮ (1.12): Rename (the name dialog) and Delete (confirmed). */
+@Composable
+private fun PlaylistMenu(playlist: Playlist, onRename: (Playlist, String) -> Unit, onDelete: (Long) -> Unit) {
+    var menu by remember { mutableStateOf(false) }
+    var renaming by remember { mutableStateOf(false) }
+    var deleting by remember { mutableStateOf(false) }
+    Box {
+        EchoIconButton(EchoIcons.MoreVert, stringResource(app.echo.designsystem.R.string.echo_cd_more), { menu = true })
+        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.playlist_rename)) },
+                onClick = { menu = false; renaming = true },
+                leadingIcon = { Icon(painterResource(EchoIcons.Edit), null) },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.playlist_delete)) },
+                onClick = { menu = false; deleting = true },
+                leadingIcon = { Icon(painterResource(EchoIcons.Delete), null) },
+            )
+        }
+    }
+    if (renaming) {
+        NewPlaylistDialog(
+            onDismiss = { renaming = false }, onCreate = { renaming = false; onRename(playlist, it) },
+            initial = playlist.name, title = R.string.playlist_rename,
+        )
+    }
+    if (deleting) DeletePlaylistDialog(onConfirm = { deleting = false; onDelete(playlist.id) }, onDismiss = { deleting = false })
+}
+
+/** "Delete this playlist?" (1.7 ⋮, 1.12 row ⋮). */
+@Composable
+fun DeletePlaylistDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) = AlertDialog(
+    onDismissRequest = onDismiss,
+    title = { Text(stringResource(R.string.playlist_delete_title)) },
+    text = { Text(stringResource(R.string.playlist_delete_body)) },
+    confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.playlist_delete_confirm)) } },
+    dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
+)
 
 /** "New playlist" name dialog (1.12 FAB). */
 @Composable
@@ -138,13 +186,15 @@ fun AsmrPlaylistsScreen(
     onTrack: (Int) -> Unit,
     onNew: () -> Unit,
     modifier: Modifier = Modifier,
+    onRename: (Playlist, String) -> Unit = { _, _ -> },
+    onDelete: (Long) -> Unit = {},
 ) {
     val scroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Box(modifier.fillMaxSize().testTag("screen:1.12")) {
         Column(Modifier.nestedScroll(scroll.nestedScrollConnection)) {
             EchoFlexibleAppBar(
                 title = stringResource(R.string.playlists_title),
-                subtitle = stringResource(R.string.playlists_subtitle, state.playlists.size),
+                subtitle = pluralStringResource(R.plurals.playlists_subtitle, state.playlists.size, state.playlists.size),
                 onBack = onBack,
                 scrollBehavior = scroll,
             ) { ProfileAvatar(profileInitial, onProfile) }
@@ -158,19 +208,19 @@ fun AsmrPlaylistsScreen(
             LazyColumn(contentPadding = PaddingValues(top = EchoSpacing.s, bottom = contentPadding.calculateBottomPadding() + FabSpace)) {
                 item {
                     when (state.tab) {
-                        PlaylistsTab.PLAYLISTS -> SegmentedList {
+                        PlaylistsTab.PLAYLISTS -> if (state.playlists.isEmpty()) Empty() else SegmentedList {
                             state.playlists.forEach { p ->
                                 item {
                                     SegmentedListItem(
                                         headline = p.name,
-                                        supporting = stringResource(
-                                            R.string.playlist_privacy_count,
+                                        supporting = pluralStringResource(
+                                            R.plurals.playlist_privacy_count, p.trackCount,
                                             stringResource(if (p.privacy == PlaylistPrivacy.PUBLIC) R.string.playlist_public else R.string.playlist_private),
                                             p.trackCount,
                                         ),
                                         onClick = { onPlaylist(p.id) },
                                         leading = { CoverImage(null, null, Modifier.size(52.dp), shape = MaterialTheme.shapes.small) },
-                                        trailing = { EchoIconButton(EchoIcons.MoreVert, stringResource(app.echo.designsystem.R.string.echo_cd_more), {}) },
+                                        trailing = { PlaylistMenu(p, onRename, onDelete) },
                                     )
                                 }
                             }
@@ -187,7 +237,10 @@ fun AsmrPlaylistsScreen(
                         }
                         PlaylistsTab.LIKED -> if (state.liked.isEmpty()) Empty() else SegmentedList {
                             state.liked.forEachIndexed { i, t ->
-                                item { TrackRow(t.title, t.artist, formatDuration(t.durationMs), t.coverUrl, false, { onTrack(i) }, {}) }
+                                item {
+                                    val open = LocalTrackActions.current
+                                    TrackRow(t.title, t.artist, formatDuration(t.durationMs), t.coverUrl, false, { onTrack(i) }, { open(t, emptyList()) })
+                                }
                             }
                         }
                         PlaylistsTab.HISTORY -> if (state.history.isEmpty()) Empty() else SegmentedList {

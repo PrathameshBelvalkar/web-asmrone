@@ -1,5 +1,8 @@
 package app.echo.android.feature.shared.library
 
+import kotlinx.coroutines.launch
+import app.echo.android.feature.shared.TrackExtra
+import app.echo.android.feature.shared.LocalTrackActions
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -80,7 +83,7 @@ data class SharedLibraryUiState(
 
 private const val SHELF_ROWS = 3
 
-class SharedLibraryViewModel(library: LibraryRepository) : ViewModel() {
+class SharedLibraryViewModel(private val library: LibraryRepository) : ViewModel() {
     private val filter = MutableStateFlow(LibraryFilter.ALL)
     private val watching = combine(library.history(Section.JAV), library.history(Section.HENTAI)) { jav, hentai ->
         (jav + hentai).sortedByDescending { it.updatedAt }
@@ -96,6 +99,7 @@ class SharedLibraryViewModel(library: LibraryRepository) : ViewModel() {
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SharedLibraryUiState())
 
     fun setFilter(f: LibraryFilter) { filter.value = f }
+    fun remove(item: ContinueItem) = viewModelScope.launch { library.removeHistory(item.section, item.id) }
 }
 
 private fun LibraryFilter.includes(section: Section) = when (this) {
@@ -124,6 +128,7 @@ fun SharedLibraryRoute(shell: ShellActions, contentPadding: PaddingValues) {
         },
         onShowListening = { shell.open(Route.History) },
         onShowWatching = { shell.open(Route.JavLibrary) },
+        onRemove = vm::remove,
     )
 }
 
@@ -144,6 +149,7 @@ fun SharedLibraryScreen(
     onShowListening: () -> Unit,
     onShowWatching: () -> Unit,
     modifier: Modifier = Modifier,
+    onRemove: (ContinueItem) -> Unit = {},
 ) {
     val scroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Box(modifier.fillMaxSize().testTag("screen:0.2")) {
@@ -204,7 +210,7 @@ fun SharedLibraryScreen(
                     item(key = "listening") {
                         SegmentedList {
                             state.listening.forEachIndexed { i, row ->
-                                item { ListeningRow(row, onClick = { onListen(i) }) }
+                                item { ListeningRow(row, onClick = { onListen(i) }, onRemove = { onRemove(row) }) }
                             }
                         }
                     }
@@ -228,14 +234,19 @@ fun SharedLibraryScreen(
 }
 
 @Composable
-private fun ListeningRow(item: ContinueItem, onClick: () -> Unit) {
+private fun ListeningRow(item: ContinueItem, onClick: () -> Unit, onRemove: () -> Unit) {
     val track: Track? = item.track
+    val trackActions = LocalTrackActions.current
+    val removeLabel = stringResource(R.string.menu_remove_history)
     SegmentedListItem(
         headline = track?.title ?: item.title,
         supporting = listeningSupporting(item, track),
         onClick = onClick,
         leading = { CoverImage(item.coverUrl, null, Modifier.size(52.dp), shape = MaterialTheme.shapes.small) },
-        trailing = { EchoIconButton(EchoIcons.MoreVert, stringResource(app.echo.designsystem.R.string.echo_cd_more), {}) },
+        // The track sheet, plus Remove from history.
+        trailing = if (track == null) null else {
+            { EchoIconButton(EchoIcons.MoreVert, stringResource(app.echo.designsystem.R.string.echo_cd_more), { trackActions(track, listOf(TrackExtra(removeLabel, EchoIcons.Delete, onRemove))) }) }
+        },
     )
 }
 

@@ -1,5 +1,6 @@
 package app.echo.android.feature.asmr.home
 
+import app.echo.android.feature.shared.LocalTrackActions
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -111,7 +112,8 @@ private fun HomeContent(state: AsmrHomeUiState.Content, contentPadding: PaddingV
                             TrackRow(
                                 title = track.title, artist = track.artist, duration = formatDuration(track.durationMs),
                                 cover = track.coverUrl, playing = track.id == state.playingTrackId,
-                                onClick = { onEvent(AsmrHomeEvent.PlayTrending(i)) }, onMore = {},
+                                onClick = { onEvent(AsmrHomeEvent.PlayTrending(i)) },
+                                onMore = LocalTrackActions.current.let { open -> { open(track, emptyList()) } },
                             )
                         }
                     }

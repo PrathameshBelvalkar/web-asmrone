@@ -1,5 +1,8 @@
 package app.echo.android.shell
 
+import app.echo.android.feature.shared.TrackExtra
+import app.echo.android.feature.shared.TrackActionsSheet
+import app.echo.android.feature.shared.LocalTrackActions
 import app.echo.designsystem.component.echo.TourStep
 import app.echo.designsystem.component.echo.TipTarget
 import app.echo.designsystem.component.echo.TipAnchors
@@ -142,6 +145,7 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
             override fun clearAllData() { vm.clearAllData(onDone = ::restart) }
             override fun resetProfile() { vm.resetProfile(onDone = ::restart) }
             override fun startUpdate() = vm.startUpdate()
+            override fun checkForUpdates() = vm.checkForUpdates()
 
             /** Back to O.1 with nothing behind it. */
             private fun restart() {
@@ -161,6 +165,9 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
         (if (showPlayer && showNavBar) MiniPlayerReserve else 0.dp)
 
     // A Surface, not just a background: it also sets the content colour (onSurface), so plain Text reads in dark.
+    // Any track row's ⋮ opens the track sheet here (feature/shared/TrackActions.kt).
+    var trackActions by remember { mutableStateOf<Pair<Track, List<TrackExtra>>?>(null) }
+    CompositionLocalProvider(LocalTrackActions provides { track, extras -> trackActions = track to extras }) {
     androidx.compose.material3.Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) { Box(Modifier.fillMaxSize()) {
         CompositionLocalProvider(
             LocalProfileAvatar provides shell.profile.avatarChoice(),
@@ -234,9 +241,27 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
                 nextLabel = stringResource(if (tourStep == tourSteps.lastIndex) R.string.tip_done else R.string.tip_next),
                 onSkip = vm::finishTour,
                 onNext = { if (tourStep == tourSteps.lastIndex) vm.finishTour() else tourStep += 1 },
+                onTarget = {
+                    vm.finishTour()
+                    when (step.target) {
+                        TipTarget.SOURCE -> showSwitcher = true
+                        TipTarget.SEARCH -> nav.navigateToTab(section, Tab.SEARCH).also { tab = Tab.SEARCH }
+                        TipTarget.PROFILE -> showProfile = true
+                    }
+                },
             )
         }
     } }
+    }
+    trackActions?.let { (track, extras) ->
+        TrackActionsSheet(
+            track = track,
+            extras = extras,
+            onWork = { if (sheet.currentValue == PlayerSheetValue.Expanded) sheet.collapse(); nav.navigate(Route.Work(it)) },
+            onArtist = { if (sheet.currentValue == PlayerSheetValue.Expanded) sheet.collapse(); nav.navigate(Route.Artist(it)) },
+            onDismiss = { trackActions = null },
+        )
+    }
 
     // Back: a player page → now playing → collapse the sheet; otherwise the NavHost handles it.
     BackHandler(enabled = sheet.currentValue == PlayerSheetValue.Expanded) {

@@ -1,5 +1,14 @@
 package app.echo.android.feature.asmr.work
 
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
+import app.echo.android.feature.shared.LocalTrackActions
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -149,7 +158,7 @@ fun AsmrWorkRoute(id: String, shell: ShellActions, contentPadding: PaddingValues
                     item {
                         SegmentedListItem(
                             headline = p.name,
-                            supporting = stringResource(R.string.results_tracks_count, p.trackCount),
+                            supporting = pluralStringResource(R.plurals.results_tracks_count, p.trackCount, p.trackCount),
                             onClick = { vm.addToPlaylist(p.id); addToPlaylist = false },
                             leading = { Icon(painterResource(EchoIcons.QueueMusic), null) },
                         )
@@ -181,7 +190,7 @@ fun AsmrWorkScreen(
     Column(modifier.fillMaxSize().testTag("screen:1.5")) {
         EchoSmallAppBar(title = "", onBack = onBack) {
             EchoIconButton(EchoIcons.Search, stringResource(R.string.nav_search), onSearch)
-            EchoIconButton(EchoIcons.MoreVert, stringResource(app.echo.designsystem.R.string.echo_cd_more), {})
+            (state.work as? Load.Content)?.value?.let { WorkMenu(it) }
         }
         LoadContent(state.work, onRetry, contentPadding = contentPadding) { work ->
             WorkContent(work, state, contentPadding, onArtist, onTag, onPlay, onLike, onAddToPlaylist, onWork)
@@ -271,7 +280,10 @@ private fun WorkContent(
                                 selected = if (playing) true else null,
                                 onClick = { onPlay(i, false) },
                                 leading = { Icon(painterResource(if (playing) EchoIcons.QueueMusic else EchoIcons.MusicNote), null) },
-                                trailing = { EchoIconButton(EchoIcons.MoreVert, stringResource(app.echo.designsystem.R.string.echo_cd_more), {}) },
+                                trailing = {
+                                    val open = LocalTrackActions.current
+                                    EchoIconButton(EchoIcons.MoreVert, stringResource(app.echo.designsystem.R.string.echo_cd_more), { open(t, emptyList()) })
+                                },
                             )
                         }
                     }
@@ -279,13 +291,42 @@ private fun WorkContent(
             }
         }
         if (state.similar.isNotEmpty()) {
-            item { ShelfHeader(stringResource(R.string.work_more_like_this), onClick = {}) }
+            // The arrow opens results for the work's first tag (its circle when it has none).
+            item { ShelfHeader(stringResource(R.string.work_more_like_this), onClick = { onTag(work.tags.firstOrNull() ?: work.circle) }) }
             item { CoverRow(state.similar.size) { i -> state.similar[i].let { CoverCard(it.title, it.circle, it.coverUrl, { onWork(it.id) }) } } }
         }
     }
 }
 
 private const val DESCRIPTION_LINES = 3
+private const val ASMR_ONE = "asmr.one"
+
+/** The work's ⋮: Share and Open on asmr.one. */
+@Composable
+private fun WorkMenu(work: Work) {
+    var open by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val uri = LocalUriHandler.current
+    val url = "https://$ASMR_ONE/work/${work.code ?: work.id}"
+    Box {
+        EchoIconButton(EchoIcons.MoreVert, stringResource(app.echo.designsystem.R.string.echo_cd_more), { open = true })
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.menu_share)) },
+                leadingIcon = { Icon(painterResource(EchoIcons.Share), null) },
+                onClick = {
+                    open = false
+                    context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "${work.title}\n$url"), null))
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.menu_open_site, ASMR_ONE)) },
+                leadingIcon = { Icon(painterResource(EchoIcons.OpenInNew), null) },
+                onClick = { open = false; uri.openUri(url) },
+            )
+        }
+    }
+}
 
 @EchoScreenPreviews
 @Composable

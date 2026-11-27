@@ -104,9 +104,12 @@ class HentaiBrowseViewModel(hentai: HentaiRepository) : ViewModel() {
 
 @Composable
 fun HentaiBrowseRoute(shell: ShellActions, source: Source, contentPadding: PaddingValues) {
-    val vm = echoViewModel { HentaiBrowseViewModel(it.hentai) }
+    // Try again builds a fresh ViewModel, which loads again.
+    var attempt by rememberSaveable { mutableIntStateOf(0) }
+    val vm = echoViewModel(key = "browse-$attempt") { HentaiBrowseViewModel(it.hentai) }
     val state by vm.state.collectAsStateWithLifecycle()
     HentaiBrowseScreen(
+        onRetry = { attempt++ },
         state = state,
         header = { HentaiHeader(HentaiTab.BROWSE, shell, source) },
         contentPadding = contentPadding,
@@ -132,6 +135,7 @@ fun HentaiBrowseScreen(
     onAll: () -> Unit,
     onTag: (String) -> Unit,
     onStudio: (String) -> Unit,
+    onRetry: () -> Unit = {},
 ) {
     // null = All; otherwise the category's index.
     var category by rememberSaveable { mutableIntStateOf(-1) }
@@ -139,7 +143,7 @@ fun HentaiBrowseScreen(
     Column(Modifier.fillMaxSize().testTag("screen:H.2")) {
         header()
         if (state.loaded !is Load.Content) {
-            LoadFallback(state.loaded, onRetry = {})
+            LoadFallback(state.loaded, onRetry = onRetry)
             return@Column
         }
         LazyColumn(
@@ -233,9 +237,12 @@ class HentaiSeasonsViewModel(hentai: HentaiRepository) : ViewModel() {
 
 @Composable
 fun HentaiSeasonsRoute(shell: ShellActions, source: Source, contentPadding: PaddingValues) {
-    val vm = echoViewModel { HentaiSeasonsViewModel(it.hentai) }
+    // Try again builds a fresh ViewModel, which loads again.
+    var attempt by rememberSaveable { mutableIntStateOf(0) }
+    val vm = echoViewModel(key = "seasons-$attempt") { HentaiSeasonsViewModel(it.hentai) }
     val seasons by vm.seasons.collectAsStateWithLifecycle()
     HentaiSeasonsScreen(
+        onRetry = { attempt++ },
         seasons = seasons,
         header = { HentaiHeader(HentaiTab.SEASONS, shell, source) },
         contentPadding = contentPadding,
@@ -252,11 +259,12 @@ fun HentaiSeasonsScreen(
     contentPadding: PaddingValues,
     onSeason: (String) -> Unit,
     onTitle: (String) -> Unit,
+    onRetry: () -> Unit = {},
 ) {
     Column(Modifier.fillMaxSize().testTag("screen:H.5")) {
         header()
         if (seasons !is Load.Content) {
-            LoadFallback(seasons, onRetry = {})
+            LoadFallback(seasons, onRetry = onRetry)
             return@Column
         }
         val years = seasons.value.map { it.title.substringAfterLast(' ') }.distinct()

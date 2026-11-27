@@ -100,6 +100,11 @@ class ShellViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
+    /** A check asked for by hand (S.13): offers the update even if Later skipped it before. */
+    fun checkForUpdates() {
+        if (FakeUpdates.available != null && _update.value == null) _update.value = UpdateStep.OFFER
+    }
+
     /** S.14 Later: don't offer this version again. */
     fun skipUpdate() {
         val version = FakeUpdates.available?.version

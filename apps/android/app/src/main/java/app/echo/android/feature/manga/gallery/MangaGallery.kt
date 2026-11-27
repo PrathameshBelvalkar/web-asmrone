@@ -1,5 +1,9 @@
 package app.echo.android.feature.manga.gallery
 
+import app.echo.android.feature.manga.galleryUrl
+import app.echo.android.ui.shareText
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalContext
 import app.echo.designsystem.component.echo.CoverImage
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -151,8 +155,13 @@ fun MangaGalleryScreen(
     Box(modifier.fillMaxSize().testTag("screen:2.5")) {
         Column(Modifier.fillMaxSize()) {
             EchoSmallAppBar(title = "", onBack = onBack) {
-                EchoIconButton(EchoIcons.Share, stringResource(R.string.manga_share_cd), {})
-                EchoIconButton(EchoIcons.OpenInNew, stringResource(R.string.manga_open_cd), {})
+                val loaded = (state.gallery as? Load.Content)?.value
+                val context = LocalContext.current
+                val uri = LocalUriHandler.current
+                EchoIconButton(EchoIcons.Share, stringResource(R.string.manga_share_cd), {
+                    loaded?.let { context.shareText("${it.title}\n${galleryUrl(it.id)}") }
+                })
+                EchoIconButton(EchoIcons.OpenInNew, stringResource(R.string.manga_open_cd), { loaded?.let { uri.openUri(galleryUrl(it.id)) } })
             }
             val gallery = state.gallery
             if (gallery is Load.Content) {

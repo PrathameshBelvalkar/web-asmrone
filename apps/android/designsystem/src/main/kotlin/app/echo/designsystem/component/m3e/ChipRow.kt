@@ -1,5 +1,13 @@
 package app.echo.designsystem.component.m3e
 
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
+import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.BorderStroke
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -71,6 +79,36 @@ fun ChipRow(
                     trailingIcon = { Icon(painterResource(EchoIcons.Close), null, Modifier.size(EchoSizes.iconSmall)) },
                 )
                 ChipStyle.Suggestion -> SuggestionChip(onClick = { onClick(index) }, label = label, icon = icon)
+            }
+        }
+    }
+}
+
+/**
+ * Facts shown as chips that aren't actions (1.10 Synced · Translated · English, H.7 FHD 1080p · 23 min · Sub EN):
+ * the assist-chip look, with no ripple and nothing to tap.
+ */
+@Composable
+fun InfoChips(chips: List<ChipSpec>, modifier: Modifier = Modifier) {
+    LazyRow(
+        modifier = modifier,
+        contentPadding = PaddingValues(horizontal = EchoSpacing.screenMargin),
+        horizontalArrangement = Arrangement.spacedBy(EchoSpacing.chipGap),
+    ) {
+        itemsIndexed(chips) { _, chip ->
+            Surface(
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            ) {
+                Row(
+                    Modifier.height(32.dp).padding(start = if (chip.icon != null) EchoSpacing.s else EchoSpacing.l, end = EchoSpacing.l),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(EchoSpacing.s),
+                ) {
+                    chip.icon?.let { Icon(painterResource(it), null, Modifier.size(EchoSizes.iconSmall), tint = MaterialTheme.colorScheme.primary) }
+                    Text(chip.label, style = MaterialTheme.typography.labelLarge)
+                }
             }
         }
     }

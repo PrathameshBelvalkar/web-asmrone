@@ -270,11 +270,14 @@ private const val NEWS_URL = "https://www.javdatabase.com/news/"
 
 @Composable
 fun JavNewsPostRoute(id: String, shell: ShellActions, contentPadding: PaddingValues) {
-    val vm = echoViewModel(key = "news-$id") { JavNewsPostViewModel(id, it.jav) }
+    // Try again builds a fresh ViewModel, which loads again.
+    var attempt by rememberSaveable { mutableIntStateOf(0) }
+    val vm = echoViewModel(key = "news-$id-$attempt") { JavNewsPostViewModel(id, it.jav) }
     val post by vm.post.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val uri = LocalUriHandler.current
     JavNewsPostScreen(
+        onRetry = { attempt++ },
         post = post,
         contentPadding = contentPadding,
         onBack = shell::back,
@@ -306,12 +309,13 @@ fun JavNewsPostScreen(
     onMovie: (String) -> Unit,
     onIdol: (String) -> Unit,
     onStudio: (String) -> Unit,
+    onRetry: () -> Unit = {},
 ) {
     var saved by rememberSaveable { mutableStateOf(false) }
     var scale by rememberSaveable { mutableIntStateOf(0) }
     Box(Modifier.fillMaxSize().testTag("screen:3.2")) {
         if (post !is Load.Content) {
-            LoadFallback(post, onRetry = {})
+            LoadFallback(post, onRetry = onRetry)
             return@Box
         }
         val p = post.value

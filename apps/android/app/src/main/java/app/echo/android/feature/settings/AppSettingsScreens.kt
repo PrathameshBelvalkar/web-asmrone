@@ -44,7 +44,7 @@ import app.echo.designsystem.tokens.EchoSpacing
 // S.8 Look and feel --------------------------------------------------------------------------------------------------
 
 @Composable
-fun LookAndFeelRoute(shell: ShellActions) = WithSettings { state, vm ->
+fun LookAndFeelRoute(shell: ShellActions) = WithSettings("S.8") { state, vm ->
     LookAndFeelScreen(state.settings.theme, onBack = shell::back, onTheme = vm::theme)
 }
 
@@ -124,7 +124,7 @@ private const val MINUTE_MS = 60_000L
 private val FinishedThresholds = listOf(1 to 2, 2 to 5, 5 to 10)
 
 @Composable
-fun PlaybackRoute(shell: ShellActions) = WithSettings { state, vm ->
+fun PlaybackRoute(shell: ShellActions) = WithSettings("S.9") { state, vm ->
     PlaybackScreen(state.settings.playback, onBack = shell::back, onPlayback = vm::playback)
 }
 
@@ -222,7 +222,7 @@ private fun qualityLabel(quality: VideoQuality): String = when (quality) {
 // S.10 Reader --------------------------------------------------------------------------------------------------------
 
 @Composable
-fun ReaderDefaultsRoute(shell: ShellActions) = WithSettings { state, vm ->
+fun ReaderDefaultsRoute(shell: ShellActions) = WithSettings("S.10") { state, vm ->
     ReaderDefaultsScreen(state.settings.reader, onBack = shell::back, onReader = vm::reader)
 }
 

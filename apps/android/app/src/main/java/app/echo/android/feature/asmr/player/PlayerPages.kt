@@ -1,5 +1,15 @@
 package app.echo.android.feature.asmr.player
 
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
+import app.echo.designsystem.component.m3e.InfoChips
+import app.echo.android.feature.shared.TrackExtra
+import app.echo.android.feature.shared.LocalTrackActions
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -207,6 +217,8 @@ private fun UpNext(state: PlayerUiState, vm: PlayerViewModel, nav: PlayerNav) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(start = EchoSpacing.screenMargin, top = EchoSpacing.m, bottom = EchoSpacing.s),
         )
+        val trackActions = LocalTrackActions.current
+        val removeLabel = stringResource(R.string.track_remove_from_queue)
         Box(Modifier.weight(1f)) {
             LazyColumn(
                 state = listState,
@@ -225,7 +237,8 @@ private fun UpNext(state: PlayerUiState, vm: PlayerViewModel, nav: PlayerNav) {
                         ) {
                             TrackRow(
                                 title = t.title, artist = t.artist, duration = formatDuration(t.durationMs), cover = t.coverUrl,
-                                playing = i == p.index, onClick = { c.skipTo(i) }, onMore = {},
+                                playing = i == p.index, onClick = { c.skipTo(i) },
+                                onMore = { trackActions(t, listOf(TrackExtra(removeLabel, EchoIcons.Remove) { c.remove(i) })) },
                                 position = SegmentPosition(i, queue.size),
                                 modifier = Modifier.longPressDraggableHandle(),
                                 trailing = {
@@ -252,11 +265,16 @@ private fun UpNext(state: PlayerUiState, vm: PlayerViewModel, nav: PlayerNav) {
 
 private val ToolbarSpace = androidx.compose.ui.unit.Dp(112f)
 
+/** 1.10 Text size steps through these. */
+private val LyricScales = listOf(1f, 1.2f, 1.4f)
+
 /** 1.10 Lyrics (35:1467): synced lines over compact controls; Both · EN · JP picks which lines show. */
 @Composable
 private fun Lyrics(state: PlayerUiState, vm: PlayerViewModel, nav: PlayerNav) {
     val p = state.player
     var languages by remember { mutableStateOf(0) }
+    var textSize by rememberSaveable { mutableIntStateOf(0) }
+    val context = LocalContext.current
     Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).testTag("screen:1.10")) {
         EchoSmallAppBar(
             title = p.current?.title.orEmpty(),
@@ -266,10 +284,8 @@ private fun Lyrics(state: PlayerUiState, vm: PlayerViewModel, nav: PlayerNav) {
             style = app.echo.designsystem.component.m3e.SmallAppBarStyle.Transparent,
         )
         PageSwitch(PlayerPage.Lyrics, nav.openPage)
-        ChipRow(
-            chips = listOf(R.string.lyrics_synced, R.string.lyrics_translated, R.string.lyrics_english).map { ChipSpec(stringResource(it)) },
-            onClick = {}, style = ChipStyle.Assist,
-        )
+        // What these lyrics are: facts, not actions.
+        InfoChips(listOf(R.string.lyrics_synced, R.string.lyrics_translated, R.string.lyrics_english).map { ChipSpec(stringResource(it)) })
         Box(Modifier.weight(1f)) {
             if (state.lyrics.isEmpty()) {
                 Text(
@@ -283,6 +299,7 @@ private fun Lyrics(state: PlayerUiState, vm: PlayerViewModel, nav: PlayerNav) {
                     onLineClick = { i -> vm.controller.seekTo(state.lyrics[i].timeMs) },
                     showTranslation = languages != 2,
                     showOriginal = languages != 1,
+                    textScale = LyricScales[textSize],
                     modifier = Modifier.fillMaxSize(),
                 )
             }
@@ -292,8 +309,13 @@ private fun Lyrics(state: PlayerUiState, vm: PlayerViewModel, nav: PlayerNav) {
                         options = listOf(R.string.lyrics_both, R.string.lyrics_en, R.string.lyrics_jp).map { ConnectedOption(stringResource(it)) },
                         selected = languages, onSelect = { languages = it }, equalWidth = false,
                     )
-                    EchoIconButton(EchoIcons.FormatSize, stringResource(R.string.lyrics_text_size), {})
-                    EchoIconButton(EchoIcons.Share, stringResource(R.string.lyrics_share), {})
+                    EchoIconButton(EchoIcons.FormatSize, stringResource(R.string.lyrics_text_size), { textSize = (textSize + 1) % LyricScales.size })
+                    EchoIconButton(EchoIcons.Share, stringResource(R.string.lyrics_share), {
+                        // The line being sung, with the track.
+                        val line = state.lyrics.getOrNull(state.lyricIndex)?.text
+                        val text = listOfNotNull(line?.let { "“$it”" }, "${p.current?.title.orEmpty()} · ${p.current?.artist.orEmpty()}").joinToString("\n")
+                        context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text), null))
+                    })
                 }
             }
         }
@@ -322,7 +344,7 @@ fun PlayerMoreSheet(state: PlayerUiState, vm: PlayerViewModel, nav: PlayerNav, o
                     state.playlists.forEach { pl ->
                         item {
                             SegmentedListItem(pl.name, onClick = { vm.addCurrentTo(pl.id); pickPlaylist = false },
-                                supporting = stringResource(R.string.results_tracks_count, pl.trackCount),
+                                supporting = pluralStringResource(R.plurals.results_tracks_count, pl.trackCount, pl.trackCount),
                                 leading = { Icon(painterResource(EchoIcons.QueueMusic), null) })
                         }
                     }
@@ -342,6 +364,21 @@ private fun MoreSheetContent(
     onAddToPlaylist: () -> Unit,
 ) {
     val p = state.player
+    var info by remember { mutableStateOf(false) }
+    if (info) {
+        AlertDialog(
+            onDismissRequest = { info = false },
+            title = { Text(track.title) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(EchoSpacing.xs)) {
+                    Text("${stringResource(R.string.track_info_artist)}: ${track.artist}")
+                    Text("${stringResource(R.string.track_info_duration)}: ${formatDuration(track.durationMs)}")
+                    Text("${stringResource(R.string.track_info_source)}: ${track.sourceId}")
+                }
+            },
+            confirmButton = { TextButton(onClick = { info = false }) { Text(stringResource(android.R.string.ok)) } },
+        )
+    }
     EchoSheet(onDismiss = onDismiss, modifier = Modifier.testTag("overlay:1.11")) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = EchoSpacing.xl, vertical = EchoSpacing.xs),
@@ -374,7 +411,7 @@ private fun MoreSheetContent(
             modifier = Modifier.padding(vertical = EchoSpacing.xs),
         )
         SegmentedList(Modifier.padding(top = EchoSpacing.s, bottom = EchoSpacing.xxl)) {
-            item { SegmentedListItem(stringResource(R.string.player_track_info), onClick = {}, leading = { Icon(painterResource(EchoIcons.Info), null) }) }
+            item { SegmentedListItem(stringResource(R.string.player_track_info), onClick = { info = true }, leading = { Icon(painterResource(EchoIcons.Info), null) }) }
             item {
                 SegmentedListItem(stringResource(R.string.player_go_to_work), onClick = { onDismiss(); nav.goToWork(track.workId) },
                     leading = { Icon(painterResource(EchoIcons.LibraryMusic), null) })

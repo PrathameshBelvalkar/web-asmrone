@@ -1,5 +1,7 @@
 package app.echo.android.feature.asmr.results
 
+import androidx.compose.ui.res.pluralStringResource
+import app.echo.android.feature.shared.LocalTrackActions
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -239,7 +241,10 @@ private fun WorkGrid(works: List<Work>, padding: PaddingValues, onWork: (String)
 private fun TrackList(r: AsmrSearchResults, playing: String?, onTrack: (Int) -> Unit) {
     SegmentedList {
         r.tracks.forEachIndexed { i, t ->
-            item { TrackRow(t.title, t.artist, formatDuration(t.durationMs), t.coverUrl, t.id == playing, { onTrack(i) }, {}) }
+            item {
+                val open = LocalTrackActions.current
+                TrackRow(t.title, t.artist, formatDuration(t.durationMs), t.coverUrl, t.id == playing, { onTrack(i) }, { open(t, emptyList()) })
+            }
         }
     }
 }
@@ -267,7 +272,7 @@ private fun PlaylistList(playlists: List<Playlist>, onPlaylist: (Long) -> Unit) 
             item {
                 SegmentedListItem(
                     headline = p.name,
-                    supporting = stringResource(R.string.results_tracks_count, p.trackCount),
+                    supporting = pluralStringResource(R.plurals.results_tracks_count, p.trackCount, p.trackCount),
                     onClick = { onPlaylist(p.id) },
                     leading = { Icon(painterResource(EchoIcons.QueueMusic), null) },
                 )

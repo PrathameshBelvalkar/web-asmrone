@@ -1,5 +1,7 @@
 package app.echo.android.feature.manga.taglist
 
+import app.echo.android.feature.manga.tagUrl
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -135,7 +137,8 @@ fun MangaTagListScreen(
                 onBack = onBack,
             ) {
                 EchoIconButton(EchoIcons.Search, stringResource(app.echo.designsystem.R.string.echo_cd_search), onSearch)
-                EchoIconButton(EchoIcons.OpenInNew, stringResource(R.string.manga_open_cd), {})
+                val uri = LocalUriHandler.current
+                EchoIconButton(EchoIcons.OpenInNew, stringResource(R.string.manga_open_cd), { uri.openUri(tagUrl(state.title)) })
             }
             ConnectedButtonGroup(
                 options = listOf(
