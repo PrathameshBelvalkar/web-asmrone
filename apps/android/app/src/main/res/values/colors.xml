@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#3A4A8C</color>
+    <!-- The Nekohub icon's own background, so the foreground art blends into it. -->
+    <color name="ic_launcher_background">#F9F8FD</color>
     <!-- Baseline surface (DS · Colour), light / dark. -->
     <color name="splash_background">#FEF7FF</color>
 </resources>

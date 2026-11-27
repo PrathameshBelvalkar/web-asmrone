@@ -26,4 +26,5 @@ dependencies {
     implementation(libs.material.kolor)
     implementation(libs.androidx.palette.ktx)
     implementation(libs.coil.compose)
+    implementation(libs.lottie.compose)
 }

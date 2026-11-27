@@ -1,5 +1,17 @@
 package app.echo.android
 
+import kotlinx.coroutines.delay
+import app.echo.android.feature.onboarding.SplashScreen
+import androidx.compose.ui.Modifier
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Box
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.AnimatedVisibility
+import android.provider.Settings
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -42,13 +54,34 @@ class MainActivity : ComponentActivity() {
             start = shell.startRoute()
         }
 
+        // On a cold start after onboarding, the animated O.1 mark plays over Home for a moment, then fades out. Not on
+        // a recreation (rotation, coming back), and not when the system's animations are off.
+        val animationsOn = Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f
+        val coldStart = savedInstanceState == null
+
         setContent {
             val theme by container.settings.theme.collectAsStateWithLifecycle(initialValue = null)
             val currentTheme = theme ?: return@setContent
             val startRoute = start ?: return@setContent
+            var intro by rememberSaveable { mutableStateOf(coldStart && animationsOn && startRoute != Route.Splash) }
+            if (intro) {
+                LaunchedEffect(Unit) {
+                    delay(INTRO_MS)
+                    intro = false
+                }
+            }
             AppTheme(currentTheme) {
-                EchoAppScaffold(shell, startRoute)
+                Box(Modifier.fillMaxSize()) {
+                    EchoAppScaffold(shell, startRoute)
+                    AnimatedVisibility(intro, enter = EnterTransition.None, exit = fadeOut(tween(INTRO_FADE_MS))) {
+                        SplashScreen()
+                    }
+                }
             }
         }
     }
 }
+
+/** How long the animated mark plays over Home on a cold start, and its fade out. */
+private const val INTRO_MS = 1_100L
+private const val INTRO_FADE_MS = 300

@@ -170,7 +170,7 @@ private fun StepFrame(
 // O.1 Splash ---------------------------------------------------------------------------------------------------------
 
 /** How long the splash stays at least, so it reads as a screen rather than a flash. */
-private const val SPLASH_MIN_MS = 900L
+private const val SPLASH_MIN_MS = 1_400L
 
 @Composable
 fun SplashRoute(shell: ShellActions) {

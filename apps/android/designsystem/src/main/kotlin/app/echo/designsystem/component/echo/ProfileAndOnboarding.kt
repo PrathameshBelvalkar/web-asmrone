@@ -1,5 +1,17 @@
 package app.echo.designsystem.component.echo
 
+import androidx.compose.runtime.getValue
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.airbnb.lottie.compose.rememberLottieAnimatable
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieClipSpec
+import com.airbnb.lottie.compose.LottieAnimation
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.layout.requiredSize
+import android.provider.Settings
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.foundation.layout.navigationBarsPadding
 import app.echo.designsystem.R
@@ -11,6 +23,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.clickable
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -238,12 +251,7 @@ fun OnboardingIllustration(@DrawableRes icon: Int, modifier: Modifier = Modifier
 fun EchoSplash(tagline: String, version: String, modifier: Modifier = Modifier) {
     Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
         Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                Modifier.size(112.dp).clip(MaterialTheme.shapes.extraLargeIncreased).background(MaterialTheme.colorScheme.primary),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(painterResource(EchoIcons.MusicNoteFilled), null, Modifier.size(56.dp), tint = MaterialTheme.colorScheme.onPrimary)
-            }
+            SplashMark()
             Spacer(Modifier.height(EchoSpacing.xl))
             Text("Nekohub", style = MaterialTheme.typography.displayMediumEmphasized)
             Spacer(Modifier.height(EchoSpacing.m))
@@ -281,3 +289,38 @@ private fun SplashAndIllustrationPreview() = EchoThemesPreview {
     Box(Modifier.height(320.dp)) { EchoSplash("Listen · Read · Watch", "v0.1.0") }
 }
 
+/** Frames of splash_logo.json (30 fps): the tile bounces in, then echo rings, sparkles and a bob loop. */
+private const val MARK_INTRO_END = 15
+private const val MARK_LOOP_END = 75
+
+/**
+ * The app mark on O.1: the launcher icon's art in a 112 dp rounded tile, animated with Lottie (bounce in, then echo
+ * rings, sparkles and a gentle bob). Still in previews and screenshots, and when animations are off in the system.
+ */
+@Composable
+private fun SplashMark() {
+    val context = LocalContext.current
+    val animationsOff = LocalInspectionMode.current ||
+        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.splash_logo))
+    val animatable = rememberLottieAnimatable()
+    val playing = !animationsOff && composition != null
+    LaunchedEffect(playing) {
+        val loaded = composition?.takeIf { playing } ?: return@LaunchedEffect
+        animatable.animate(loaded, clipSpec = LottieClipSpec.Frame(0, MARK_INTRO_END))
+        animatable.animate(loaded, clipSpec = LottieClipSpec.Frame(MARK_INTRO_END, MARK_LOOP_END), iterations = LottieConstants.IterateForever)
+    }
+    Box(Modifier.size(112.dp), contentAlignment = Alignment.Center) {
+        if (playing) {
+            // The rings and sparkles reach past the tile: the animation is 240 units for a 150-unit tile.
+            LottieAnimation(composition, { animatable.progress }, Modifier.requiredSize(112.dp * 240 / 150))
+        } else {
+            // Still tile: animations off, or the animation is still loading (never an empty gap after the system splash).
+            Image(
+                painterResource(R.drawable.nekohub_mark),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize().clip(MaterialTheme.shapes.extraLargeIncreased),
+            )
+        }
+    }
+}
