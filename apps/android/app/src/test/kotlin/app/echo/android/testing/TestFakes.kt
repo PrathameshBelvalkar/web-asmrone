@@ -40,6 +40,10 @@ class FakeLibrary(items: List<ContinueItem> = emptyList()) : LibraryRepository {
     override suspend fun saveReadProgress(gallery: app.echo.data.model.Gallery, page: Int, finished: Boolean) {
         progress[gallery.id] = page to finished
     }
+    val watched = mutableMapOf<String, Long>()
+    override suspend fun saveWatchProgress(movie: app.echo.data.model.Movie, positionMs: Long, durationMs: Long, finished: Boolean) {
+        watched[movie.id] = positionMs
+    }
     override suspend fun removeHistory(section: Section, id: String) {
         items.value = items.value.filterNot { it.section == section && it.id == id }
     }

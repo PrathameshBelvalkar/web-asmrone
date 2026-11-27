@@ -42,8 +42,9 @@ sealed interface Route {
     @Serializable data object Movies : Route
     @Serializable data class MovieList(val filter: String) : Route
     @Serializable data class Movie(val id: String) : Route
-    @Serializable data class JavTheater(val movieId: String) : Route
-    @Serializable data object Idols : Route
+    @Serializable data class JavTheater(val movieId: String, val fromStart: Boolean = false) : Route
+    /** 3.8; [agency] pre-sets the agency filter (3.9 "Agency A"). */
+    @Serializable data class Idols(val agency: String? = null) : Route
     @Serializable data class Idol(val id: String) : Route
     @Serializable data object Genres : Route
     @Serializable data object JavSearch : Route

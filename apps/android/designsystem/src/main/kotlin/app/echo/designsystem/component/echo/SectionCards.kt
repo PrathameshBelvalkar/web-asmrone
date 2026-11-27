@@ -1,5 +1,6 @@
 package app.echo.designsystem.component.echo
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -112,19 +113,61 @@ fun HanimeCard(
     }
 }
 
-/** JAV movie card (3.3–3.5, 2 columns): 16:10 cover, the movie code as a badge, title over two lines. */
+/**
+ * JAV movie card (Figma 3.3–3.5, 3.9: 2 columns of 184 × 123 dp covers): the cover, then the code, the title and a
+ * meta line (date, or "Releases Dec 3" for an upcoming one). [title] null leaves its line out.
+ */
 @Composable
 fun MovieCard(
     code: String,
-    title: String,
+    title: String?,
     meta: String?,
     image: Any?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     width: Dp? = null,
-) = SectionCard(title, meta, image, 16f / 10f, onClick, modifier, width, titleLines = 2) {
-    CoverBadge(code, Modifier.align(Alignment.TopStart).padding(EchoSpacing.s - EchoSpacing.xxs))
+) {
+    val colors = MaterialTheme.colorScheme
+    Column(
+        (if (width != null) modifier.width(width) else modifier.fillMaxWidth()).clickable(onClick = onClick),
+        verticalArrangement = Arrangement.spacedBy(EchoSpacing.xs),
+    ) {
+        CoverImage(
+            image, contentDescription = null,
+            modifier = Modifier.fillMaxWidth().aspectRatio(MOVIE_COVER_RATIO)
+                .border(1.dp, colors.outlineVariant, MaterialTheme.shapes.large),
+            shape = MaterialTheme.shapes.large,
+        )
+        Text(code, style = MaterialTheme.typography.labelLargeEmphasized, maxLines = 1)
+        if (title != null) {
+            Text(title, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        if (meta != null) {
+            Text(meta, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
 }
+
+/** Figma's movie covers are 184 × 123 dp. */
+private const val MOVIE_COVER_RATIO = 184f / 123f
+
+/** JAV idol card for the 3.8 grid (Figma: 118 × 153 dp portrait, 20 dp corners), name and movie count under it. */
+@Composable
+fun IdolPortraitCard(name: String, meta: String?, image: Any?, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val colors = MaterialTheme.colorScheme
+    Column(modifier.fillMaxWidth().clickable(onClick = onClick), verticalArrangement = Arrangement.spacedBy(EchoSpacing.xs)) {
+        CoverImage(
+            image, contentDescription = null,
+            modifier = Modifier.fillMaxWidth().aspectRatio(IDOL_PHOTO_RATIO)
+                .border(1.dp, colors.outlineVariant, MaterialTheme.shapes.largeIncreased),
+            shape = MaterialTheme.shapes.largeIncreased,
+        )
+        Text(name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        if (meta != null) Text(meta, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant, maxLines = 1)
+    }
+}
+
+private const val IDOL_PHOTO_RATIO = 118f / 153f
 
 /** JAV idol card (3.8 Idols): round photo, name and count under it, centered. */
 @Composable
@@ -157,5 +200,5 @@ private fun SectionCardsPreview() = EchoThemesPreview {
         HanimeCard("Title placeholder 1", "Studio Name · 2025", null, {}, views = "1.6M", isNew = true)
         IdolCard("Aoi Mizuno", "128 movies", null, {})
     }
-    MovieCard("ABC-101", "Movie title placeholder that wraps", "2026-11-18", null, {}, Modifier.padding(horizontal = EchoSpacing.screenMargin), width = 190.dp)
+    MovieCard("ABC-101", "Movie title placeholder", "2026-11-18", null, {}, Modifier.padding(horizontal = EchoSpacing.screenMargin), width = 184.dp)
 }

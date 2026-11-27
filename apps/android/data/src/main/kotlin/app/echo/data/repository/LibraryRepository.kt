@@ -1,5 +1,6 @@
 package app.echo.data.repository
 
+import app.echo.data.model.Movie
 import app.echo.data.db.EchoDatabase
 import app.echo.data.db.LikedTrackEntity
 import app.echo.data.db.LikedWorkEntity
@@ -39,6 +40,9 @@ interface LibraryRepository {
 
     /** Records the page a gallery is on (2.7 turns, 2.10 when finished). */
     suspend fun saveReadProgress(gallery: Gallery, page: Int, finished: Boolean)
+
+    /** Records where a JAV movie is (3.7 Theater); 3.12 and 0.2 read it back. */
+    suspend fun saveWatchProgress(movie: Movie, positionMs: Long, durationMs: Long, finished: Boolean)
 
     fun recentSearches(section: Section): Flow<List<String>>
     suspend fun addSearch(section: Section, query: String)
@@ -89,6 +93,16 @@ class RoomLibraryRepository(private val db: EchoDatabase, private val now: () ->
         Section.ASMR -> h.clearListen()
         Section.MANGA -> h.clearRead()
         Section.JAV, Section.HENTAI -> h.clearWatch(section.kind)
+    }
+
+    override suspend fun saveWatchProgress(movie: Movie, positionMs: Long, durationMs: Long, finished: Boolean) {
+        h.upsertWatch(
+            WatchHistoryEntity(
+                kind = WatchKind.JAV, id = movie.id, code = movie.code, title = movie.title, studio = movie.studio,
+                coverUrl = movie.coverUrl, episode = null, positionMs = positionMs, durationMs = durationMs,
+                updatedAt = now(), finished = finished,
+            ),
+        )
     }
 
     override suspend fun saveReadProgress(gallery: Gallery, page: Int, finished: Boolean) {

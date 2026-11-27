@@ -79,9 +79,34 @@ data class Movie(
     val genres: List<String> = emptyList(),
     val coverUrl: String? = null,
     val sampleImages: List<String?> = emptyList(),
+    val director: String = "Director Name",
+    /** 3.3 / 3.11 Censored · Uncensored. */
+    val censored: Boolean = true,
+    /** Announced but not out yet (3.3 Upcoming, 3.9 Upcoming); hidden when S.5 "Hide upcoming movies" is on. */
+    val upcoming: Boolean = false,
+    /** For the 3.4 sorts Most viewed and Top rated. */
+    val views: Int = 0,
+    val rating: Float = 0f,
 )
 
-data class Idol(val id: String, val name: String, val movieCount: Int, val imageUrl: String? = null)
+data class Idol(
+    val id: String,
+    val name: String,
+    val movieCount: Int,
+    val imageUrl: String? = null,
+    val debutYear: Int = 2021,
+    val active: Boolean = true,
+    val agency: String = "Agency A",
+)
+
+/** A 3.10 genre group ("Format", "Story" …) and its genres. */
+data class GenreGroup(val name: String, val genres: List<Tag>)
+
+/** What a 3.5 movie list shows. */
+enum class MovieListKind { ALL, STUDIO, GENRE, DIRECTOR }
+
+/** A 3.5 movie list: a studio's, a genre's or a director's movies. */
+data class MovieList(val title: String, val kind: MovieListKind, val count: Int, val movies: List<Movie>)
 
 enum class NewsCategory { RELEASES, INDUSTRY, INTERVIEWS, RANKINGS }
 
@@ -93,6 +118,15 @@ data class NewsPost(
     val readMinutes: Int,
     val imageUrl: String? = null,
     val body: List<String> = emptyList(),
+    /** 3.2 pull quote and image caption. */
+    val pullQuote: String? = null,
+    val caption: String? = null,
+    /** 3.2 "Mentioned in this story": a movie (id, code), an idol (id, name) and a studio. */
+    val movieId: String? = null,
+    val movieCode: String? = null,
+    val idolId: String? = null,
+    val idolName: String? = null,
+    val studio: String? = null,
 )
 
 // Hentai --------------------------------------------------------------------------------------------------------

@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import app.echo.designsystem.icon.EchoIcons
 import app.echo.designsystem.preview.EchoPreviews
 import app.echo.designsystem.preview.EchoThemesPreview
@@ -84,6 +85,8 @@ fun SegmentedListItem(
     leading: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
     position: SegmentPosition? = null,
+    /** One for rows whose headline must not wrap (3.1 news rows). */
+    headlineMaxLines: Int = 2,
 ) {
     val shapes = position?.let { ListItemDefaults.segmentedShapes(index = it.index, count = it.count) }
         ?: LocalSegmentShapes.current
@@ -96,7 +99,7 @@ fun SegmentedListItem(
     val headlineStyle = if (selected == true) MaterialTheme.typography.titleMediumEmphasized else MaterialTheme.typography.titleMedium
     val supportingContent: (@Composable () -> Unit)? = supporting?.let { { Text(it, maxLines = 2) } }
     val overlineContent: (@Composable () -> Unit)? = overline?.let { { Text(it) } }
-    val headlineContent: @Composable () -> Unit = { Text(headline, style = headlineStyle, maxLines = 2) }
+    val headlineContent: @Composable () -> Unit = { Text(headline, style = headlineStyle, maxLines = headlineMaxLines, overflow = TextOverflow.Ellipsis) }
     if (selected == null) {
         M3SegmentedListItem(
             onClick = onClick,

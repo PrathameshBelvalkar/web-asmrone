@@ -4,6 +4,7 @@ import app.echo.data.model.Artist
 import app.echo.data.model.ArtistKind
 import app.echo.data.model.Episode
 import app.echo.data.model.Gallery
+import app.echo.data.model.GenreGroup
 import app.echo.data.model.HentaiTitle
 import app.echo.data.model.Idol
 import app.echo.data.model.Movie
@@ -93,19 +94,45 @@ object FakeCatalog {
 
     // JAV -------------------------------------------------------------------------------------------------------
 
+    val idols: List<Idol> = listOf("Aoi Mizuno", "Hana Seto", "Rin Kagami", "Mei Aizawa", "Yui Hoshino", "Sora Amane")
+        .mapIndexed { i, name ->
+            Idol(
+                "i${i + 1}", name, movieCount = 40 + i * 7, debutYear = 2016 + i * 2 % 9, active = i != 4,
+                agency = listOf("Agency A", "Agency B", "Agency C")[i % 3],
+            )
+        }
+
+    /** 3.10 groups (Figma): Format, Story, Setting, then two more. Ids run genre-0 … in this order. */
+    val genreGroups: List<GenreGroup> = run {
+        val names = listOf(
+            "Format" to listOf("VR", "4K", "Debut", "Compilation", "Best-of"),
+            "Story" to listOf("Drama", "Comedy", "Romance", "Documentary"),
+            "Setting" to listOf("Office", "Travel", "Hotel", "Outdoor"),
+            "Style" to listOf("Cosplay", "Uniform", "Retro", "Solo", "Couple"),
+            "Mood" to listOf("Sweet", "Slow", "Playful"),
+        )
+        var n = 0
+        names.map { (group, genres) -> GenreGroup(group, genres.map { Tag("genre-${n++}", it, 5000 - n * 150) }) }
+    }
+
+    val genres: List<Tag> = genreGroups.flatMap { it.genres }
+
+    /** Released movies, newest first (ABC-101 …), then four upcoming ones (ABC-301 …). */
     val movies: List<Movie> = (1..20).map { i ->
         Movie(
             id = "m$i", code = "ABC-%03d".format(100 + i), title = "Movie title placeholder", studio = "Example Studio",
-            releaseDate = "2026-11-%02d".format((i % 28) + 1), durationMin = 120, idols = listOf("Aoi Mizuno"),
-            genres = listOf("Drama", "Romance"), sampleImages = List(6) { null },
+            releaseDate = "2026-11-%02d".format(21 - i), durationMin = 120,
+            idols = idols.map { it.name }.drop(i % 3).take(4),
+            genres = (0 until 4).map { k -> genres[(i + k * 5) % genres.size].name }.distinct(),
+            sampleImages = List(6) { null }, censored = i % 4 != 0, views = (i * 7919) % 5000, rating = 3f + (i * 13 % 20) / 10f,
+        )
+    } + (1..4).map { i ->
+        Movie(
+            id = "u$i", code = "ABC-%03d".format(300 + i), title = "Upcoming title placeholder", studio = "Example Studio",
+            releaseDate = "2026-12-%02d".format(3 + (i - 1) * 7), durationMin = 120, idols = listOf(idols[0].name),
+            genres = listOf("Drama"), upcoming = true,
         )
     }
-
-    val idols: List<Idol> = listOf("Aoi Mizuno", "Hana Seto", "Rin Kagami", "Mei Aizawa", "Yui Hoshino", "Sora Amane")
-        .mapIndexed { i, name -> Idol("i${i + 1}", name, 128 - i * 11) }
-
-    val genres: List<Tag> = listOf("Drama", "Romance", "Comedy", "Documentary", "Cosplay", "Office", "School", "Outdoor")
-        .mapIndexed { i, name -> Tag("genre-$i", name, 5000 - i * 400) }
 
     val news: List<NewsPost> = listOf(
         NewsPost("n1", "News headline placeholder that can wrap onto two lines", NewsCategory.RELEASES, "Nov 19", 3),
@@ -113,7 +140,13 @@ object FakeCatalog {
         NewsPost("n3", "Headline placeholder for an industry story", NewsCategory.INDUSTRY, "5 h ago", 4),
         NewsPost("n4", "Weekly ranking headline placeholder", NewsCategory.RANKINGS, "8 h ago", 1),
         NewsPost("n5", "Headline placeholder that wraps", NewsCategory.INTERVIEWS, "Yesterday", 6),
-    ).map { it.copy(body = List(4) { "Paragraph placeholder. The article text goes here, a few sentences long, so the layout can be checked." }) }
+    ).map {
+        it.copy(
+            body = List(4) { "Paragraph placeholder. The article text goes here, a few sentences long, so the layout can be checked." },
+            pullQuote = "A short pull quote from the story sits here.", caption = "Image caption placeholder",
+            movieId = "m1", movieCode = "ABC-101", idolId = "i1", idolName = idols[0].name, studio = "Example Studio",
+        )
+    }
 
     // Hentai ----------------------------------------------------------------------------------------------------
 

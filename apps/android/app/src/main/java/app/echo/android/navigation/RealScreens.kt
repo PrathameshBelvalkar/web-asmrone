@@ -13,6 +13,18 @@ import app.echo.android.feature.asmr.playlists.AsmrPlaylistsRoute
 import app.echo.android.feature.asmr.work.AsmrWorkRoute
 import app.echo.android.feature.asmr.results.AsmrResultsRoute
 import app.echo.android.feature.asmr.search.AsmrSearchRoute
+import app.echo.android.feature.jav.genres.JavGenresRoute
+import app.echo.android.feature.jav.idols.JavIdolRoute
+import app.echo.android.feature.jav.idols.JavIdolsRoute
+import app.echo.android.feature.jav.library.JavLibraryRoute
+import app.echo.android.feature.jav.movie.JavMovieRoute
+import app.echo.android.feature.jav.movies.JavLatestRoute
+import app.echo.android.feature.jav.movies.JavMovieListRoute
+import app.echo.android.feature.jav.movies.JavMoviesRoute
+import app.echo.android.feature.jav.news.JavNewsPostRoute
+import app.echo.android.feature.jav.news.JavNewsRoute
+import app.echo.android.feature.jav.search.JavSearchRoute
+import app.echo.android.feature.jav.theater.JavTheaterRoute
 import app.echo.android.feature.manga.artists.MangaArtistsRoute
 import app.echo.android.feature.manga.browse.MangaBrowseRoute
 import app.echo.android.feature.manga.end.MangaEndRoute
@@ -79,6 +91,22 @@ internal fun NavGraphBuilder.realScreens(
     }
     composable<Route.EndOfGallery> { entry -> MangaEndRoute(entry.toRoute<Route.EndOfGallery>().galleryId, shell) }
     composable<Route.MangaArtists> { MangaArtistsRoute(shell, source.value, contentPadding) }
+    // JAV (3.1–3.12). The theater is immersive and landscape: no content padding.
+    composable<Route.News> { JavNewsRoute(shell, source.value, contentPadding) }
+    composable<Route.NewsPost> { entry -> JavNewsPostRoute(entry.toRoute<Route.NewsPost>().id, shell, contentPadding) }
+    composable<Route.Latest> { JavLatestRoute(shell, source.value, contentPadding) }
+    composable<Route.Movies> { JavMoviesRoute(shell, source.value, contentPadding) }
+    composable<Route.MovieList> { entry -> JavMovieListRoute(entry.toRoute<Route.MovieList>().filter, shell, contentPadding) }
+    composable<Route.Movie> { entry -> JavMovieRoute(entry.toRoute<Route.Movie>().id, shell, contentPadding) }
+    composable<Route.JavTheater> { entry ->
+        val theater = entry.toRoute<Route.JavTheater>()
+        JavTheaterRoute(theater.movieId, theater.fromStart, shell)
+    }
+    composable<Route.Idols> { entry -> JavIdolsRoute(entry.toRoute<Route.Idols>().agency, shell, source.value, contentPadding) }
+    composable<Route.Idol> { entry -> JavIdolRoute(entry.toRoute<Route.Idol>().id, shell, contentPadding) }
+    composable<Route.Genres> { JavGenresRoute(shell, source.value, contentPadding) }
+    composable<Route.JavSearch> { JavSearchRoute(shell, contentPadding) }
+    composable<Route.JavLibrary> { JavLibraryRoute(shell, contentPadding) }
     // Settings and profile (S.1–S.13; P.1, S.14 and S.15 are sheets in the shell).
     composable<Route.Settings> { SettingsRoute(shell) }
     composable<Route.Preferences> { AsmrPreferencesRoute(shell) }
@@ -108,6 +136,9 @@ internal fun NavGraphBuilder.realScreens(
         Route.Settings::class, Route.Preferences::class, Route.AiSubtitles::class, Route.JavSettings::class,
         Route.Storage::class, Route.LookAndFeel::class, Route.Playback::class, Route.ReaderDefaults::class,
         Route.About::class, Route.EditProfile::class, Route.Updates::class,
+        Route.News::class, Route.NewsPost::class, Route.Latest::class, Route.Movies::class, Route.MovieList::class,
+        Route.Movie::class, Route.JavTheater::class, Route.Idols::class, Route.Idol::class, Route.Genres::class,
+        Route.JavSearch::class, Route.JavLibrary::class,
         Route.Splash::class, Route.Welcome::class, Route.ChooseSources::class, Route.YourProfile::class,
         Route.Age::class, Route.MakeItYours::class,
     )

@@ -1,5 +1,7 @@
 package app.echo.data.fake
 
+import app.echo.data.model.MovieListKind
+import app.echo.data.model.MovieList
 import app.echo.data.model.ArtistPage
 import app.echo.data.model.AsmrHome
 import app.echo.data.model.FeedPeriod
@@ -110,15 +112,37 @@ class FakeMangaRepository(private val config: FakeConfig) : MangaRepository {
 
 class FakeJavRepository(private val config: FakeConfig) : JavRepository {
     private val c = FakeCatalog
+    private val released get() = c.movies.filter { !it.upcoming }
     override fun news(category: NewsCategory?) = config.serve { c.news.filter { category == null || it.category == category } }
     override fun newsPost(id: String) = config.serve { c.news.firstOrNull { it.id == id } }
-    override fun latest() = config.serve { c.movies.take(10) }
-    override fun movies(page: Int) = config.serve { c.movies.drop(page * 10).take(10) }
+    /** Released and upcoming, newest first; 3.3 filters them. */
+    override fun latest() = config.serve { c.movies }
+    override fun movies(page: Int) = config.serve { released.drop(page * PAGE).take(PAGE) }
     override fun movie(id: String) = config.serve { c.movies.firstOrNull { it.id == id } }
     override fun idols() = config.serve { c.idols }
     override fun idol(id: String) = config.serve { c.idols.firstOrNull { it.id == id }?.let { i -> i to c.movies.filter { i.name in it.idols } } }
     override fun genres() = config.serve { c.genres }
+    override fun genreGroups() = config.serve { c.genreGroups }
+    override fun movieList(filter: String) = config.serve {
+        val genre = c.genres.firstOrNull { it.id == filter }
+        when {
+            genre != null -> released.filter { genre.name in it.genres }.let { MovieList(genre.name, MovieListKind.GENRE, it.size, it) }
+            filter.startsWith(STUDIO) -> filter.removePrefix(STUDIO).let { name ->
+                released.filter { it.studio == name }.let { MovieList(name, MovieListKind.STUDIO, it.size, it) }
+            }
+            filter.startsWith(DIRECTOR) -> filter.removePrefix(DIRECTOR).let { name ->
+                released.filter { it.director == name }.let { MovieList(name, MovieListKind.DIRECTOR, it.size, it) }
+            }
+            else -> MovieList("All movies", MovieListKind.ALL, released.size, released)
+        }
+    }
     override fun search(query: String) = config.serve { c.movies.filter { it.code.matches(query) || it.title.matches(query) } }
+
+    private companion object {
+        const val PAGE = 20
+        const val STUDIO = "studio:"
+        const val DIRECTOR = "director:"
+    }
 }
 
 class FakeHentaiRepository(private val config: FakeConfig) : HentaiRepository {

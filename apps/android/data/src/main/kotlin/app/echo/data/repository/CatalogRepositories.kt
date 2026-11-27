@@ -2,7 +2,9 @@ package app.echo.data.repository
 
 import app.echo.data.model.ArtistPage
 import app.echo.data.model.FeedPeriod
+import app.echo.data.model.GenreGroup
 import app.echo.data.model.Lyric
+import app.echo.data.model.MovieList
 import app.echo.data.model.AsmrHome
 import app.echo.data.model.AsmrSearchResults
 import app.echo.data.model.Gallery
@@ -58,6 +60,12 @@ interface JavRepository {
     fun idols(): Flow<Load<List<Idol>>>
     fun idol(id: String): Flow<Load<Pair<Idol, List<Movie>>>>
     fun genres(): Flow<Load<List<Tag>>>
+    /** 3.10: genres in their groups. */
+    fun genreGroups(): Flow<Load<List<GenreGroup>>>
+    /**
+     * 3.5: the movies of a list. [filter] is "all", a genre id ("genre-3"), "studio:<name>" or "director:<name>".
+     */
+    fun movieList(filter: String): Flow<Load<MovieList>>
     fun search(query: String): Flow<Load<List<Movie>>>
 }
 

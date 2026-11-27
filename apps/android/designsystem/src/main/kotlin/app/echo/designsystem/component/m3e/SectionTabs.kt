@@ -6,6 +6,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import app.echo.designsystem.preview.EchoPreviews
 import app.echo.designsystem.preview.EchoThemesPreview
 import app.echo.designsystem.preview.PreviewData
@@ -23,6 +24,8 @@ fun SectionTabs(
         selectedTabIndex = selected,
         modifier = modifier,
         edgePadding = EchoSpacing.s,
+        // Figma tabs hug their label (16 dp each side); M3's default minimum is 90 dp.
+        minTabWidth = 0.dp,
         containerColor = MaterialTheme.colorScheme.surface,
     ) {
         tabs.forEachIndexed { index, title ->

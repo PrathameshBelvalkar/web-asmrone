@@ -1097,6 +1097,28 @@ Figma `28:4561` · route `JavLibrary`
   Start over · Remove from library.
 - `EchoButton(Text, S)` "Clear watch history" → confirm dialog. Shell. Data: `history_watch` where kind = JAV.
 
+#### Phase 8 notes (built)
+
+All 12 frames are built and were checked on `Pixel_8` against Figma (sizes read from the frames). Deliberate
+differences, with the reason:
+
+- **The catalogue is fake** (`FakeJavRepository`): 20 released movies (every fourth uncensored) and 4 upcoming ones
+  (ABC-301 …), 6 idols with debut year, status and agency, and 5 genre groups. `JavRepository` gained `genreGroups()`
+  and `movieList(filter)` ("genre-N", "studio:<name>", "director:<name>", "all").
+- **Tabs replace each other**: News is the section's Home; the other tabs swap in place, so Back from any tab returns
+  to News.
+- **3.3 / 3.9 Upcoming** is hidden when S.5 "Hide upcoming movies" is on.
+- **3.4's filter button** opens a small sheet with All · Censored · Uncensored (Figma shows only the button).
+- **3.6 Cast** is round idol cards; 3.8 uses the new `IdolPortraitCard` (118 × 153). `MovieCard` now follows Figma:
+  code, title and date under a 184 × 123 cover, no badge on the image.
+- **3.7 Theater** turns the screen to landscape while open. Playback is simulated (a moving position, no video yet);
+  the position is saved with `LibraryRepository.saveWatchProgress` when it pauses or closes, so 3.6 shows "Resume
+  0:13" and 3.12 lists it. Start over opens it with `Route.JavTheater(id, fromStart = true)`. Quality and speed are
+  kept for the session only; picture-in-picture uses the system call.
+- **3.9 Agency** opens 3.8 filtered (`Route.Idols(agency)`). Follow is kept for the screen only.
+- **3.2 Save** and the text size are kept for the screen only; Share uses the system sheet, Source opens javdatabase.
+- **Scrollable tabs hug their label** (`minTabWidth = 0`), as Figma's do, in every section.
+
 ### Phase 9: Hentai
 
 #### H.1 Home
