@@ -1,5 +1,7 @@
 package app.echo.android.feature.settings
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -125,7 +127,7 @@ internal fun GroupLabel(text: String, modifier: Modifier = Modifier, value: Stri
         text.uppercase() + value?.let { " · $it" }.orEmpty(),
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.padding(
+        modifier = modifier.semantics { heading() }.padding(
             start = EchoSpacing.screenMargin + EchoSpacing.l, end = EchoSpacing.screenMargin,
             top = EchoSpacing.l, bottom = EchoSpacing.s,
         ),

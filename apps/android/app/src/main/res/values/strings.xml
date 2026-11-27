@@ -782,4 +782,9 @@
     <string name="menu_remove_history">Remove from history</string>
     <string name="reader_rotate_locked">Rotation: %1$s</string>
     <string name="copied">Copied</string>
+
+    <!-- Phase 12 accessibility -->
+    <string name="a11y_show_controls">Show controls</string>
+    <string name="a11y_hide_controls">Hide controls</string>
+    <string name="a11y_frame">Preview frame %1$d, %2$s</string>
 </resources>

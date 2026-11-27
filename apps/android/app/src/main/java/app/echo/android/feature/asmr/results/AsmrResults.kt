@@ -1,5 +1,6 @@
 package app.echo.android.feature.asmr.results
 
+import app.echo.designsystem.component.echo.CoverKeys
 import androidx.compose.ui.res.pluralStringResource
 import app.echo.android.feature.shared.LocalTrackActions
 import androidx.compose.foundation.layout.Column
@@ -223,7 +224,7 @@ private fun AllResults(
 }
 
 @Composable
-private fun WorkCard(work: Work, onWork: (String) -> Unit) = CoverCard(work.title, work.circle, work.coverUrl, { onWork(work.id) })
+private fun WorkCard(work: Work, onWork: (String) -> Unit) = CoverCard(work.title, work.circle, work.coverUrl, { onWork(work.id) }, sharedKey = CoverKeys.work(work.id))
 
 @Composable
 private fun WorkGrid(works: List<Work>, padding: PaddingValues, onWork: (String) -> Unit) {
@@ -232,7 +233,7 @@ private fun WorkGrid(works: List<Work>, padding: PaddingValues, onWork: (String)
         bottom = padding.calculateBottomPadding(),
     )) {
         items(works, key = { it.id }) { w ->
-            CoverCard(w.title, w.circle, w.coverUrl, { onWork(w.id) }, width = Dp.Unspecified)
+            CoverCard(w.title, w.circle, w.coverUrl, { onWork(w.id) }, width = Dp.Unspecified, sharedKey = CoverKeys.work(w.id))
         }
     }
 }

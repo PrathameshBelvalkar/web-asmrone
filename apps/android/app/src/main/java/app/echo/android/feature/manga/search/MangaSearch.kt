@@ -1,5 +1,6 @@
 package app.echo.android.feature.manga.search
 
+import app.echo.designsystem.component.echo.CoverKeys
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -162,6 +163,7 @@ fun MangaSearchScreen(
                             GalleryCard(
                                 title = gallery.title, artist = gallery.artist, image = gallery.coverUrl,
                                 onClick = { onGallery(gallery.id) }, pages = gallery.pageCount, language = gallery.language,
+                                sharedKey = CoverKeys.gallery(gallery.id),
                             )
                         }
                     }

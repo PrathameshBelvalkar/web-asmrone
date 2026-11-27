@@ -1,5 +1,6 @@
 package app.echo.designsystem.component.m3e
 
+import app.echo.designsystem.component.echo.sharedCover
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -102,9 +103,12 @@ fun CarouselItemScope.HeroCarouselItem(
     image: Any?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Shared-element key: the cover moves into the page that opens. */
+    sharedKey: String? = null,
 ) {
     Box(
         modifier
+            .then(sharedCover(sharedKey))
             .fillMaxSize()
             .maskClip(MaterialTheme.shapes.extraLargeIncreased),
     ) {

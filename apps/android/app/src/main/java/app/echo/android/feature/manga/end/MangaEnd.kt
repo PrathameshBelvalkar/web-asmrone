@@ -1,5 +1,6 @@
 package app.echo.android.feature.manga.end
 
+import app.echo.designsystem.component.echo.CoverKeys
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.WindowInsets
@@ -146,7 +147,7 @@ fun MangaEndScreen(
                             CoverRow(more.value.size) { i ->
                                 val item = more.value[i]
                                 // Figma 2.10: three 112 dp covers fit across, title only, no badges.
-                                GalleryCard(title = item.title, artist = null, image = item.coverUrl, onClick = { onGallery(item.id) }, width = 112.dp)
+                                GalleryCard(title = item.title, artist = null, image = item.coverUrl, onClick = { onGallery(item.id) }, sharedKey = CoverKeys.gallery(item.id), width = 112.dp)
                             }
                         }
                     }

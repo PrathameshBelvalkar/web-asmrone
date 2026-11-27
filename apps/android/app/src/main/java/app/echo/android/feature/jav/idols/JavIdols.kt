@@ -1,5 +1,6 @@
 package app.echo.android.feature.jav.idols
 
+import app.echo.designsystem.component.echo.CoverKeys
 import androidx.compose.runtime.mutableIntStateOf
 import android.content.Intent
 import androidx.compose.foundation.border
@@ -418,7 +419,7 @@ fun JavIdolScreen(
                         horizontalArrangement = Arrangement.spacedBy(EchoSpacing.m),
                     ) {
                         items(state.upcoming, key = { it.id }) { m ->
-                            MovieCard(m.code, null, m.cardMeta(), m.coverUrl, { onMovie(m.id) }, width = 160.dp)
+                            MovieCard(m.code, null, m.cardMeta(), m.coverUrl, { onMovie(m.id) }, width = 160.dp, sharedKey = CoverKeys.movie(m.id))
                         }
                     }
                 }
@@ -430,7 +431,7 @@ fun JavIdolScreen(
                     Modifier.fillMaxWidth().padding(horizontal = EchoSpacing.screenMargin).padding(bottom = EchoSpacing.s),
                     horizontalArrangement = Arrangement.spacedBy(EchoSpacing.m),
                 ) {
-                    row.forEach { m -> MovieCard(m.code, m.title, m.cardMeta(), m.coverUrl, { onMovie(m.id) }, Modifier.weight(1f)) }
+                    row.forEach { m -> MovieCard(m.code, m.title, m.cardMeta(), m.coverUrl, { onMovie(m.id) }, Modifier.weight(1f), sharedKey = CoverKeys.movie(m.id)) }
                     if (row.size == 1) androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
                 }
             }

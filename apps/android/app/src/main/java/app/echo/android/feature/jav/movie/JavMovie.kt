@@ -1,5 +1,9 @@
 package app.echo.android.feature.jav.movie
 
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material3.minimumInteractiveComponentSize
+import app.echo.designsystem.component.echo.sharedCover
+import app.echo.designsystem.component.echo.CoverKeys
 import androidx.compose.runtime.mutableIntStateOf
 import android.content.ClipData
 import android.content.Intent
@@ -240,7 +244,7 @@ fun JavMovieScreen(
                 item {
                     CoverRow(state.more.size) { i ->
                         val m = state.more[i]
-                        MovieCard(m.code, m.title, m.cardMeta(), m.coverUrl, { onMovie(m.id) }, width = 160.dp)
+                        MovieCard(m.code, m.title, m.cardMeta(), m.coverUrl, { onMovie(m.id) }, width = 160.dp, sharedKey = CoverKeys.movie(m.id))
                     }
                 }
             }
@@ -254,12 +258,13 @@ private fun Covers(movie: Movie, onPlay: () -> Unit) {
     val count = 1 + movie.sampleImages.size
     CoverCarousel(count, style = CarouselStyle.Hero, height = 214.dp) { i ->
         Box(
-            Modifier.fillMaxSize().maskClip(MaterialTheme.shapes.extraLarge)
+            // The cover is the one a movie card opened this page from.
+            (if (i == 0) sharedCover(CoverKeys.movie(movie.id)) else Modifier).fillMaxSize().maskClip(MaterialTheme.shapes.extraLarge)
                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.extraLarge),
             contentAlignment = Alignment.Center,
         ) {
             val image = if (i == 0) movie.coverUrl else movie.sampleImages[i - 1]
-            CoverImage(image, null, Modifier.fillMaxSize(), shape = null, onClick = if (i == 0) onPlay else null)
+            CoverImage(image, if (i == 0) movie.title else null, Modifier.fillMaxSize(), shape = null, onClick = if (i == 0) onPlay else null)
             if (i == 0) {
                 EchoIconButton(
                     EchoIcons.PlayArrowFilled, stringResource(R.string.jav_play), onPlay,
@@ -271,12 +276,15 @@ private fun Covers(movie: Movie, onPlay: () -> Unit) {
 }
 
 /** "▶ Resume 42:07 ▾" (or Watch) with Start over and Quality in its menu, then Trailer. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun Actions(resumeMs: Long?, onWatch: (Boolean) -> Unit) {
-    Row(
+    // Wraps at large font sizes instead of squeezing Trailer (accessibility pass).
+    FlowRow(
         Modifier.fillMaxWidth().padding(horizontal = EchoSpacing.screenMargin),
         horizontalArrangement = Arrangement.spacedBy(EchoSpacing.s),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(EchoSpacing.s),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         EchoSplitButton(
             text = if (resumeMs != null) stringResource(R.string.jav_resume, clock(resumeMs)) else stringResource(R.string.jav_watch),
@@ -314,13 +322,13 @@ private fun Details(movie: Movie, onStudio: (String) -> Unit, onDirector: (Strin
 
 @Composable
 private fun DetailRow(label: String, value: String, onClick: (() -> Unit)? = null) {
-    Row(horizontalArrangement = Arrangement.spacedBy(EchoSpacing.m)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(EchoSpacing.m), verticalAlignment = Alignment.CenterVertically) {
         Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(84.dp))
         Text(
             value,
             style = MaterialTheme.typography.labelLarge,
             color = if (onClick != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-            modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
+            modifier = if (onClick != null) Modifier.clickable(onClick = onClick).minimumInteractiveComponentSize() else Modifier,
         )
     }
 }

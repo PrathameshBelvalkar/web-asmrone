@@ -1,5 +1,7 @@
 package app.echo.designsystem.component.m3e
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -123,7 +125,8 @@ private fun QueryText(
             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { onSearch(query) }),
-            modifier = Modifier.fillMaxWidth(),
+            // The hint is drawn separately; TalkBack reads it as the field's label.
+            modifier = Modifier.fillMaxWidth().semantics { contentDescription = placeholder },
         )
     }
 }

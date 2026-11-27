@@ -1,5 +1,6 @@
 package app.echo.android.feature.manga.browse
 
+import app.echo.designsystem.component.echo.CoverKeys
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -189,6 +190,7 @@ fun MangaBrowseScreen(
                                     title = gallery.title, artist = gallery.artist, image = gallery.coverUrl,
                                     onClick = { onGallery(gallery.id) }, modifier = Modifier.weight(1f),
                                     pages = gallery.pageCount, language = gallery.language,
+                                    sharedKey = CoverKeys.gallery(gallery.id),
                                 )
                             }
                             repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }

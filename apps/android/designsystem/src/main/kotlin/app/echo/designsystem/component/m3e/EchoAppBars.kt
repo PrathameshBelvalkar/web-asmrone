@@ -1,5 +1,7 @@
 package app.echo.designsystem.component.m3e
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 import app.echo.designsystem.component.echo.tipAnchor
 import app.echo.designsystem.component.echo.TipTarget
 import app.echo.designsystem.component.echo.LocalTipAnchors
@@ -119,7 +121,7 @@ fun EchoFlexibleAppBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
-    val titleContent: @Composable () -> Unit = { Text(title, maxLines = 1) }
+    val titleContent: @Composable () -> Unit = { Text(title, maxLines = 1, modifier = Modifier.semantics { heading() }) }
     val subtitleContent: @Composable () -> Unit = { if (subtitle != null) Text(subtitle, maxLines = 1) }
     val navigation: @Composable () -> Unit = { if (onBack != null) BackButton(onBack) }
     val colors = TopAppBarDefaults.topAppBarColors(
@@ -163,7 +165,7 @@ fun EchoSmallAppBar(
         androidx.compose.foundation.layout.Column(
             horizontalAlignment = if (style == SmallAppBarStyle.Centered) Alignment.CenterHorizontally else Alignment.Start,
         ) {
-            Text(title, style = MaterialTheme.typography.titleLarge, maxLines = 1)
+            Text(title, style = MaterialTheme.typography.titleLarge, maxLines = 1, modifier = Modifier.semantics { heading() })
             if (subtitle != null) {
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
             }

@@ -1,5 +1,7 @@
 package app.echo.designsystem.component.echo
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,6 +39,8 @@ fun CoverImage(
     onClick: (() -> Unit)? = null,
 ) {
     var m = modifier
+    // The placeholder has no image to describe: the description goes on the cover itself.
+    if (contentDescription != null) m = m.semantics { this.contentDescription = contentDescription }
     if (shape != null) m = m.clip(shape)
     if (onClick != null) m = m.clickable(onClick = onClick)
     if (image == null) {

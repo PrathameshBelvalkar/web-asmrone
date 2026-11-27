@@ -78,6 +78,8 @@ fun TitleHero(
     badges: @Composable RowScope.() -> Unit = {},
     details: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
+    /** Shared-element key matching the card that opened this page ([CoverKeys]). */
+    coverKey: String? = null,
 ) {
     Box(modifier.fillMaxWidth().height(372.dp)) {
         CoverImage(backdrop, null, Modifier.fillMaxWidth().height(260.dp), shape = null)
@@ -93,7 +95,7 @@ fun TitleHero(
         ) {
             CoverImage(
                 cover, title,
-                Modifier.size(124.dp, 186.dp)
+                sharedCover(coverKey).size(124.dp, 186.dp)
                     .shadow(EchoElevation.level4, MaterialTheme.shapes.largeIncreased)
                     .border(BorderStroke(4.dp, MaterialTheme.colorScheme.surface), MaterialTheme.shapes.largeIncreased),
                 shape = MaterialTheme.shapes.largeIncreased,

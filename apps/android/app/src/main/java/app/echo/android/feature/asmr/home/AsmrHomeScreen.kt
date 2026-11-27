@@ -1,5 +1,6 @@
 package app.echo.android.feature.asmr.home
 
+import app.echo.designsystem.component.echo.CoverKeys
 import app.echo.android.feature.shared.LocalTrackActions
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -83,7 +84,7 @@ private fun HomeContent(state: AsmrHomeUiState.Content, contentPadding: PaddingV
             item(key = "featured") {
                 CoverCarousel(state.featured.size) { i ->
                     val work = state.featured[i]
-                    HeroCarouselItem(work.title, work.coverUrl, onClick = { onEvent(AsmrHomeEvent.OpenWork(work.id)) })
+                    HeroCarouselItem(work.title, work.coverUrl, onClick = { onEvent(AsmrHomeEvent.OpenWork(work.id)) }, sharedKey = CoverKeys.work(work.id))
                 }
             }
         }
@@ -97,6 +98,7 @@ private fun HomeContent(state: AsmrHomeUiState.Content, contentPadding: PaddingV
                     ContinueCard(
                         title = item.title, meta = formatTimeLeft(item), progress = item.progress, image = item.coverUrl,
                         onClick = { onEvent(AsmrHomeEvent.OpenWork(item.id)) },
+                        sharedKey = CoverKeys.work(item.id),
                     )
                 }
             }

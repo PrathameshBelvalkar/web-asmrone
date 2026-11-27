@@ -1,5 +1,6 @@
 package app.echo.android.feature.asmr.feed
 
+import app.echo.designsystem.component.echo.CoverKeys
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -119,7 +120,7 @@ fun AsmrFeedScreen(
                     bottom = contentPadding.calculateBottomPadding() + EchoSpacing.l,
                 ),
             ) {
-                items(works, key = { it.id }) { w -> CoverCard(w.title, w.circle, w.coverUrl, { onWork(w.id) }, width = Dp.Unspecified) }
+                items(works, key = { it.id }) { w -> CoverCard(w.title, w.circle, w.coverUrl, { onWork(w.id) }, width = Dp.Unspecified, sharedKey = CoverKeys.work(w.id)) }
             }
         }
     }

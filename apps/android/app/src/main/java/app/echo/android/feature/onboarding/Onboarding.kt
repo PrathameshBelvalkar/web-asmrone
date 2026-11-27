@@ -1,5 +1,7 @@
 package app.echo.android.feature.onboarding
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
@@ -152,7 +154,7 @@ private fun StepFrame(
             verticalArrangement = Arrangement.spacedBy(EchoSpacing.l),
         ) {
             Column(Modifier.padding(horizontal = EchoSpacing.sectionPadding), verticalArrangement = Arrangement.spacedBy(EchoSpacing.s)) {
-                Text(stringResource(title), style = MaterialTheme.typography.headlineMediumEmphasized)
+                Text(stringResource(title), style = MaterialTheme.typography.headlineMediumEmphasized, modifier = Modifier.semantics { heading() })
                 Text(stringResource(body), style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
             }
             content()

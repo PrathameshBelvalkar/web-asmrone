@@ -1,5 +1,6 @@
 package app.echo.designsystem.component.echo
 
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,16 +36,18 @@ fun MediaHeader(
     modifier: Modifier = Modifier,
     style: MediaHeaderStyle = MediaHeaderStyle.Square,
     onArtistClick: (() -> Unit)? = null,
+    /** Shared-element key matching the card that opened this page ([CoverKeys]). */
+    coverKey: String? = null,
 ) {
     Row(
         modifier.fillMaxWidth().padding(horizontal = EchoSpacing.screenMargin),
         horizontalArrangement = Arrangement.spacedBy(EchoSpacing.l),
     ) {
         when (style) {
-            MediaHeaderStyle.Square -> CoverImage(cover, null, Modifier.size(148.dp), shape = MaterialTheme.shapes.extraLarge)
+            MediaHeaderStyle.Square -> CoverImage(cover, null, sharedCover(coverKey).size(148.dp), shape = MaterialTheme.shapes.extraLarge)
             MediaHeaderStyle.Gallery -> CoverImage(
                 cover, null,
-                Modifier.size(132.dp, 188.dp).shadow(EchoElevation.level3, MaterialTheme.shapes.largeIncreased),
+                sharedCover(coverKey).size(132.dp, 188.dp).shadow(EchoElevation.level3, MaterialTheme.shapes.largeIncreased),
                 shape = MaterialTheme.shapes.largeIncreased,
             )
         }
@@ -54,7 +57,7 @@ fun MediaHeader(
                 Text(
                     artist,
                     style = MaterialTheme.typography.titleSmall,
-                    modifier = if (onArtistClick != null) Modifier.clickable(onClick = onArtistClick) else Modifier,
+                    modifier = if (onArtistClick != null) Modifier.clickable(onClick = onArtistClick).minimumInteractiveComponentSize() else Modifier,
                 )
             }
             meta.forEach {

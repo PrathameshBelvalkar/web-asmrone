@@ -1,5 +1,6 @@
 package app.echo.android.feature.hentai
 
+import app.echo.designsystem.component.echo.CoverKeys
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -103,6 +104,7 @@ fun TitleCard(title: HentaiTitle, onClick: () -> Unit, modifier: Modifier = Modi
     HanimeCard(
         title.title, "${title.studio} · ${title.year}", title.coverUrl, onClick, modifier,
         views = compactCount(title.views), isNew = title.isNew, width = width,
+        sharedKey = CoverKeys.title(title.id),
     )
 
 /** Figma's shelf cards are 112 dp wide. */

@@ -1,5 +1,6 @@
 package app.echo.android.feature.manga.gallery
 
+import app.echo.designsystem.component.echo.CoverKeys
 import app.echo.android.feature.manga.galleryUrl
 import app.echo.android.ui.shareText
 import androidx.compose.ui.platform.LocalUriHandler
@@ -204,6 +205,7 @@ private fun GalleryBody(
                 ),
                 cover = gallery.coverUrl,
                 style = MediaHeaderStyle.Gallery,
+                coverKey = CoverKeys.gallery(gallery.id),
                 onArtistClick = gallery.artist?.let { artist -> { onTag("artist:$artist") } },
             )
         }
@@ -278,6 +280,7 @@ private fun GalleryBody(
                     GalleryCard(
                         title = more.title, artist = more.artist, image = more.coverUrl,
                         onClick = { onGallery(more.id) }, width = 128.dp, pages = more.pageCount, language = more.language,
+                        sharedKey = CoverKeys.gallery(more.id),
                     )
                 }
             }

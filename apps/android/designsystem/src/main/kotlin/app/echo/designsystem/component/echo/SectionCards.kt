@@ -44,6 +44,7 @@ private fun SectionCard(
     modifier: Modifier,
     width: Dp?,
     titleLines: Int = 1,
+    sharedKey: String? = null,
     overlay: @Composable BoxScope.() -> Unit = {},
 ) {
     Column(
@@ -51,7 +52,7 @@ private fun SectionCard(
         verticalArrangement = Arrangement.spacedBy(EchoSpacing.xs),
     ) {
         Box {
-            CoverImage(image, contentDescription = null, modifier = Modifier.fillMaxWidth().aspectRatio(aspectRatio))
+            CoverImage(image, contentDescription = null, modifier = sharedCover(sharedKey).fillMaxWidth().aspectRatio(aspectRatio))
             overlay()
         }
         Column {
@@ -77,7 +78,8 @@ fun GalleryCard(
     pages: Int? = null,
     language: String? = null,
     width: Dp? = null,
-) = SectionCard(title, artist, image, 2f / 3f, onClick, modifier, width) {
+    sharedKey: String? = null,
+) = SectionCard(title, artist, image, 2f / 3f, onClick, modifier, width, sharedKey = sharedKey) {
     if (pages != null) CoverBadge("${pages}p", Modifier.align(Alignment.TopStart).padding(EchoSpacing.s - EchoSpacing.xxs))
     if (language != null) CoverBadge(language, Modifier.align(Alignment.BottomEnd).padding(EchoSpacing.s - EchoSpacing.xxs))
 }
@@ -93,7 +95,8 @@ fun HanimeCard(
     views: String? = null,
     isNew: Boolean = false,
     width: Dp? = 112.dp,
-) = SectionCard(title, meta, image, 2f / 3f, onClick, modifier, width) {
+    sharedKey: String? = null,
+) = SectionCard(title, meta, image, 2f / 3f, onClick, modifier, width, sharedKey = sharedKey) {
     if (isNew) CoverBadge("NEW", Modifier.align(Alignment.TopStart).padding(EchoSpacing.s - EchoSpacing.xxs), BadgeStyle.Overlay)
     if (views != null) {
         Surface(
@@ -126,6 +129,7 @@ fun MovieCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     width: Dp? = null,
+    sharedKey: String? = null,
 ) {
     val colors = MaterialTheme.colorScheme
     Column(
@@ -134,7 +138,7 @@ fun MovieCard(
     ) {
         CoverImage(
             image, contentDescription = null,
-            modifier = Modifier.fillMaxWidth().aspectRatio(MOVIE_COVER_RATIO)
+            modifier = sharedCover(sharedKey).fillMaxWidth().aspectRatio(MOVIE_COVER_RATIO)
                 .border(1.dp, colors.outlineVariant, MaterialTheme.shapes.large),
             shape = MaterialTheme.shapes.large,
         )

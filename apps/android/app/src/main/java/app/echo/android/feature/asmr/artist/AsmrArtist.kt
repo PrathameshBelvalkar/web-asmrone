@@ -1,5 +1,6 @@
 package app.echo.android.feature.asmr.artist
 
+import app.echo.designsystem.component.echo.CoverKeys
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.remember
@@ -159,7 +160,7 @@ fun AsmrArtistScreen(
 private fun androidx.compose.foundation.lazy.LazyListScope.shelf(title: Int, works: List<Work>, onWork: (String) -> Unit, onAll: () -> Unit) {
     if (works.isEmpty()) return
     item { ShelfHeader(stringResource(title), onClick = onAll) }
-    item { CoverRow(works.size) { i -> works[i].let { CoverCard(it.title, it.circle, it.coverUrl, { onWork(it.id) }) } } }
+    item { CoverRow(works.size) { i -> works[i].let { CoverCard(it.title, it.circle, it.coverUrl, { onWork(it.id) }, sharedKey = CoverKeys.work(it.id)) } } }
 }
 
 /** The artist's ⋮: Share and Open on asmr.one. */

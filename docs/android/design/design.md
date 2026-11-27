@@ -1417,7 +1417,7 @@ with the reason:
 - Shared-element transitions for covers (shelf → media page, mini player → full player) with `slowSpatialSpec`.
 - An accessibility pass ([§12.4](#124-accessibility)). A final side-by-side pass over all 75 screens.
 
-#### Phase 12 notes (in progress)
+#### Phase 12 notes
 
 **Every tap does something.** An audit for empty handlers outside previews now finds none. The Figma prototype links
 (about 700, all 75 phone frames) were compared with the app; differences are deliberate (below).
@@ -1442,7 +1442,23 @@ with the reason:
 - 1.7: the "Add tracks" FAB is the 56 dp extended FAB from Figma; an empty playlist shows "No tracks yet" and Play /
   Shuffle are disabled. Counts use plurals ("1 playlist", "1 track").
 
-Still to do: shared-element transitions for covers, and the accessibility pass (§12.4).
+**Shared-element transitions.** The NavHost sits in a `SharedTransitionLayout`; every built destination is registered
+with `screen<Route>` (RealScreens), which provides its `AnimatedVisibilityScope` as `LocalNavAnimatedScope`. Covers
+use `sharedCover(CoverKeys.x(id))` with `motionScheme.slowSpatialSpec`: ASMR hero, continue, shelf, feed and results
+cards → 1.5; gallery cards → 2.5; movie cards → 3.6; title cards → H.7. Mini player → full player is not a shared
+element: the player sheet follows the finger (a drag, not a navigation), so it keeps its own expand animation.
+
+**Accessibility pass (§12.4).** Checked on `Pixel_8` with a uiautomator dump of each main screen (every clickable
+node needs a name and 48 dp), and the 1.3× font screenshots:
+- Icon buttons keep their visual size inside a 48 dp touch target (`minimumInteractiveComponentSize`); so do the
+  1.5 artist link and 3.6 Studio / Director values.
+- Covers keep their description even as placeholders; the search fields announce their hint; H.7 storyboard frames
+  and H.8 thumbnails are named ("Preview frame 3, 3:19"); the theater's tap surface says Show / Hide controls.
+- The reader's tap zones have TalkBack actions (Next page, Previous page, Show menus).
+- Headings: shelf headers, sheet and app bar titles, settings group labels, onboarding titles.
+- Large text: 3.6 and S.13 button rows wrap instead of squeezing; H.2 entry cards grow instead of clipping.
+
+Still to do: the final side-by-side pass over all screens, and the §12.3 UI tests.
 
 ---
 

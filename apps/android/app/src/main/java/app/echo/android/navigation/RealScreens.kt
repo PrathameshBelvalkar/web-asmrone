@@ -1,5 +1,9 @@
 package app.echo.android.navigation
 
+import app.echo.designsystem.component.echo.LocalNavAnimatedScope
+import androidx.navigation.NavBackStackEntry
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.State
 import androidx.navigation.NavGraphBuilder
@@ -66,6 +70,14 @@ import app.echo.data.model.Source
 import kotlin.reflect.KClass
 
 /**
+ * A destination that hands its enter / exit animation to the screen ([LocalNavAnimatedScope]), so covers can share
+ * elements across the navigation (Phase 12).
+ */
+internal inline fun <reified T : Any> NavGraphBuilder.screen(noinline content: @Composable (NavBackStackEntry) -> Unit) {
+    composable<T> { entry -> CompositionLocalProvider(LocalNavAnimatedScope provides this) { content(entry) } }
+}
+
+/**
  * Registers the screens that are built, and returns their route classes so [EchoNavHost] skips their placeholders.
  * Grows phase by phase.
  */
@@ -74,80 +86,80 @@ internal fun NavGraphBuilder.realScreens(
     source: State<Source>,
     contentPadding: PaddingValues,
 ): Set<KClass<out Route>> {
-    composable<Route.AsmrHome> { AsmrHomeRoute(shell, source.value, contentPadding) }
-    composable<Route.AsmrSearch> { AsmrSearchRoute(shell, contentPadding) }
-    composable<Route.AsmrResults> { entry ->
+    screen<Route.AsmrHome> { AsmrHomeRoute(shell, source.value, contentPadding) }
+    screen<Route.AsmrSearch> { AsmrSearchRoute(shell, contentPadding) }
+    screen<Route.AsmrResults> { entry ->
         val s = source.value
         AsmrResultsRoute(entry.toRoute<Route.AsmrResults>().query, shell, s.name, shell.sectionIcon(s.section), contentPadding)
     }
-    composable<Route.AsmrFeed> { entry -> AsmrFeedRoute(entry.toRoute<Route.AsmrFeed>().tab, shell, source.value.name, contentPadding) }
-    composable<Route.Work> { entry -> AsmrWorkRoute(entry.toRoute<Route.Work>().id, shell, contentPadding) }
-    composable<Route.Artist> { entry -> AsmrArtistRoute(entry.toRoute<Route.Artist>().id, shell, contentPadding) }
-    composable<Route.Playlists> { AsmrPlaylistsRoute(shell, contentPadding) }
-    composable<Route.Playlist> { entry -> AsmrPlaylistRoute(entry.toRoute<Route.Playlist>().id, shell, contentPadding) }
-    composable<Route.Library> { SharedLibraryRoute(shell, contentPadding) }
-    composable<Route.History> { SharedHistoryRoute(shell, contentPadding) }
-    composable<Route.NotFound> { SharedStatesRoute(shell, source.value, contentPadding) }
+    screen<Route.AsmrFeed> { entry -> AsmrFeedRoute(entry.toRoute<Route.AsmrFeed>().tab, shell, source.value.name, contentPadding) }
+    screen<Route.Work> { entry -> AsmrWorkRoute(entry.toRoute<Route.Work>().id, shell, contentPadding) }
+    screen<Route.Artist> { entry -> AsmrArtistRoute(entry.toRoute<Route.Artist>().id, shell, contentPadding) }
+    screen<Route.Playlists> { AsmrPlaylistsRoute(shell, contentPadding) }
+    screen<Route.Playlist> { entry -> AsmrPlaylistRoute(entry.toRoute<Route.Playlist>().id, shell, contentPadding) }
+    screen<Route.Library> { SharedLibraryRoute(shell, contentPadding) }
+    screen<Route.History> { SharedHistoryRoute(shell, contentPadding) }
+    screen<Route.NotFound> { SharedStatesRoute(shell, source.value, contentPadding) }
     // Manga (2.1–2.11). The reader is immersive: no content padding.
-    composable<Route.MangaBrowse> { MangaBrowseRoute(shell, source.value, contentPadding) }
-    composable<Route.MangaSearch> { MangaSearchRoute(shell, source.value, contentPadding) }
-    composable<Route.Tags> { MangaTagsRoute(shell, source.value, contentPadding) }
-    composable<Route.TagList> { entry -> MangaTagListRoute(entry.toRoute<Route.TagList>().tagId, shell, contentPadding) }
-    composable<Route.Gallery> { entry -> MangaGalleryRoute(entry.toRoute<Route.Gallery>().id, shell, contentPadding) }
-    composable<Route.Reader> { entry ->
+    screen<Route.MangaBrowse> { MangaBrowseRoute(shell, source.value, contentPadding) }
+    screen<Route.MangaSearch> { MangaSearchRoute(shell, source.value, contentPadding) }
+    screen<Route.Tags> { MangaTagsRoute(shell, source.value, contentPadding) }
+    screen<Route.TagList> { entry -> MangaTagListRoute(entry.toRoute<Route.TagList>().tagId, shell, contentPadding) }
+    screen<Route.Gallery> { entry -> MangaGalleryRoute(entry.toRoute<Route.Gallery>().id, shell, contentPadding) }
+    screen<Route.Reader> { entry ->
         val reader = entry.toRoute<Route.Reader>()
         MangaReaderRoute(reader.galleryId, reader.page, reader.showPages, shell)
     }
-    composable<Route.EndOfGallery> { entry -> MangaEndRoute(entry.toRoute<Route.EndOfGallery>().galleryId, shell) }
-    composable<Route.MangaArtists> { MangaArtistsRoute(shell, source.value, contentPadding) }
+    screen<Route.EndOfGallery> { entry -> MangaEndRoute(entry.toRoute<Route.EndOfGallery>().galleryId, shell) }
+    screen<Route.MangaArtists> { MangaArtistsRoute(shell, source.value, contentPadding) }
     // JAV (3.1–3.12). The theater is immersive and landscape: no content padding.
-    composable<Route.News> { JavNewsRoute(shell, source.value, contentPadding) }
-    composable<Route.NewsPost> { entry -> JavNewsPostRoute(entry.toRoute<Route.NewsPost>().id, shell, contentPadding) }
-    composable<Route.Latest> { JavLatestRoute(shell, source.value, contentPadding) }
-    composable<Route.Movies> { JavMoviesRoute(shell, source.value, contentPadding) }
-    composable<Route.MovieList> { entry -> JavMovieListRoute(entry.toRoute<Route.MovieList>().filter, shell, contentPadding) }
-    composable<Route.Movie> { entry -> JavMovieRoute(entry.toRoute<Route.Movie>().id, shell, contentPadding) }
-    composable<Route.JavTheater> { entry ->
+    screen<Route.News> { JavNewsRoute(shell, source.value, contentPadding) }
+    screen<Route.NewsPost> { entry -> JavNewsPostRoute(entry.toRoute<Route.NewsPost>().id, shell, contentPadding) }
+    screen<Route.Latest> { JavLatestRoute(shell, source.value, contentPadding) }
+    screen<Route.Movies> { JavMoviesRoute(shell, source.value, contentPadding) }
+    screen<Route.MovieList> { entry -> JavMovieListRoute(entry.toRoute<Route.MovieList>().filter, shell, contentPadding) }
+    screen<Route.Movie> { entry -> JavMovieRoute(entry.toRoute<Route.Movie>().id, shell, contentPadding) }
+    screen<Route.JavTheater> { entry ->
         val theater = entry.toRoute<Route.JavTheater>()
         JavTheaterRoute(theater.movieId, theater.fromStart, shell)
     }
-    composable<Route.Idols> { entry -> JavIdolsRoute(entry.toRoute<Route.Idols>().agency, shell, source.value, contentPadding) }
-    composable<Route.Idol> { entry -> JavIdolRoute(entry.toRoute<Route.Idol>().id, shell, contentPadding) }
-    composable<Route.Genres> { JavGenresRoute(shell, source.value, contentPadding) }
-    composable<Route.JavSearch> { JavSearchRoute(shell, contentPadding) }
-    composable<Route.JavLibrary> { JavLibraryRoute(shell, contentPadding) }
+    screen<Route.Idols> { entry -> JavIdolsRoute(entry.toRoute<Route.Idols>().agency, shell, source.value, contentPadding) }
+    screen<Route.Idol> { entry -> JavIdolRoute(entry.toRoute<Route.Idol>().id, shell, contentPadding) }
+    screen<Route.Genres> { JavGenresRoute(shell, source.value, contentPadding) }
+    screen<Route.JavSearch> { JavSearchRoute(shell, contentPadding) }
+    screen<Route.JavLibrary> { JavLibraryRoute(shell, contentPadding) }
     // Hentai (H.1–H.11; H.4 and H.8 are a sheet and a dialog). The theater is immersive: no content padding.
-    composable<Route.HentaiHome> { HentaiHomeRoute(shell, source.value, contentPadding) }
-    composable<Route.HentaiBrowse> { HentaiBrowseRoute(shell, source.value, contentPadding) }
-    composable<Route.HentaiTitles> { entry -> HentaiTitlesRoute(entry.toRoute<Route.HentaiTitles>(), shell, source.value, contentPadding) }
-    composable<Route.Seasons> { HentaiSeasonsRoute(shell, source.value, contentPadding) }
-    composable<Route.HentaiSearch> { HentaiSearchRoute(shell, contentPadding) }
-    composable<Route.HentaiTitle> { entry -> HentaiTitleRoute(entry.toRoute<Route.HentaiTitle>().id, shell, contentPadding) }
-    composable<Route.HentaiLibrary> { HentaiLibraryRoute(shell, contentPadding) }
-    composable<Route.TitleState> { entry -> TitleStateRoute(entry.toRoute<Route.TitleState>().kind, shell) }
-    composable<Route.HentaiTheater> { entry ->
+    screen<Route.HentaiHome> { HentaiHomeRoute(shell, source.value, contentPadding) }
+    screen<Route.HentaiBrowse> { HentaiBrowseRoute(shell, source.value, contentPadding) }
+    screen<Route.HentaiTitles> { entry -> HentaiTitlesRoute(entry.toRoute<Route.HentaiTitles>(), shell, source.value, contentPadding) }
+    screen<Route.Seasons> { HentaiSeasonsRoute(shell, source.value, contentPadding) }
+    screen<Route.HentaiSearch> { HentaiSearchRoute(shell, contentPadding) }
+    screen<Route.HentaiTitle> { entry -> HentaiTitleRoute(entry.toRoute<Route.HentaiTitle>().id, shell, contentPadding) }
+    screen<Route.HentaiLibrary> { HentaiLibraryRoute(shell, contentPadding) }
+    screen<Route.TitleState> { entry -> TitleStateRoute(entry.toRoute<Route.TitleState>().kind, shell) }
+    screen<Route.HentaiTheater> { entry ->
         val theater = entry.toRoute<Route.HentaiTheater>()
         HentaiTheaterRoute(theater.titleId, theater.episode, shell)
     }
     // Settings and profile (S.1–S.13; P.1, S.14 and S.15 are sheets in the shell).
-    composable<Route.Settings> { SettingsRoute(shell) }
-    composable<Route.Preferences> { AsmrPreferencesRoute(shell) }
-    composable<Route.AiSubtitles> { AiSubtitlesRoute(shell) }
-    composable<Route.JavSettings> { JavSettingsRoute(shell) }
-    composable<Route.Storage> { StorageRoute(shell, onClearAll = shell::clearAllData) }
-    composable<Route.LookAndFeel> { LookAndFeelRoute(shell) }
-    composable<Route.Playback> { PlaybackRoute(shell) }
-    composable<Route.ReaderDefaults> { ReaderDefaultsRoute(shell) }
-    composable<Route.About> { AboutRoute(shell) }
-    composable<Route.EditProfile> { EditProfileRoute(shell, onReset = shell::resetProfile) }
-    composable<Route.Updates> { UpdatesRoute(shell) }
+    screen<Route.Settings> { SettingsRoute(shell) }
+    screen<Route.Preferences> { AsmrPreferencesRoute(shell) }
+    screen<Route.AiSubtitles> { AiSubtitlesRoute(shell) }
+    screen<Route.JavSettings> { JavSettingsRoute(shell) }
+    screen<Route.Storage> { StorageRoute(shell, onClearAll = shell::clearAllData) }
+    screen<Route.LookAndFeel> { LookAndFeelRoute(shell) }
+    screen<Route.Playback> { PlaybackRoute(shell) }
+    screen<Route.ReaderDefaults> { ReaderDefaultsRoute(shell) }
+    screen<Route.About> { AboutRoute(shell) }
+    screen<Route.EditProfile> { EditProfileRoute(shell, onReset = shell::resetProfile) }
+    screen<Route.Updates> { UpdatesRoute(shell) }
     // Onboarding (O.1–O.8; O.9 comes after the JAV and Hentai sections).
-    composable<Route.Splash> { SplashRoute(shell) }
-    composable<Route.Welcome> { entry -> WelcomeRoute(entry.toRoute<Route.Welcome>().page, shell) }
-    composable<Route.ChooseSources> { ChooseSourcesRoute(shell) }
-    composable<Route.YourProfile> { YourProfileRoute(shell) }
-    composable<Route.Age> { AgeRoute(shell) }
-    composable<Route.MakeItYours> { MakeItYoursRoute(shell) }
+    screen<Route.Splash> { SplashRoute(shell) }
+    screen<Route.Welcome> { entry -> WelcomeRoute(entry.toRoute<Route.Welcome>().page, shell) }
+    screen<Route.ChooseSources> { ChooseSourcesRoute(shell) }
+    screen<Route.YourProfile> { YourProfileRoute(shell) }
+    screen<Route.Age> { AgeRoute(shell) }
+    screen<Route.MakeItYours> { MakeItYoursRoute(shell) }
     return setOf(
         Route.Playlists::class, Route.Playlist::class,
         Route.AsmrHome::class, Route.AsmrSearch::class, Route.AsmrResults::class,

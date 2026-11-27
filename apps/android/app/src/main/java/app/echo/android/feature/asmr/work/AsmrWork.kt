@@ -1,5 +1,6 @@
 package app.echo.android.feature.asmr.work
 
+import app.echo.designsystem.component.echo.CoverKeys
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.Box
@@ -221,6 +222,7 @@ private fun WorkContent(
                 meta = listOf(stringResource(R.string.work_meta, work.code.orEmpty(), work.tracks.size, total)),
                 cover = work.coverUrl,
                 onArtistClick = { onArtist(work.circle) },
+                coverKey = CoverKeys.work(work.id),
             )
         }
         item {
@@ -293,7 +295,7 @@ private fun WorkContent(
         if (state.similar.isNotEmpty()) {
             // The arrow opens results for the work's first tag (its circle when it has none).
             item { ShelfHeader(stringResource(R.string.work_more_like_this), onClick = { onTag(work.tags.firstOrNull() ?: work.circle) }) }
-            item { CoverRow(state.similar.size) { i -> state.similar[i].let { CoverCard(it.title, it.circle, it.coverUrl, { onWork(it.id) }) } } }
+            item { CoverRow(state.similar.size) { i -> state.similar[i].let { CoverCard(it.title, it.circle, it.coverUrl, { onWork(it.id) }, sharedKey = CoverKeys.work(it.id)) } } }
         }
     }
 }

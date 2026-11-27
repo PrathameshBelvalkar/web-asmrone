@@ -1,5 +1,6 @@
 package app.echo.android.feature.manga.taglist
 
+import app.echo.designsystem.component.echo.CoverKeys
 import app.echo.android.feature.manga.tagUrl
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.foundation.layout.Box
@@ -167,6 +168,7 @@ fun MangaTagListScreen(
                         GalleryCard(
                             title = gallery.title, artist = gallery.artist, image = gallery.coverUrl,
                             onClick = { onGallery(gallery.id) }, pages = gallery.pageCount, language = gallery.language,
+                            sharedKey = CoverKeys.gallery(gallery.id),
                         )
                     }
                 }

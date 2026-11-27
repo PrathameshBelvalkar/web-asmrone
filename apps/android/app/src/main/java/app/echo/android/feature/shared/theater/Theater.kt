@@ -225,7 +225,10 @@ fun TheaterScreen(
     }
     Box(
         Modifier.fillMaxSize().background(Color.Black).testTag("screen:$code")
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { controls = !controls },
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() }, indication = null,
+                onClickLabel = stringResource(if (controls) R.string.a11y_hide_controls else R.string.a11y_show_controls),
+            ) { controls = !controls },
     ) {
         AnimatedVisibility(controls, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.fillMaxSize()) {
             Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.35f)).safeDrawingPadding().padding(horizontal = 24.dp, vertical = 12.dp)) {

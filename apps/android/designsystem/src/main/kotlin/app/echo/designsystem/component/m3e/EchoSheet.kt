@@ -1,5 +1,7 @@
 package app.echo.designsystem.component.m3e
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -53,7 +55,7 @@ fun EchoSheet(
 @Composable
 fun SheetHeader(title: String, subtitle: String? = null) {
     Column(Modifier.padding(start = EchoSpacing.sectionPadding, end = EchoSpacing.sectionPadding, bottom = EchoSpacing.l)) {
-        Text(title, style = MaterialTheme.typography.titleLarge)
+        Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         if (subtitle != null) {
             Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

@@ -1,5 +1,6 @@
 package app.echo.designsystem.component.m3e
 
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
@@ -66,7 +67,8 @@ fun EchoIconButton(
             modifier = Modifier.size(iconSize),
         )
     }
-    val sized = modifier.size(container)
+    // The visual size, inside at least a 48 dp touch target (accessibility pass).
+    val sized = modifier.minimumInteractiveComponentSize().size(container)
     if (checked == null) {
         val shapes = buttonShapes(size, shape)
         when (style) {

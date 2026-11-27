@@ -1,5 +1,6 @@
 package app.echo.android.feature.jav
 
+import app.echo.designsystem.component.echo.CoverKeys
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -106,7 +107,7 @@ fun Movie.cardMeta(): String = if (upcoming) stringResource(R.string.jav_release
 /** Movies as grid items (2 columns, Figma 3.3–3.5, 3.9). */
 fun LazyGridScope.movieItems(movies: List<Movie>, onMovie: (String) -> Unit) {
     items(movies, key = { it.id }) { movie ->
-        MovieCard(movie.code, movie.title, movie.cardMeta(), movie.coverUrl, onClick = { onMovie(movie.id) })
+        MovieCard(movie.code, movie.title, movie.cardMeta(), movie.coverUrl, onClick = { onMovie(movie.id) }, sharedKey = CoverKeys.movie(movie.id))
     }
 }
 

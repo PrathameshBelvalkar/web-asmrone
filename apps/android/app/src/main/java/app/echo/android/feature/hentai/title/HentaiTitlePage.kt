@@ -1,5 +1,9 @@
 package app.echo.android.feature.hentai.title
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.contentDescription
+import app.echo.designsystem.component.echo.CoverKeys
 import app.echo.designsystem.component.m3e.InfoChips
 import android.content.ClipData
 import android.content.Intent
@@ -223,7 +227,7 @@ fun HentaiTitleScreen(
         ) {
             item("hero") {
                 TitleHero(
-                    backdrop = t.posterUrl, cover = t.coverUrl, title = t.title, onBack = onBack,
+                    backdrop = t.posterUrl, cover = t.coverUrl, title = t.title, onBack = onBack, coverKey = CoverKeys.title(t.id),
                     badges = {
                         if (t.uncensored) CoverBadge(stringResource(R.string.hentai_uncensored_badge).uppercase(), style = BadgeStyle.Overlay)
                         CoverBadge(stringResource(R.string.hentai_ep_badge, episode), style = BadgeStyle.Accent)
@@ -297,7 +301,12 @@ fun HentaiTitleScreen(
                 Column {
                     ShelfHeader(stringResource(R.string.hentai_preview_frames, t.frames), onClick = { preview = 0 })
                     CoverCarousel(t.frames, style = CarouselStyle.MultiBrowse, height = 124.dp) { i ->
-                        Box(Modifier.fillMaxSize().maskClip(MaterialTheme.shapes.largeIncreased).clickable { preview = i }) {
+                        val frameLabel = stringResource(R.string.a11y_frame, i + 1, clock(frameTime(t, i)))
+                        Box(
+                            Modifier.fillMaxSize().maskClip(MaterialTheme.shapes.largeIncreased)
+                                .semantics(mergeDescendants = true) { contentDescription = frameLabel }
+                                .clickable { preview = i },
+                        ) {
                             CoverImage(null, null, Modifier.fillMaxSize(), shape = null)
                             TimePill(clock(frameTime(t, i)), Modifier.align(Alignment.BottomStart).padding(EchoSpacing.s))
                         }
@@ -395,6 +404,8 @@ private fun TimePill(text: String, modifier: Modifier = Modifier) = Text(
 private fun PreviewViewer(t: HentaiTitle, start: Int, onDismiss: () -> Unit) {
     var index by rememberSaveable { mutableIntStateOf(start) }
     val strip = rememberLazyListState()
+    val res = androidx.compose.ui.platform.LocalContext.current.resources
+    val frameLabel = { i: Int -> res.getString(R.string.a11y_frame, i + 1, clock(frameTime(t, i))) }
     LaunchedEffect(index) { strip.animateScrollToItem((index - STRIP_CENTRE).coerceAtLeast(0)) }
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         ReaderTheme {
@@ -425,6 +436,7 @@ private fun PreviewViewer(t: HentaiTitle, start: Int, onDismiss: () -> Unit) {
                         Box(
                             Modifier.width(48.dp).height(28.dp).clip(shape)
                                 .border(if (i == index) 2.dp else 0.dp, if (i == index) Color.White else Color.Transparent, shape)
+                                .semantics { contentDescription = frameLabel(i); selected = i == index }
                                 .clickable { index = i },
                         ) { CoverImage(null, null, Modifier.fillMaxSize(), shape = null) }
                     }

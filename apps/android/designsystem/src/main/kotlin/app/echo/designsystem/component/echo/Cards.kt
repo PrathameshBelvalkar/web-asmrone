@@ -38,13 +38,15 @@ fun CoverCard(
     width: Dp = UncontainedItemWidth,
     aspectRatio: Float = 1f,
     overlay: (@Composable () -> Unit)? = null,
+    /** Shared-element key: the cover moves into the page that opens ([CoverKeys]). */
+    sharedKey: String? = null,
 ) {
     Column(
         modifier.width(width).clickable(onClick = onClick),
         verticalArrangement = Arrangement.spacedBy(EchoSpacing.xs),
     ) {
         androidx.compose.foundation.layout.Box {
-            CoverImage(image, contentDescription = null, modifier = Modifier.fillMaxWidth().aspectRatio(aspectRatio))
+            CoverImage(image, contentDescription = null, modifier = sharedCover(sharedKey).fillMaxWidth().aspectRatio(aspectRatio))
             overlay?.invoke()
         }
         CardText(title, meta)
@@ -65,12 +67,13 @@ fun ContinueCard(
     modifier: Modifier = Modifier,
     width: Dp = UncontainedItemWidth,
     aspectRatio: Float = 1f,
+    sharedKey: String? = null,
 ) {
     Column(
         modifier.width(width).clickable(onClick = onClick),
         verticalArrangement = Arrangement.spacedBy(EchoSpacing.s - EchoSpacing.xxs),
     ) {
-        CoverImage(image, contentDescription = null, modifier = Modifier.fillMaxWidth().aspectRatio(aspectRatio))
+        CoverImage(image, contentDescription = null, modifier = sharedCover(sharedKey).fillMaxWidth().aspectRatio(aspectRatio))
         LinearProgressIndicator(
             progress = { progress },
             modifier = Modifier.fillMaxWidth().height(EchoSpacing.xs),

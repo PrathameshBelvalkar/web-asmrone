@@ -1,5 +1,6 @@
 package app.echo.android.feature.hentai.browse
 
+import androidx.compose.foundation.layout.heightIn
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -202,7 +203,8 @@ fun HentaiBrowseScreen(
 private fun EntryCard(@DrawableRes icon: Int, title: Int, body: String, onClick: () -> Unit, modifier: Modifier) {
     Card(
         onClick = onClick,
-        modifier = modifier.height(117.dp),
+        // Figma's 117 dp is the minimum: larger text grows the card instead of clipping it.
+        modifier = modifier.heightIn(min = 117.dp),
         shape = MaterialTheme.shapes.extraLarge,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {

@@ -1,5 +1,7 @@
 package app.echo.android.shell
 
+import app.echo.designsystem.component.echo.LocalSharedTransitionScope
+import androidx.compose.animation.SharedTransitionLayout
 import app.echo.android.feature.shared.TrackExtra
 import app.echo.android.feature.shared.TrackActionsSheet
 import app.echo.android.feature.shared.LocalTrackActions
@@ -84,6 +86,7 @@ import app.echo.designsystem.tokens.EchoSpacing
  * snackbar host, plus the shell's own sheets (0.1 Source switcher, P.1 Profile). What is shown around a screen comes
  * from its [ScreenSpecs] chrome.
  */
+@OptIn(androidx.compose.animation.ExperimentalSharedTransitionApi::class)
 @Composable
 fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = rememberNavController()) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -174,14 +177,19 @@ fun EchoAppScaffold(vm: ShellViewModel, start: Route, nav: NavHostController = r
             LocalTipAnchors provides tipAnchors,
             LocalSourceLongPress provides { nav.navigate(Route.Settings) },
         ) {
-            EchoNavHost(
-                nav = nav,
-                start = start,
-                shell = actions,
-                source = shell.source,
-                contentPadding = PaddingValues(bottom = bottomPadding),
-                modifier = Modifier.fillMaxSize(),
-            )
+            // Covers move between a card and its page (Phase 12 shared elements).
+            SharedTransitionLayout {
+                CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+                    EchoNavHost(
+                        nav = nav,
+                        start = start,
+                        shell = actions,
+                        source = shell.source,
+                        contentPadding = PaddingValues(bottom = bottomPadding),
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
         }
 
         if (showNavBar) {

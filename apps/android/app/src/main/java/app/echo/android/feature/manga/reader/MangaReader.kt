@@ -1,5 +1,7 @@
 package app.echo.android.feature.manga.reader
 
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import app.echo.android.feature.manga.galleryUrl
 import app.echo.android.ui.shareText
 import androidx.compose.ui.res.painterResource
@@ -320,10 +322,22 @@ private fun PagedReader(
         val target = (page - 1).coerceIn(0, pageCount - 1)
         if (pagerState.currentPage != target) pagerState.animateScrollToPage(target)
     }
+    val nextLabel = stringResource(R.string.reader_tap_next)
+    val previousLabel = stringResource(R.string.reader_tap_previous)
+    val menusLabel = stringResource(R.string.reader_tap_menus)
     HorizontalPager(
         state = pagerState,
         reverseLayout = rtl,
-        modifier = Modifier.fillMaxSize().pointerInput(rtl, pageCount) {
+        // TalkBack can't tap a third of the screen: the same moves as actions.
+        modifier = Modifier.fillMaxSize()
+            .semantics {
+                customActions = listOf(
+                    CustomAccessibilityAction(nextLabel) { scope.launch { pagerState.animateScrollToPage((pagerState.currentPage + 1).coerceIn(0, pageCount)) }; true },
+                    CustomAccessibilityAction(previousLabel) { scope.launch { pagerState.animateScrollToPage((pagerState.currentPage - 1).coerceAtLeast(0)) }; true },
+                    CustomAccessibilityAction(menusLabel) { onCentreTap(); true },
+                )
+            }
+            .pointerInput(rtl, pageCount) {
             detectTapGestures { offset ->
                 val third = size.width / 3f
                 val step = when {
@@ -354,6 +368,7 @@ private fun StripReader(
     onCentreTap: () -> Unit,
 ) {
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = (page - 1).coerceIn(0, pageCount - 1))
+    val menusLabel = stringResource(R.string.reader_tap_menus)
     LaunchedEffect(listState.firstVisibleItemIndex) { onPage(listState.firstVisibleItemIndex + 1) }
     LaunchedEffect(page) {
         val target = (page - 1).coerceIn(0, pageCount - 1)
@@ -361,7 +376,9 @@ private fun StripReader(
     }
     LazyColumn(
         state = listState,
-        modifier = Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures { onCentreTap() } },
+        modifier = Modifier.fillMaxSize()
+            .semantics { customActions = listOf(CustomAccessibilityAction(menusLabel) { onCentreTap(); true }) }
+            .pointerInput(Unit) { detectTapGestures { onCentreTap() } },
         verticalArrangement = Arrangement.spacedBy(if (gaps) EchoSpacing.s else 0.dp),
     ) {
         itemsIndexed(List(pageCount) { it }) { index, _ ->

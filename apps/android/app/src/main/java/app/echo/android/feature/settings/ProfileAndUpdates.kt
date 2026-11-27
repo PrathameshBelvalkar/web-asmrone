@@ -1,5 +1,6 @@
 package app.echo.android.feature.settings
 
+import androidx.compose.foundation.layout.FlowRow
 import app.echo.designsystem.component.m3e.SegmentedInfoItem
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -266,6 +267,7 @@ fun UpdatesScreen(
 }
 
 /** The filled card at the top of S.13: the new version, its notes, Update now · Release notes. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun UpdateCard(release: AppRelease, installed: AppRelease, onUpdateNow: () -> Unit, onNotes: () -> Unit) {
     Card(
@@ -286,7 +288,8 @@ private fun UpdateCard(release: AppRelease, installed: AppRelease, onUpdateNow: 
                 }
             }
             ReleaseNotes(release.notes)
-            Row(horizontalArrangement = Arrangement.spacedBy(EchoSpacing.s)) {
+            // Wraps at large font sizes (accessibility pass).
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(EchoSpacing.s), verticalArrangement = Arrangement.spacedBy(EchoSpacing.xs)) {
                 EchoButton(stringResource(R.string.settings_update_now), onUpdateNow, icon = EchoIcons.Download)
                 EchoButton(stringResource(R.string.settings_release_notes), onNotes, style = ButtonStyle.Text, icon = EchoIcons.OpenInNew)
             }
