@@ -39,6 +39,8 @@ android {
 
     testOptions {
         unitTests.isIncludeAndroidResources = true
+        // §12.3 device tests: no window animations, so waits are about the app, not the transitions.
+        animationsDisabled = true
     }
 
     lint {
@@ -85,4 +87,6 @@ dependencies {
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.compose.ui.test.junit4)
+    // ComponentActivity for tests that host a screen on its own (BackNavigationTest).
+    debugImplementation(libs.compose.ui.test.manifest)
 }

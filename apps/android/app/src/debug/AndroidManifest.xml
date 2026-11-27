@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Debug builds only: a second launcher icon for the Phase 1 Design system screen (design.md §6.8). -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <application>
         <activity
             android:name=".debug.DesignSystemActivity"
@@ -12,5 +13,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- The host of the device tests (from ui-test-manifest): the theater turns to landscape, which must not
+             recreate it and drop the content the test set. -->
+        <activity
+            android:name="androidx.activity.ComponentActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
+            tools:node="merge" />
     </application>
 </manifest>

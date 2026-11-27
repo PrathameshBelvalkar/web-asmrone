@@ -205,17 +205,17 @@ private fun TapZone(label: String, @DrawableRes icon: Int, modifier: Modifier) {
 
 @Composable
 private fun ZoneLabel(label: String, @DrawableRes icon: Int) {
-    run {
-        Surface(shape = EchoShapes.Full, color = MaterialTheme.colorScheme.surfaceContainerHighest) {
-            Row(
-                Modifier.padding(horizontal = EchoSpacing.m - EchoSpacing.xxs, vertical = EchoSpacing.s - EchoSpacing.xxs),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(EchoSpacing.xs),
-            ) {
-                Icon(painterResource(icon), null, Modifier.size(16.dp))
-                Text(label, style = MaterialTheme.typography.labelSmall)
-            }
-        }
+    // Drawn, not a Surface: a Surface takes touches, and a tap on the hint must still turn the page.
+    Row(
+        Modifier.clip(EchoShapes.Full)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .padding(horizontal = EchoSpacing.m - EchoSpacing.xxs, vertical = EchoSpacing.s - EchoSpacing.xxs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(EchoSpacing.xs),
+    ) {
+        val color = MaterialTheme.colorScheme.onSurface
+        Icon(painterResource(icon), null, Modifier.size(16.dp), tint = color)
+        Text(label, style = MaterialTheme.typography.labelSmall, color = color)
     }
 }
 
