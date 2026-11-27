@@ -1,5 +1,8 @@
 package app.echo.android.feature.manga.reader
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlin.math.abs
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import app.echo.android.feature.manga.galleryUrl
@@ -135,6 +138,8 @@ class MangaReaderViewModel(
     private val library: LibraryRepository,
     private val settings: SettingsRepository,
     private val prefs: ReaderPrefsRepository,
+    /** Outlives the reader, so the last page is still saved when it closes right after a turn. */
+    private val saveScope: CoroutineScope,
 ) : ViewModel() {
     private val reloads = MutableStateFlow(0)
     private val page = MutableStateFlow(initialPage.coerceAtLeast(1))
@@ -165,8 +170,16 @@ class MangaReaderViewModel(
         val loaded = (gallery.value as? Load.Content)?.value
         val clamped = if (loaded != null) index.coerceIn(1, loaded.pageCount) else index.coerceAtLeast(1)
         page.value = clamped
-        if (loaded != null) viewModelScope.launch { library.saveReadProgress(loaded, clamped, finished = clamped >= loaded.pageCount) }
+        // Saved once the page stops changing, not for every step of a slider drag.
+        saveJob?.cancel()
+        if (loaded != null) {
+            saveJob = saveScope.launch {
+                delay(SAVE_DELAY_MS)
+                library.saveReadProgress(loaded, clamped, finished = clamped >= loaded.pageCount)
+            }
+        }
     }
+    private var saveJob: Job? = null
 
     fun toggleMenus() { menus.value = !menus.value }
     fun openSheet(which: ReaderSheet) { menus.value = false; sheet.value = which }
@@ -209,7 +222,7 @@ private fun ReaderSettings.toOverrides() = GalleryReaderPrefs(readingMode, tapZo
 @Composable
 fun MangaReaderRoute(galleryId: String, page: Int, showPages: Boolean, shell: ShellActions) {
     val vm = echoViewModel(key = "$galleryId/$page/$showPages") {
-        MangaReaderViewModel(galleryId, page, showPages, it.manga, it.library, it.settings, it.readerPrefs)
+        MangaReaderViewModel(galleryId, page, showPages, it.manga, it.library, it.settings, it.readerPrefs, it.appScope)
     }
     val state by vm.state.collectAsStateWithLifecycle()
     MangaReaderScreen(
@@ -284,6 +297,7 @@ fun MangaReaderScreen(
 }
 
 private const val HintMillis = 1_500L
+private const val SAVE_DELAY_MS = 400L
 
 @Composable
 private fun ReaderPages(
@@ -320,7 +334,13 @@ private fun PagedReader(
     }
     LaunchedEffect(page) {
         val target = (page - 1).coerceIn(0, pageCount - 1)
-        if (pagerState.currentPage != target) pagerState.animateScrollToPage(target)
+        // A neighbour slides; a jump (slider, first / last page) lands at once, without flicking through every page
+        // in between and reporting them back while the slider is still moving.
+        when {
+            pagerState.currentPage == target -> Unit
+            abs(pagerState.currentPage - target) == 1 -> pagerState.animateScrollToPage(target)
+            else -> pagerState.scrollToPage(target)
+        }
     }
     val nextLabel = stringResource(R.string.reader_tap_next)
     val previousLabel = stringResource(R.string.reader_tap_previous)
@@ -372,7 +392,11 @@ private fun StripReader(
     LaunchedEffect(listState.firstVisibleItemIndex) { onPage(listState.firstVisibleItemIndex + 1) }
     LaunchedEffect(page) {
         val target = (page - 1).coerceIn(0, pageCount - 1)
-        if (listState.firstVisibleItemIndex != target) listState.animateScrollToItem(target)
+        when {
+            listState.firstVisibleItemIndex == target -> Unit
+            abs(listState.firstVisibleItemIndex - target) == 1 -> listState.animateScrollToItem(target)
+            else -> listState.scrollToItem(target)
+        }
     }
     LazyColumn(
         state = listState,

@@ -1,5 +1,11 @@
 package app.echo.designsystem.component.echo
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableIntStateOf
+import kotlin.math.abs
+import kotlin.math.roundToInt
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -83,7 +89,8 @@ fun ReaderBottomBar(
                 EchoIconButton(EchoIcons.FirstPage, stringResource(R.string.echo_cd_first_page), { onPage(1) })
                 EchoSlider(
                     value = page.toFloat(),
-                    onValueChange = { onPage(it.toInt()) },
+                    // Only whole pages, and only when the page changes: a drag moves a few pixels many times a second.
+                    onValueChange = { value -> value.roundToInt().let { if (it != page) onPage(it) } },
                     valueRange = 1f..pageCount.coerceAtLeast(2).toFloat(),
                     steps = (pageCount - 2).coerceAtLeast(0),
                     modifier = Modifier.weight(1f),
@@ -112,7 +119,15 @@ fun PageFilmstrip(
     thumbnail: (Int) -> Any? = { null },
 ) {
     val state = rememberLazyListState()
-    LaunchedEffect(page) { state.animateScrollToItem((page - 4).coerceAtLeast(0)) }
+    // Keeps the current page in the middle: one step slides, a jump (slider drag) lands at once.
+    var shownPage by remember { mutableIntStateOf(page) }
+    LaunchedEffect(page) {
+        val info = state.layoutInfo
+        val itemWidth = info.visibleItemsInfo.firstOrNull()?.size ?: 0
+        val centre = -(info.viewportSize.width - itemWidth) / 2
+        if (abs(page - shownPage) <= 1) state.animateScrollToItem(page - 1, centre) else state.scrollToItem(page - 1, centre)
+        shownPage = page
+    }
     LazyRow(
         modifier = modifier.fillMaxWidth().height(80.dp),
         state = state,
