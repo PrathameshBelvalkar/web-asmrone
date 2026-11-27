@@ -229,7 +229,7 @@ fun OnboardingIllustration(@DrawableRes icon: Int, modifier: Modifier = Modifier
 }
 
 /**
- * The in-app part of O.1 Splash (Figma "Echo · Splash", 29:27967): the app mark, "Echo" and the tagline in the
+ * The in-app part of O.1 Splash (Figma "Echo · Splash", 29:27967): the app mark, "Nekohub" and the tagline in the
  * middle; a contained loading indicator and the version at the bottom. The system SplashScreen API shows the icon
  * first; this takes over while the first settings load.
  */
@@ -245,7 +245,7 @@ fun EchoSplash(tagline: String, version: String, modifier: Modifier = Modifier) 
                 Icon(painterResource(EchoIcons.MusicNoteFilled), null, Modifier.size(56.dp), tint = MaterialTheme.colorScheme.onPrimary)
             }
             Spacer(Modifier.height(EchoSpacing.xl))
-            Text("Echo", style = MaterialTheme.typography.displayMediumEmphasized)
+            Text("Nekohub", style = MaterialTheme.typography.displayMediumEmphasized)
             Spacer(Modifier.height(EchoSpacing.m))
             Text(tagline, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         }

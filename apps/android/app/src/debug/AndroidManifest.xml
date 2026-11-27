@@ -6,7 +6,7 @@
         <activity
             android:name=".debug.DesignSystemActivity"
             android:exported="true"
-            android:label="Echo · Design system"
+            android:label="Nekohub · Design system"
             android:taskAffinity="app.echo.android.designsystem">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

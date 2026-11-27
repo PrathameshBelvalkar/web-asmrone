@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Echo</string>
+    <string name="app_name">Nekohub</string>
 
     <!-- S.8 Look and feel -->
     <string name="settings_theme">Theme</string>
@@ -383,7 +383,7 @@
     <string name="settings_hide_upcoming_summary">Lists start with released titles, and Latest has no Coming soon row.</string>
     <string name="settings_jav_note">Content rules (blocked titles) are built in and can\'t be turned off.</string>
 
-    <string name="settings_storage_subtitle">What Echo keeps on this device</string>
+    <string name="settings_storage_subtitle">What Nekohub keeps on this device</string>
     <string name="settings_image_cache">Image cache</string>
     <string name="settings_image_cache_summary">Covers and pages · %1$s</string>
     <string name="settings_source_caches">Source caches</string>
@@ -391,9 +391,9 @@
     <string name="settings_clear">Clear</string>
     <string name="settings_group_danger">Danger zone</string>
     <string name="settings_clear_all">Clear all data</string>
-    <string name="settings_clear_all_summary">Resets Echo: cache, preferences, queue and reading progress.</string>
+    <string name="settings_clear_all_summary">Resets Nekohub: cache, preferences, queue and reading progress.</string>
     <string name="settings_clear_all_title">Clear all data?</string>
-    <string name="settings_clear_all_body">Echo goes back to how it was when first installed: the cache, every preference, the play queue and reading progress are deleted.</string>
+    <string name="settings_clear_all_body">Nekohub goes back to how it was when first installed: the cache, every preference, the play queue and reading progress are deleted.</string>
 
     <string name="settings_look_subtitle">Material You, from the original Echo</string>
     <string name="settings_group_colour">Colour</string>
@@ -428,7 +428,7 @@
     <string name="settings_group_general">General</string>
     <string name="settings_background_colour">Background colour</string>
 
-    <string name="settings_about_subtitle">Echo for Android</string>
+    <string name="settings_about_subtitle">Nekohub for Android</string>
     <string name="settings_about_version">Version %1$s · Kotlin · Material 3 Expressive</string>
     <string name="settings_group_project">Project</string>
     <string name="settings_source_code">Source code</string>
@@ -452,10 +452,10 @@
     <string name="settings_reset">Reset</string>
     <string name="settings_save">Save</string>
 
-    <string name="settings_updates_subtitle">Echo updates itself from GitHub releases</string>
-    <string name="settings_update_available">Echo %1$s is available</string>
+    <string name="settings_updates_subtitle">Nekohub updates itself from GitHub releases</string>
+    <string name="settings_update_available">Nekohub %1$s is available</string>
     <string name="settings_update_meta">You have %1$s · %2$s MB · released %3$s</string>
-    <string name="settings_up_to_date">Echo %1$s is up to date</string>
+    <string name="settings_up_to_date">Nekohub %1$s is up to date</string>
     <string name="settings_update_now">Update now</string>
     <string name="settings_release_notes">Release notes</string>
     <string name="settings_group_channel">Update channel</string>
@@ -470,11 +470,11 @@
     <string name="settings_group_history">Version history</string>
     <string name="settings_installed_on">Installed · %1$s</string>
 
-    <string name="update_ready">Echo %1$s is ready</string>
+    <string name="update_ready">Nekohub %1$s is ready</string>
     <string name="update_ready_meta">%1$s MB · released %2$s</string>
     <string name="update_whats_new">What\'s new</string>
     <string name="update_later">Later</string>
-    <string name="update_downloading">Downloading Echo %1$s</string>
+    <string name="update_downloading">Downloading Nekohub %1$s</string>
     <string name="update_progress">%1$s of %2$s MB · about %3$d s left</string>
     <string name="update_percent">%1$d%%</string>
     <string name="update_install_note">When it finishes, Android asks you to confirm the install. Your library and settings are kept.</string>
@@ -499,13 +499,13 @@
     <string name="onboarding_welcome_2_title">Switch sources in one tap</string>
     <string name="onboarding_welcome_2_body">Tap the source pill at the top of Home or Search. Your library keeps everything from every source.</string>
     <string name="onboarding_welcome_3_title">Pick up where you left off</string>
-    <string name="onboarding_welcome_3_body">Echo remembers the track, the page and the minute — on this device, no account needed.</string>
+    <string name="onboarding_welcome_3_body">Nekohub remembers the track, the page and the minute — on this device, no account needed.</string>
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_get_started">Get started</string>
     <string name="onboarding_continue">Continue</string>
     <string name="onboarding_continue_selected">Continue · %1$d selected</string>
-    <string name="onboarding_sources_title">What do you want in Echo?</string>
+    <string name="onboarding_sources_title">What do you want in Nekohub?</string>
     <string name="onboarding_sources_body">Pick one or more. You can change this any time in the source switcher.</string>
     <string name="onboarding_section_asmr">ASMR</string>
     <string name="onboarding_section_asmr_body">asmr.one, Japanese ASMR, JASMR, Hentai ASMR</string>
@@ -529,7 +529,7 @@
     <string name="onboarding_fine_tune">Fine-tune</string>
     <string name="onboarding_age_down">One year younger</string>
     <string name="onboarding_age_up">One year older</string>
-    <string name="onboarding_age_note_adult">Under 18? Echo hides JAV, Hentai and adult ASMR sources.</string>
+    <string name="onboarding_age_note_adult">Under 18? Nekohub hides JAV, Hentai and adult ASMR sources.</string>
     <string name="onboarding_age_note_rules">Built-in content rules always block titles that present characters as children.</string>
     <string name="onboarding_look_title">Make it yours</string>
     <string name="onboarding_look_body">Pick a look. Change it later in Settings › Look and feel.</string>
@@ -740,7 +740,7 @@
     <string name="hentai_left_meta">%1$s left · %2$s</string>
     <string name="hentai_watched_meta">Watched · %1$s</string>
     <string name="hentai_library_empty">Episodes you watch show up here.</string>
-    <string name="hentai_blocked_title">This title isn’t available in Echo.</string>
+    <string name="hentai_blocked_title">This title isn’t available in Nekohub.</string>
     <string name="hentai_blocked_body">Blocked by the content rules (451). No retry.</string>
     <string name="hentai_busy_title">The source is busy, try again later</string>
     <string name="hentai_busy_body">hanime asked us to wait. The catalog copy still works.</string>
