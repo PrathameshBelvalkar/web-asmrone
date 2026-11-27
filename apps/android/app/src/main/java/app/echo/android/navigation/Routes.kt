@@ -53,7 +53,14 @@ sealed interface Route {
     // Hentai
     @Serializable data object HentaiHome : Route
     @Serializable data object HentaiBrowse : Route
-    @Serializable data object HentaiTitles : Route
+    /** H.3; each field pre-sets a filter (H.2 tag or studio, H.5 season, H.6 query, H.2 Trending sort). */
+    @Serializable data class HentaiTitles(
+        val tag: String? = null,
+        val studio: String? = null,
+        val season: String? = null,
+        val query: String? = null,
+        val sort: String? = null,
+    ) : Route
     @Serializable data object Seasons : Route
     @Serializable data object HentaiSearch : Route
     @Serializable data class HentaiTitle(val id: String) : Route

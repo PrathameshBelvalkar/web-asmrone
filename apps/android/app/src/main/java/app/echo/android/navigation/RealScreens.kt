@@ -13,6 +13,15 @@ import app.echo.android.feature.asmr.playlists.AsmrPlaylistsRoute
 import app.echo.android.feature.asmr.work.AsmrWorkRoute
 import app.echo.android.feature.asmr.results.AsmrResultsRoute
 import app.echo.android.feature.asmr.search.AsmrSearchRoute
+import app.echo.android.feature.hentai.browse.HentaiBrowseRoute
+import app.echo.android.feature.hentai.browse.HentaiSeasonsRoute
+import app.echo.android.feature.hentai.home.HentaiHomeRoute
+import app.echo.android.feature.hentai.library.HentaiLibraryRoute
+import app.echo.android.feature.hentai.search.HentaiSearchRoute
+import app.echo.android.feature.hentai.theater.HentaiTheaterRoute
+import app.echo.android.feature.hentai.title.HentaiTitleRoute
+import app.echo.android.feature.hentai.title.TitleStateRoute
+import app.echo.android.feature.hentai.titles.HentaiTitlesRoute
 import app.echo.android.feature.jav.genres.JavGenresRoute
 import app.echo.android.feature.jav.idols.JavIdolRoute
 import app.echo.android.feature.jav.idols.JavIdolsRoute
@@ -107,6 +116,19 @@ internal fun NavGraphBuilder.realScreens(
     composable<Route.Genres> { JavGenresRoute(shell, source.value, contentPadding) }
     composable<Route.JavSearch> { JavSearchRoute(shell, contentPadding) }
     composable<Route.JavLibrary> { JavLibraryRoute(shell, contentPadding) }
+    // Hentai (H.1–H.11; H.4 and H.8 are a sheet and a dialog). The theater is immersive: no content padding.
+    composable<Route.HentaiHome> { HentaiHomeRoute(shell, source.value, contentPadding) }
+    composable<Route.HentaiBrowse> { HentaiBrowseRoute(shell, source.value, contentPadding) }
+    composable<Route.HentaiTitles> { entry -> HentaiTitlesRoute(entry.toRoute<Route.HentaiTitles>(), shell, source.value, contentPadding) }
+    composable<Route.Seasons> { HentaiSeasonsRoute(shell, source.value, contentPadding) }
+    composable<Route.HentaiSearch> { HentaiSearchRoute(shell, contentPadding) }
+    composable<Route.HentaiTitle> { entry -> HentaiTitleRoute(entry.toRoute<Route.HentaiTitle>().id, shell, contentPadding) }
+    composable<Route.HentaiLibrary> { HentaiLibraryRoute(shell, contentPadding) }
+    composable<Route.TitleState> { entry -> TitleStateRoute(entry.toRoute<Route.TitleState>().kind, shell) }
+    composable<Route.HentaiTheater> { entry ->
+        val theater = entry.toRoute<Route.HentaiTheater>()
+        HentaiTheaterRoute(theater.titleId, theater.episode, shell)
+    }
     // Settings and profile (S.1–S.13; P.1, S.14 and S.15 are sheets in the shell).
     composable<Route.Settings> { SettingsRoute(shell) }
     composable<Route.Preferences> { AsmrPreferencesRoute(shell) }
@@ -139,6 +161,9 @@ internal fun NavGraphBuilder.realScreens(
         Route.News::class, Route.NewsPost::class, Route.Latest::class, Route.Movies::class, Route.MovieList::class,
         Route.Movie::class, Route.JavTheater::class, Route.Idols::class, Route.Idol::class, Route.Genres::class,
         Route.JavSearch::class, Route.JavLibrary::class,
+        Route.HentaiHome::class, Route.HentaiBrowse::class, Route.HentaiTitles::class, Route.Seasons::class,
+        Route.HentaiSearch::class, Route.HentaiTitle::class, Route.HentaiLibrary::class, Route.TitleState::class,
+        Route.HentaiTheater::class,
         Route.Splash::class, Route.Welcome::class, Route.ChooseSources::class, Route.YourProfile::class,
         Route.Age::class, Route.MakeItYours::class,
     )

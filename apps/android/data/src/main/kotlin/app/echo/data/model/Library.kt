@@ -17,6 +17,8 @@ data class ContinueItem(
     val finished: Boolean,
     /** ASMR only: the last track listened to, so 0.2 and 0.3 can play it (1.8). */
     val track: Track? = null,
+    /** Hentai only: the episode being watched (H.9 "EPISODE 2"). */
+    val episode: Int? = null,
 ) {
     /** 0…1 for progress bars. */
     val progress: Float

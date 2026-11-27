@@ -143,9 +143,41 @@ data class HentaiTitle(
     val posterUrl: String? = null,
     val episodes: List<Episode> = emptyList(),
     val tags: List<String> = emptyList(),
+    /** H.7 stats: rating in percent. */
+    val rating: Int = 0,
+    val likes: Long = 0,
+    val downloads: Long = 0,
+    /** "2024-08-09". [added] is when the source uploaded it (H.3 "Newest upload"). */
+    val released: String = "",
+    val added: String = "",
+    val synopsis: String = "",
+    val altNames: List<String> = emptyList(),
+    /** H.5 shelf: "Fall 2025". */
+    val season: String = "",
+    /** H.7 "More from <series>". */
+    val series: String? = null,
+    val quality: String = "FHD 1080p",
+    val subtitles: String? = "EN",
+    val dub: String? = "JP",
+    /** H.7 / H.8 storyboard frames. */
+    val frames: Int = 14,
+    /** H.3 "Trending": views per day. */
+    val trending: Int = 0,
 )
 
-data class Episode(val number: Int, val title: String, val durationMs: Long, val videoUrl: String? = null)
+data class Episode(
+    val number: Int,
+    val title: String,
+    val durationMs: Long,
+    val videoUrl: String? = null,
+    val released: String = "",
+)
+
+/** H.2 / H.4 tag groups. */
+enum class HentaiTagCategory { FORMAT, STORY, CHARACTERS, PAIRING, OTHER }
+
+/** A Hentai tag with its group and how many titles carry it (H.2 "HD · 2,014 titles"). */
+data class HentaiTag(val name: String, val category: HentaiTagCategory, val count: Int)
 
 // Shared --------------------------------------------------------------------------------------------------------
 

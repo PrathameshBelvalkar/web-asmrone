@@ -149,14 +149,36 @@ class FakeHentaiRepository(private val config: FakeConfig) : HentaiRepository {
     private val c = FakeCatalog
     override fun home() = config.serve {
         listOf(
-            Shelf("New uploads", c.hentaiTitles.filter { it.isNew }),
-            Shelf("Trending this week", c.hentaiTitles.sortedByDescending { it.views }.take(8)),
+            Shelf("New uploads", c.hentaiTitles.sortedByDescending { it.added }.take(10)),
+            Shelf("Trending this week", c.hentaiTitles.sortedByDescending { it.trending }.take(10)),
+            Shelf("Most viewed", c.hentaiTitles.sortedByDescending { it.views }.take(10)),
         )
     }
     override fun titles(page: Int) = config.serve { c.hentaiTitles.drop(page * 12).take(12) }
-    override fun title(id: String) = config.serve { c.hentaiTitles.firstOrNull { it.id == id } }
-    override fun search(query: String) = config.serve { c.hentaiTitles.filter { it.title.matches(query) || it.studio.matches(query) } }
+
+    /** H.10: "blocked", "busy" and "novideo" show the three title states. */
+    override fun title(id: String): Flow<Load<HentaiTitle>> = when (id) {
+        BLOCKED -> flowOf(Load.Error(ErrorKind.BLOCKED))
+        BUSY -> flowOf(Load.Error(ErrorKind.BUSY))
+        NO_VIDEO -> flowOf(Load.Error(ErrorKind.NO_VIDEO))
+        else -> config.serve { c.hentaiTitles.firstOrNull { it.id == id } }
+    }
+
+    override fun search(query: String) = config.serve {
+        c.hentaiTitles.filter { it.title.matches(query) || it.studio.matches(query) || it.series.orEmpty().matches(query) }
+    }
+
+    /** Season shelves, newest first ("Fall 2025" …). */
     override fun seasons() = config.serve {
-        c.hentaiTitles.groupBy { it.year }.toSortedMap(compareByDescending { it }).map { (year, list) -> Shelf<HentaiTitle>("$year", list) }
+        c.hentaiTitles.sortedByDescending { it.released }.groupBy { it.season }.map { (season, list) -> Shelf(season, list) }
+    }
+    override fun catalog() = config.serve { c.hentaiTitles }
+    override fun tags() = config.serve { c.hentaiTags }
+    override fun studios() = config.serve { c.hentaiStudioTags }
+
+    companion object {
+        const val BLOCKED = "blocked"
+        const val BUSY = "busy"
+        const val NO_VIDEO = "novideo"
     }
 }

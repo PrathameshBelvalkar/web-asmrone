@@ -44,6 +44,9 @@ class FakeLibrary(items: List<ContinueItem> = emptyList()) : LibraryRepository {
     override suspend fun saveWatchProgress(movie: app.echo.data.model.Movie, positionMs: Long, durationMs: Long, finished: Boolean) {
         watched[movie.id] = positionMs
     }
+    override suspend fun saveEpisodeProgress(title: app.echo.data.model.HentaiTitle, episode: Int, positionMs: Long, durationMs: Long, finished: Boolean) {
+        watched[title.id] = positionMs
+    }
     override suspend fun removeHistory(section: Section, id: String) {
         items.value = items.value.filterNot { it.section == section && it.id == id }
     }

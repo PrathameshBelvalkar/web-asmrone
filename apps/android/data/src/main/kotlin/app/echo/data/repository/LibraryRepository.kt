@@ -1,5 +1,6 @@
 package app.echo.data.repository
 
+import app.echo.data.model.HentaiTitle
 import app.echo.data.model.Movie
 import app.echo.data.db.EchoDatabase
 import app.echo.data.db.LikedTrackEntity
@@ -43,6 +44,9 @@ interface LibraryRepository {
 
     /** Records where a JAV movie is (3.7 Theater); 3.12 and 0.2 read it back. */
     suspend fun saveWatchProgress(movie: Movie, positionMs: Long, durationMs: Long, finished: Boolean)
+
+    /** Records where a Hentai episode is (H.11 Theater); H.9, H.7 and 0.2 read it back. */
+    suspend fun saveEpisodeProgress(title: HentaiTitle, episode: Int, positionMs: Long, durationMs: Long, finished: Boolean)
 
     fun recentSearches(section: Section): Flow<List<String>>
     suspend fun addSearch(section: Section, query: String)
@@ -100,6 +104,16 @@ class RoomLibraryRepository(private val db: EchoDatabase, private val now: () ->
             WatchHistoryEntity(
                 kind = WatchKind.JAV, id = movie.id, code = movie.code, title = movie.title, studio = movie.studio,
                 coverUrl = movie.coverUrl, episode = null, positionMs = positionMs, durationMs = durationMs,
+                updatedAt = now(), finished = finished,
+            ),
+        )
+    }
+
+    override suspend fun saveEpisodeProgress(title: HentaiTitle, episode: Int, positionMs: Long, durationMs: Long, finished: Boolean) {
+        h.upsertWatch(
+            WatchHistoryEntity(
+                kind = WatchKind.HENTAI, id = title.id, code = null, title = title.title, studio = title.studio,
+                coverUrl = title.coverUrl, episode = episode, positionMs = positionMs, durationMs = durationMs,
                 updatedAt = now(), finished = finished,
             ),
         )
@@ -176,6 +190,7 @@ private fun ReadHistoryEntity.toItem() = ContinueItem(
 private fun WatchHistoryEntity.toItem() = ContinueItem(
     section = if (kind == WatchKind.HENTAI) Section.HENTAI else Section.JAV, id = id, title = title, code = code,
     subtitle = studio, coverUrl = coverUrl, positionMs = positionMs, durationMs = durationMs, updatedAt = updatedAt, finished = finished,
+    episode = episode,
 )
 
 internal fun TrackFields.toTrack() = Track(trackId, workId, sourceId, title, artist, coverUrl, durationMs)

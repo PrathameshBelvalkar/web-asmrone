@@ -5,6 +5,8 @@ import app.echo.data.model.ArtistKind
 import app.echo.data.model.Episode
 import app.echo.data.model.Gallery
 import app.echo.data.model.GenreGroup
+import app.echo.data.model.HentaiTag
+import app.echo.data.model.HentaiTagCategory
 import app.echo.data.model.HentaiTitle
 import app.echo.data.model.Idol
 import app.echo.data.model.Movie
@@ -150,12 +152,48 @@ object FakeCatalog {
 
     // Hentai ----------------------------------------------------------------------------------------------------
 
-    val hentaiTitles: List<HentaiTitle> = (1..16).map { i ->
+    /** H.2 / H.4 tag groups (Figma: Format · Story · Characters · Pairing · Other). */
+    private val hentaiTagPool: Map<HentaiTagCategory, List<String>> = mapOf(
+        HentaiTagCategory.FORMAT to listOf("HD", "3D", "POV"),
+        HentaiTagCategory.STORY to listOf("Romance", "Comedy", "Fantasy", "Drama"),
+        HentaiTagCategory.CHARACTERS to listOf("Elf", "Maid", "Teacher", "Nurse"),
+        HentaiTagCategory.PAIRING to listOf("Couple", "Group", "Yuri"),
+        HentaiTagCategory.OTHER to listOf("Short", "Remastered"),
+    )
+
+    private val hentaiStudios = listOf("Studio A", "Studio B", "Studio C", "Studio D", "Studio E")
+    private val seasonNames = listOf("Winter", "Spring", "Summer", "Fall")
+
+    /** 36 titles: four seasons a year from 2026 back, five studios, three series of episodes each. */
+    val hentaiTitles: List<HentaiTitle> = (1..36).map { i ->
+        val year = 2026 - (i - 1) / 6
+        val month = 12 - ((i - 1) % 6) * 2
+        val released = "%d-%02d-%02d".format(year, month, 1 + i % 27)
+        val views = 1_200_000L + i * 400_000L
+        val pool = hentaiTagPool.values.toList()
         HentaiTitle(
-            id = "h$i", title = "Title placeholder $i", studio = "Studio Name", year = 2026 - (i % 6),
-            views = 1_200_000L + i * 400_000L, isNew = i <= 4, uncensored = i % 4 == 0,
-            episodes = (1..(1 + i % 3)).map { Episode(it, "Episode $it", 23 * MIN + 1_000) },
-            tags = listOf("Romance", "Comedy", "Fantasy").take(1 + i % 3),
+            id = "h$i", title = "Title placeholder $i", studio = hentaiStudios[i % hentaiStudios.size], year = year,
+            views = views, isNew = i <= 4, uncensored = i % 4 == 0,
+            episodes = (1..(1 + i % 3)).map { Episode(it, "Episode $it", 23 * MIN + 14_000, released = "%d-%02d-%02d".format(year, month, 1 + (i + it * 7) % 27)) },
+            tags = buildList {
+                if (i % 4 == 0) add("Uncensored")
+                // Each group steps at its own rate, so tags from different groups don't always come together.
+                pool.forEachIndexed { k, names -> add(names[(i * (k + 1) + i / (k + 2)) % names.size]) }
+            },
+            rating = 80 + i % 19, likes = views / 80, downloads = views / 16,
+            released = released, added = "%d-%02d-%02d".format(year, month, minOf(28, 4 + i % 27)),
+            synopsis = "Synopsis placeholder. A few sentences about the story, the characters and where it goes, " +
+                "long enough to need Show more on a phone. The real text comes from the source.",
+            altNames = listOf("Romaji name", "日本語の名前", "English name"),
+            season = "${seasonNames[(month - 1) / 3]} $year", series = "Series name ${(i - 1) / 3 + 1}",
+            trending = ((i * 7919) % 900) + 100,
         )
     }
+
+    /** Tag counts from the catalogue, "Uncensored" included as a Format tag. */
+    val hentaiTags: List<HentaiTag> = (listOf(HentaiTagCategory.FORMAT to "Uncensored") +
+        hentaiTagPool.flatMap { (cat, names) -> names.map { cat to it } })
+        .map { (cat, name) -> HentaiTag(name, cat, hentaiTitles.count { name in it.tags }) }
+
+    val hentaiStudioTags: List<Tag> = hentaiStudios.map { name -> Tag("studio:$name", name, hentaiTitles.count { it.studio == name }) }
 }

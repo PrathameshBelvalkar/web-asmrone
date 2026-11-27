@@ -1193,6 +1193,31 @@ Figma `28:6103` · not a route: `EmptyState` variants for H.7
 Figma `28:6140` · route `HentaiTheater(id, episode)`
 - Same as 3.7, with "EPISODE 1 · SUB EN" and a Source button (Outlined, S) for picking the stream host.
 
+#### Phase 9 notes (built)
+
+All 11 frames are built and were checked on `Pixel_8` against Figma (sizes read from the frames). Deliberate
+differences, with the reason:
+
+- **The catalogue is fake** (`FakeHentaiRepository`): 36 titles over 2021–2026, five studios, four seasons a year,
+  series of three, and tags in five groups (Format, Story, Characters, Pairing, Other) whose counts come from the
+  titles. `HentaiRepository` gained `catalog()`, `tags()` and `studios()`. The ids "blocked", "busy" and "novideo"
+  return the three H.10 errors.
+- **Tabs** behave as in JAV: Home is returned to, the others swap in place.
+- **H.1** refreshes the shelves and shows how long ago; the live update ("3 new titles · Show") is simulated 4 s in.
+  Only the large poster shows its caption.
+- **H.3 takes its filters from the route** (`Route.HentaiTitles(tag, studio, season, query, sort)`), so H.1 shelf
+  arrows, H.2 cards and tags, H.5 seasons and H.6 rows all open it pre-filtered. "Search for …" also matches tags.
+- **H.4** uses the new `TriStateChip` (include ✓ / exclude, struck through on errorContainer / off); the filters
+  scroll and Cancel · Show N stay pinned. Year range is 2018–2026.
+- **H.7** like is kept for the screen only; the copy and open buttons replace Figma's two glass icons. Watch becomes
+  "Resume EP 1 · 0:15" once an episode is started. Similar shows titles sharing two tags.
+- **H.8** is a full-screen dialog over H.7 with a frame strip; frames are placeholders until the source has them.
+- **H.10** shows over H.7 when the source fails (blocked: no retry; busy: Try again; no video: Back), and as the
+  `TitleState(kind)` route.
+- **H.11 and 3.7 share one theater** (`feature/shared/theater`): H.11 has ✕, "EPISODE 1 · SUB EN" and the Source menu
+  (hentaibros.net, hanime.tv) instead of quality. Progress is saved with `saveEpisodeProgress`, so H.9 and H.7 show
+  where it was left.
+
 ### Phase 10: Settings and profile
 
 Every S screen: `EchoFlexibleAppBar(Medium)` (S.1 Large) with back, then `SegmentedList` groups with overline headers.

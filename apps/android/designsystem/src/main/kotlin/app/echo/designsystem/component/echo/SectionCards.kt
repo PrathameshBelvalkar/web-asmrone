@@ -94,7 +94,7 @@ fun HanimeCard(
     isNew: Boolean = false,
     width: Dp? = 112.dp,
 ) = SectionCard(title, meta, image, 2f / 3f, onClick, modifier, width) {
-    if (isNew) CoverBadge("NEW", Modifier.align(Alignment.TopStart).padding(EchoSpacing.s - EchoSpacing.xxs), BadgeStyle.Accent)
+    if (isNew) CoverBadge("NEW", Modifier.align(Alignment.TopStart).padding(EchoSpacing.s - EchoSpacing.xxs), BadgeStyle.Overlay)
     if (views != null) {
         Surface(
             modifier = Modifier.align(Alignment.BottomStart).padding(EchoSpacing.s - EchoSpacing.xxs),

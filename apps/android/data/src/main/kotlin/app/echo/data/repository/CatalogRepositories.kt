@@ -3,6 +3,7 @@ package app.echo.data.repository
 import app.echo.data.model.ArtistPage
 import app.echo.data.model.FeedPeriod
 import app.echo.data.model.GenreGroup
+import app.echo.data.model.HentaiTag
 import app.echo.data.model.Lyric
 import app.echo.data.model.MovieList
 import app.echo.data.model.AsmrHome
@@ -75,4 +76,10 @@ interface HentaiRepository {
     fun title(id: String): Flow<Load<HentaiTitle>>
     fun search(query: String): Flow<Load<List<HentaiTitle>>>
     fun seasons(): Flow<Load<List<Shelf<HentaiTitle>>>>
+    /** H.3 / H.4: the whole catalogue; the screen sorts and filters it. */
+    fun catalog(): Flow<Load<List<HentaiTitle>>>
+    /** H.2 / H.4 tags with their groups and counts. */
+    fun tags(): Flow<Load<List<HentaiTag>>>
+    /** H.2 "Studios & brands", H.6 STUDIOS: studio names with title counts. */
+    fun studios(): Flow<Load<List<Tag>>>
 }

@@ -76,9 +76,9 @@ object ScreenSpecs {
         s("3.11", "Search", Route.JavSearch, S, Route.Movie("m5")),
         s("3.12", "Library", Route.JavLibrary, S, Route.Movie("m1"), Route.JavTheater("m1")),
         // Hentai
-        s("H.1", "Home", Route.HentaiHome, S, Route.HentaiTitle("h1"), Route.HentaiBrowse, Route.HentaiTitles, Route.Seasons),
-        s("H.2", "Browse", Route.HentaiBrowse, S, Route.HentaiTitles, Route.HentaiTitle("h2")),
-        s("H.3", "All titles", Route.HentaiTitles, S, Route.HentaiTitle("h3")),
+        s("H.1", "Home", Route.HentaiHome, S, Route.HentaiTitle("h1"), Route.HentaiBrowse, Route.HentaiTitles(), Route.Seasons),
+        s("H.2", "Browse", Route.HentaiBrowse, S, Route.HentaiTitles(), Route.HentaiTitle("h2")),
+        s("H.3", "All titles", Route.HentaiTitles(), S, Route.HentaiTitle("h3")),
         s("H.5", "Seasons", Route.Seasons, S, Route.HentaiTitle("h4")),
         s("H.6", "Search", Route.HentaiSearch, S, Route.HentaiTitle("h5")),
         s("H.7", "Title page", Route.HentaiTitle("h1"), S, Route.HentaiTheater("h1", 1), Route.TitleState("unavailable")),
