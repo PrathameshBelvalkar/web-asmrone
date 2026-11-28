@@ -253,7 +253,8 @@ fun EchoSplash(tagline: String, version: String, modifier: Modifier = Modifier) 
         Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
             SplashMark()
             Spacer(Modifier.height(EchoSpacing.xl))
-            Text("Nekohub", style = MaterialTheme.typography.displayMediumEmphasized)
+            // Explicit: the splash draws its own background, so no Surface supplies a content colour (black in dark).
+            Text("Nekohub", style = MaterialTheme.typography.displayMediumEmphasized, color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(EchoSpacing.m))
             Text(tagline, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         }

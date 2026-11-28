@@ -16,6 +16,9 @@ import app.echo.designsystem.theme.BaselineLightColorScheme
 import app.echo.designsystem.preview.EchoThemesPreview
 import app.echo.designsystem.tokens.EchoSpacing
 
+/** The paper border round a [PageMock], as a fraction of its shorter side: what the reader's "Crop borders" trims. */
+const val PageMockMargin = 0.03f
+
 /**
  * A manga page stand-in (Figma "Panel 1…5" page mocks in 2.5–2.10): five outlined panels with two speech bubbles,
  * until the sources give real page images. Scales to any size (reader page, thumbnail, end-of-gallery stack).
@@ -31,7 +34,7 @@ fun PageMock(modifier: Modifier = Modifier) {
     val ink = page.onSurface
     Canvas(modifier) {
         drawRect(paper)
-        val m = size.minDimension * 0.03f
+        val m = size.minDimension * PageMockMargin
         val stroke = (size.minDimension * 0.008f).coerceAtLeast(1f)
         val w = size.width - 2 * m
         val h = size.height - 2 * m

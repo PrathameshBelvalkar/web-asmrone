@@ -206,6 +206,54 @@ fun TapZonesOverlay(leftLabel: String, rightLabel: String, modifier: Modifier = 
     }
 }
 
+/** What a tap in one part of the reader does. */
+enum class TapZoneKind { PREVIOUS, NEXT, MENU }
+
+/**
+ * The tap-zone hint for the layouts that aren't left / right thirds (L shaped, Kindle-ish, Edge): the screen as a
+ * 3 × 3 grid, [cells] row by row. Page-turn cells are tinted like [TapZonesOverlay]; each kind is labelled once.
+ */
+@Composable
+fun TapZonesGrid(
+    cells: List<TapZoneKind>,
+    previousLabel: String,
+    nextLabel: String,
+    menuLabel: String,
+    modifier: Modifier = Modifier,
+) = ReaderTheme {
+    require(cells.size == 9) { "A 3 × 3 grid has nine cells" }
+    // Label each kind in one cell: the middle row first, where the eye is, then top to bottom; the centre column
+    // before the sides in each row.
+    val labelled = TapZoneKind.entries.associateWith { kind ->
+        listOf(4, 3, 5, 1, 0, 2, 7, 6, 8).firstOrNull { cells[it] == kind }
+    }
+    Column(modifier.fillMaxSize()) {
+        for (row in 0 until 3) {
+            Row(Modifier.weight(1f).fillMaxWidth()) {
+                for (col in 0 until 3) {
+                    val index = row * 3 + col
+                    val kind = cells[index]
+                    val turn = kind != TapZoneKind.MENU
+                    Box(
+                        Modifier.weight(1f).fillMaxHeight()
+                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = if (turn) 0.35f else 0.1f))
+                            .then(if (turn) Modifier.border(BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))) else Modifier),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (labelled[kind] == index) {
+                            when (kind) {
+                                TapZoneKind.MENU -> ZoneLabel(menuLabel, EchoIcons.MenuBook)
+                                TapZoneKind.PREVIOUS -> ZoneLabel(previousLabel, if (col == 2) EchoIcons.ArrowRight else EchoIcons.ArrowLeft)
+                                TapZoneKind.NEXT -> ZoneLabel(nextLabel, if (col == 0) EchoIcons.ArrowLeft else EchoIcons.ArrowRight)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun TapZone(label: String, @DrawableRes icon: Int, modifier: Modifier) {
     Box(

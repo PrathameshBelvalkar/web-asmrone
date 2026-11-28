@@ -1,5 +1,27 @@
 package app.echo.android.feature.manga.reader
 
+import android.content.res.Configuration
+import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.pager.VerticalPager
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.key
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.DpSize
+import app.echo.data.model.ScaleType
+import app.echo.data.model.TapZones
+import app.echo.designsystem.component.echo.PageMockMargin
+import app.echo.designsystem.component.echo.TapZoneKind
+import app.echo.designsystem.component.echo.TapZonesGrid
+import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlin.math.abs
@@ -230,7 +252,9 @@ fun MangaReaderRoute(galleryId: String, page: Int, showPages: Boolean, shell: Sh
         onBack = shell::back,
         onPage = vm::setPage,
         onCentreTap = vm::toggleMenus,
-        onEnd = { shell.open(Route.EndOfGallery(galleryId)) },
+        // Replace, not open: a reader left under 2.10 sits on its "past the end" slot and would bounce straight back
+        // to 2.10 when Back returns to it (after Read again, for one).
+        onEnd = { shell.replace(Route.EndOfGallery(galleryId)) },
         onOpenSheet = vm::openSheet,
         onCloseSheet = vm::closeSheet,
         onHideHints = vm::hideHints,
@@ -261,6 +285,12 @@ fun MangaReaderScreen(
     onToggleForGallery: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Keep screen on (2.8 General / S.10): the screen stays awake while the reader is open.
+    val view = LocalView.current
+    DisposableEffect(view, state.settings.keepScreenOn) {
+        view.keepScreenOn = state.settings.keepScreenOn
+        onDispose { view.keepScreenOn = false }
+    }
     ReaderTheme {
         Box(modifier.fillMaxSize().background(readerBackground(state.settings.background)).testTag("screen:2.6")) {
             val gallery = state.gallery
@@ -307,94 +337,170 @@ private fun ReaderPages(
     onCentreTap: () -> Unit,
     onEnd: () -> Unit,
 ) {
-    when (state.settings.readingMode) {
-        ReadingMode.PAGED_RTL -> PagedReader(gallery.pageCount, state.page, rtl = true, onPage, onCentreTap, onEnd)
-        ReadingMode.PAGED_LTR, ReadingMode.TWO_PAGES -> PagedReader(gallery.pageCount, state.page, rtl = false, onPage, onCentreTap, onEnd)
-        ReadingMode.PAGED_VERTICAL, ReadingMode.LONG_STRIP, ReadingMode.LONG_STRIP_GAPS ->
-            StripReader(gallery.pageCount, state.page, gaps = state.settings.readingMode == ReadingMode.LONG_STRIP_GAPS, onPage, onCentreTap)
+    val settings = state.settings
+    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    when (settings.readingMode) {
+        ReadingMode.PAGED_RTL, ReadingMode.PAGED_LTR, ReadingMode.TWO_PAGES -> PagedReader(
+            pageCount = gallery.pageCount, page = state.page, settings = settings, vertical = false,
+            rtl = settings.readingMode == ReadingMode.PAGED_RTL,
+            // Two pages: always in that mode; in the other paged modes when the screen is landscape and "Two pages
+            // in landscape" is on.
+            spreads = settings.readingMode == ReadingMode.TWO_PAGES || (settings.dualPageLandscape && landscape),
+            onPage = onPage, onCentreTap = onCentreTap, onEnd = onEnd,
+        )
+        ReadingMode.PAGED_VERTICAL -> PagedReader(
+            pageCount = gallery.pageCount, page = state.page, settings = settings, vertical = true, rtl = false, spreads = false,
+            onPage = onPage, onCentreTap = onCentreTap, onEnd = onEnd,
+        )
+        ReadingMode.LONG_STRIP, ReadingMode.LONG_STRIP_GAPS -> StripReader(gallery.pageCount, state.page, settings, onPage, onCentreTap)
     }
 }
 
-/** Paged modes: swipe, or tap a side. Swiping past the last page opens 2.10. */
+/**
+ * Paged modes: swipe, or tap a zone (the tap-zones setting). Sideways for left to right / right to left / two pages,
+ * up and down for paged vertical. Swiping past the last page opens 2.10. In [spreads], each slot shows two pages side
+ * by side (1–2, 3–4, …) and the counter reports the later one.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PagedReader(
     pageCount: Int,
     page: Int,
+    settings: ReaderSettings,
+    vertical: Boolean,
     rtl: Boolean,
+    spreads: Boolean,
     onPage: (Int) -> Unit,
     onCentreTap: () -> Unit,
     onEnd: () -> Unit,
 ) {
-    // One extra slot after the last page: reaching it means the gallery is finished.
-    val pagerState = rememberPagerState(initialPage = (page - 1).coerceIn(0, pageCount - 1), pageCount = { pageCount + 1 })
+    val slots = remember(pageCount, spreads) { (1..pageCount).chunked(if (spreads) 2 else 1) }
+    fun slotOf(p: Int) = ((p.coerceIn(1, pageCount) - 1) / if (spreads) 2 else 1).coerceIn(0, slots.lastIndex)
+    // One extra slot after the last page: reaching it means the gallery is finished. A fresh pager when spreads turn
+    // on or off, so it opens at the page being read.
+    val pagerState = key(spreads, vertical) { rememberPagerState(initialPage = slotOf(page), pageCount = { slots.size + 1 }) }
     val scope = rememberCoroutineScope()
-    LaunchedEffect(pagerState.settledPage) {
-        if (pagerState.settledPage < pageCount) onPage(pagerState.settledPage + 1) else onEnd()
+    val animate = settings.animatePageTransitions
+    // Animate page transitions off: taps and the accessibility actions land at once instead of sliding.
+    suspend fun go(slot: Int) {
+        val target = slot.coerceIn(0, slots.size)
+        if (animate) pagerState.animateScrollToPage(target) else pagerState.scrollToPage(target)
     }
-    LaunchedEffect(page) {
-        val target = (page - 1).coerceIn(0, pageCount - 1)
-        // A neighbour slides; a jump (slider, first / last page) lands at once, without flicking through every page
-        // in between and reporting them back while the slider is still moving.
+    LaunchedEffect(pagerState, pagerState.settledPage) {
+        val settled = pagerState.settledPage
+        if (settled < slots.size) onPage(slots[settled].last()) else onEnd()
+    }
+    LaunchedEffect(pagerState, page) {
+        val target = slotOf(page)
+        // A neighbour slides (when animating); a jump (slider, first / last page) lands at once, without flicking
+        // through every page in between and reporting them back while the slider is still moving.
         when {
             pagerState.currentPage == target -> Unit
-            abs(pagerState.currentPage - target) == 1 -> pagerState.animateScrollToPage(target)
+            animate && abs(pagerState.currentPage - target) == 1 -> pagerState.animateScrollToPage(target)
             else -> pagerState.scrollToPage(target)
         }
     }
     val nextLabel = stringResource(R.string.reader_tap_next)
     val previousLabel = stringResource(R.string.reader_tap_previous)
     val menusLabel = stringResource(R.string.reader_tap_menus)
-    HorizontalPager(
-        state = pagerState,
-        reverseLayout = rtl,
-        // TalkBack can't tap a third of the screen: the same moves as actions.
-        modifier = Modifier.fillMaxSize()
-            .semantics {
-                customActions = listOf(
-                    CustomAccessibilityAction(nextLabel) { scope.launch { pagerState.animateScrollToPage((pagerState.currentPage + 1).coerceIn(0, pageCount)) }; true },
-                    CustomAccessibilityAction(previousLabel) { scope.launch { pagerState.animateScrollToPage((pagerState.currentPage - 1).coerceAtLeast(0)) }; true },
-                    CustomAccessibilityAction(menusLabel) { onCentreTap(); true },
-                )
-            }
-            .pointerInput(rtl, pageCount) {
+    val zones = settings.tapZones
+    val modifier = Modifier.fillMaxSize()
+        // TalkBack can't tap a part of the screen: the same moves as actions.
+        .semantics {
+            customActions = listOf(
+                CustomAccessibilityAction(nextLabel) { scope.launch { go(pagerState.currentPage + 1) }; true },
+                CustomAccessibilityAction(previousLabel) { scope.launch { go(pagerState.currentPage - 1) }; true },
+                CustomAccessibilityAction(menusLabel) { onCentreTap(); true },
+            )
+        }
+        .pointerInput(zones, rtl, slots.size, animate) {
             detectTapGestures { offset ->
-                val third = size.width / 3f
-                val step = when {
-                    offset.x < third -> if (rtl) 1 else -1
-                    offset.x > size.width - third -> if (rtl) -1 else 1
-                    else -> 0
-                }
-                if (step == 0) {
-                    onCentreTap()
-                } else {
-                    scope.launch { pagerState.animateScrollToPage((pagerState.currentPage + step).coerceIn(0, pageCount)) }
+                // Right to left mirrors the zones: the left side moves forward there.
+                when (tapZoneAt(zones, offset.x / size.width, offset.y / size.height, mirror = rtl)) {
+                    TapZoneKind.MENU -> onCentreTap()
+                    TapZoneKind.PREVIOUS -> scope.launch { go(pagerState.currentPage - 1) }
+                    TapZoneKind.NEXT -> scope.launch { go(pagerState.currentPage + 1) }
                 }
             }
-        },
-    ) { index ->
-        // Each slot is the whole screen; the page inside keeps its ratio ("Fit screen", Figma 2.6 / 2.7).
-        if (index < pageCount) ReaderPage(index + 1, Modifier.fillMaxSize()) else Box(Modifier.fillMaxSize())
+        }
+    val slot: @Composable (Int) -> Unit = { index ->
+        if (index < slots.size) PageSlot(slots[index], rtl, settings, Modifier.fillMaxSize()) else Box(Modifier.fillMaxSize())
+    }
+    if (vertical) {
+        VerticalPager(state = pagerState, modifier = modifier) { slot(it) }
+    } else {
+        HorizontalPager(state = pagerState, reverseLayout = rtl, modifier = modifier) { slot(it) }
     }
 }
 
-/** Long strip modes: scroll down, tap the middle to show the menus. */
+/** One pager slot: a single page at the chosen scale, or a two-page spread fitted to the screen. */
+@Composable
+private fun PageSlot(pages: List<Int>, rtl: Boolean, settings: ReaderSettings, modifier: Modifier) {
+    if (pages.size == 1) {
+        ScaledPage(pages.single(), settings.scaleType, settings.cropBorders, rtl, modifier)
+        return
+    }
+    // Right to left reads the right-hand page first.
+    Box(modifier, contentAlignment = Alignment.Center) {
+        Row(Modifier.aspectRatio(pageRatio(settings.cropBorders) * pages.size)) {
+            (if (rtl) pages.reversed() else pages).forEach { number ->
+                PageImage(number, settings.cropBorders, Modifier.weight(1f).fillMaxHeight())
+            }
+        }
+    }
+}
+
+/**
+ * A page at the scale type (2.8 / S.10): Fit screen keeps it whole; Fit width fills the width and scrolls down a page
+ * taller than the screen; Fit height fills the height and scrolls sideways; Original is the page's own size, scrolling
+ * either way it overflows. Centred and letterboxed by the reader background where it's smaller than the screen.
+ */
+@Composable
+private fun ScaledPage(number: Int, scale: ScaleType, crop: Boolean, rtl: Boolean, modifier: Modifier) {
+    val ratio = pageRatio(crop)
+    BoxWithConstraints(modifier) {
+        val size = when (scale) {
+            ScaleType.FIT_SCREEN ->
+                if (maxWidth / maxHeight < ratio) DpSize(maxWidth, maxWidth / ratio) else DpSize(maxHeight * ratio, maxHeight)
+            ScaleType.FIT_WIDTH -> DpSize(maxWidth, maxWidth / ratio)
+            ScaleType.FIT_HEIGHT -> DpSize(maxHeight * ratio, maxHeight)
+            ScaleType.ORIGINAL -> (PAGE_WIDTH * if (crop) 1 - 2 * PageMockMargin else 1f).let { DpSize(it, it / ratio) }
+        }
+        Box(
+            Modifier.fillMaxSize()
+                .then(if (size.height > maxHeight) Modifier.verticalScroll(rememberScrollState()) else Modifier)
+                // Right to left starts at the page's right edge, where its reading starts.
+                .then(if (size.width > maxWidth) Modifier.horizontalScroll(rememberScrollState(), reverseScrolling = rtl) else Modifier),
+            contentAlignment = Alignment.Center,
+        ) {
+            PageImage(number, crop, Modifier.size(size))
+        }
+    }
+}
+
+/**
+ * Long strip modes: scroll down. Taps follow the tap-zones setting: back and forward scroll most of a screen (a strip
+ * of the last view stays for context), the menu zone shows the menus.
+ */
 @Composable
 private fun StripReader(
     pageCount: Int,
     page: Int,
-    gaps: Boolean,
+    settings: ReaderSettings,
     onPage: (Int) -> Unit,
     onCentreTap: () -> Unit,
 ) {
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = (page - 1).coerceIn(0, pageCount - 1))
+    val scope = rememberCoroutineScope()
+    val animate = settings.animatePageTransitions
+    val zones = settings.tapZones
     val menusLabel = stringResource(R.string.reader_tap_menus)
     LaunchedEffect(listState.firstVisibleItemIndex) { onPage(listState.firstVisibleItemIndex + 1) }
     LaunchedEffect(page) {
         val target = (page - 1).coerceIn(0, pageCount - 1)
         when {
             listState.firstVisibleItemIndex == target -> Unit
-            abs(listState.firstVisibleItemIndex - target) == 1 -> listState.animateScrollToItem(target)
+            animate && abs(listState.firstVisibleItemIndex - target) == 1 -> listState.animateScrollToItem(target)
             else -> listState.scrollToItem(target)
         }
     }
@@ -402,17 +508,42 @@ private fun StripReader(
         state = listState,
         modifier = Modifier.fillMaxSize()
             .semantics { customActions = listOf(CustomAccessibilityAction(menusLabel) { onCentreTap(); true }) }
-            .pointerInput(Unit) { detectTapGestures { onCentreTap() } },
-        verticalArrangement = Arrangement.spacedBy(if (gaps) EchoSpacing.s else 0.dp),
+            .pointerInput(zones, animate) {
+                detectTapGestures { offset ->
+                    val step = size.height * STRIP_STEP
+                    when (tapZoneAt(zones, offset.x / size.width, offset.y / size.height, mirror = false)) {
+                        TapZoneKind.MENU -> onCentreTap()
+                        TapZoneKind.PREVIOUS -> scope.launch { listState.scrollStrip(-step, animate) }
+                        TapZoneKind.NEXT -> scope.launch { listState.scrollStrip(step, animate) }
+                    }
+                }
+            },
+        verticalArrangement = Arrangement.spacedBy(if (settings.readingMode == ReadingMode.LONG_STRIP_GAPS) EchoSpacing.s else 0.dp),
     ) {
         itemsIndexed(List(pageCount) { it }) { index, _ ->
-            ReaderPage(index + 1, Modifier.fillMaxWidth().aspectRatio(PAGE_RATIO))
+            PageImage(index + 1, settings.cropBorders, Modifier.fillMaxWidth().aspectRatio(pageRatio(settings.cropBorders)))
         }
     }
 }
 
+private suspend fun LazyListState.scrollStrip(by: Float, animate: Boolean) {
+    if (animate) animateScrollBy(by) else scrollBy(by)
+}
+
+/** How far a tap scrolls the long strip, as a share of the screen. */
+private const val STRIP_STEP = 0.8f
+
 /** Width / height of a page (Figma: 412 × 640). Real pages will bring their own ratio. */
 private const val PAGE_RATIO = 412f / 640f
+/** A page's own width, for the Original scale type (the Figma page is 412 dp wide). */
+private val PAGE_WIDTH = 412.dp
+
+/**
+ * Width / height of a page as drawn: with "Crop borders" the paper margin is gone on all four sides. The margin is a
+ * share of the page's shorter side (its width), so the height loses as much as the width does.
+ */
+private fun pageRatio(crop: Boolean) =
+    if (!crop) PAGE_RATIO else (1 - 2 * PageMockMargin) / (1 / PAGE_RATIO - 2 * PageMockMargin)
 
 /** Reader background setting (S.10 / 2.8): Black is the default, as in Figma. */
 @Composable
@@ -423,14 +554,29 @@ private fun readerBackground(background: ReaderBackground) = when (background) {
     ReaderBackground.AUTO -> MaterialTheme.colorScheme.background
 }
 
-/** A page: a placeholder panel until the sources give real images. */
+/**
+ * A page filling [modifier]'s size: a placeholder panel until the sources give real images. With [crop], the page is
+ * drawn larger than its box, centred, and the paper margin round it clipped away (real pages will need their blank
+ * edges measured instead).
+ */
 @Composable
-private fun ReaderPage(number: Int, modifier: Modifier = Modifier) {
-    // Full bleed: a page fills its slot edge to edge, as in the immersive frames.
-    // Fit screen: the page keeps its ratio inside its slot and is centred, letterboxed by the reader background
-    // (Figma "Page 34 (Fit screen)" 412 × 640 on a 412 × 917 screen). Never stretched past the screen.
-    Box(modifier, contentAlignment = Alignment.Center) {
-        PageMock(Modifier.aspectRatio(PAGE_RATIO).semantics { contentDescription = "Page $number" })
+private fun PageImage(number: Int, crop: Boolean, modifier: Modifier) {
+    val described = Modifier.semantics { contentDescription = "Page $number" }
+    if (!crop) {
+        PageMock(modifier.then(described))
+        return
+    }
+    Box(modifier.then(described).clipToBounds()) {
+        PageMock(
+            Modifier.layout { measurable, constraints ->
+                val width = (constraints.maxWidth / (1 - 2 * PageMockMargin)).roundToInt()
+                val height = (width / PAGE_RATIO).roundToInt()
+                val placeable = measurable.measure(Constraints.fixed(width, height))
+                layout(constraints.maxWidth, constraints.maxHeight) {
+                    placeable.place((constraints.maxWidth - width) / 2, (constraints.maxHeight - height) / 2)
+                }
+            },
+        )
     }
 }
 
@@ -460,23 +606,34 @@ private fun ReaderOverlays(
     ReaderSystemBars(state.menusShown)
     val activity = LocalContext.current.findActivity()
     var landscape by rememberSaveable { mutableStateOf(false) }
-    val rotate = {
-        landscape = !landscape
+    val rotate = { landscape = !landscape }
+    DisposableEffect(activity, landscape) {
         activity?.requestedOrientation =
             if (landscape) ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        // Leaving the reader gives the screen back its orientation. Not while the activity is recreated for the
+        // rotation itself: resetting then would snap straight back to portrait.
+        onDispose {
+            if (activity?.isChangingConfigurations != true) activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
     }
-    // Leaving the reader gives the screen back its orientation.
-    DisposableEffect(Unit) { onDispose { activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED } }
     val rtl = state.settings.readingMode == ReadingMode.PAGED_RTL
-    val paged = rtl || state.settings.readingMode == ReadingMode.PAGED_LTR || state.settings.readingMode == ReadingMode.TWO_PAGES
+    val zones = state.settings.tapZones
 
-    if (state.hintsShown && !state.menusShown && paged) {
-        TapZonesOverlay(
-            leftLabel = stringResource(if (rtl) R.string.reader_tap_next else R.string.reader_tap_previous),
-            rightLabel = stringResource(if (rtl) R.string.reader_tap_previous else R.string.reader_tap_next),
-            centreLabel = stringResource(R.string.reader_tap_menus),
-            modifier = Modifier.fillMaxSize(),
-        )
+    // The hint shows the zones in use; none when tap zones are off.
+    if (state.hintsShown && !state.menusShown && zones != TapZones.OFF) {
+        val previous = stringResource(R.string.reader_tap_previous)
+        val next = stringResource(R.string.reader_tap_next)
+        val menus = stringResource(R.string.reader_tap_menus)
+        if (zones == TapZones.DEFAULT) {
+            TapZonesOverlay(
+                leftLabel = if (rtl) next else previous,
+                rightLabel = if (rtl) previous else next,
+                centreLabel = menus,
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else {
+            TapZonesGrid(tapZoneGrid(zones, mirror = rtl), previous, next, menus, Modifier.fillMaxSize())
+        }
     }
     if (state.hintsShown && !state.menusShown) {
         Box(Modifier.fillMaxSize().padding(top = 96.dp), contentAlignment = Alignment.TopCenter) {
@@ -540,7 +697,7 @@ private fun ReaderOverlays(
                 ),
             )
         }
-    } else {
+    } else if (state.settings.showPageNumber) {
         Box(Modifier.fillMaxSize().padding(bottom = EchoSpacing.l), contentAlignment = Alignment.BottomCenter) {
             PageNumber(state.page, gallery.pageCount)
         }
