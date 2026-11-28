@@ -21,6 +21,12 @@ import app.echo.data.model.Work
  * "Gallery title placeholder", "ABC-101", "Title placeholder 1". No images: covers show the grey placeholder.
  */
 object FakeCatalog {
+    /**
+     * Stands in for the streams the javguru / hentai sources will resolve: a public multi-quality HLS test stream
+     * (Big Buck Bunny, 240p–1080p), so the theater plays real video and its quality menu has real choices.
+     */
+    const val SAMPLE_VIDEO_URL = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+
     private const val MIN = 60_000L
 
     // ASMR ------------------------------------------------------------------------------------------------------
@@ -127,6 +133,7 @@ object FakeCatalog {
             idols = idols.map { it.name }.drop(i % 3).take(4),
             genres = (0 until 4).map { k -> genres[(i + k * 5) % genres.size].name }.distinct(),
             sampleImages = List(6) { null }, censored = i % 4 != 0, views = (i * 7919) % 5000, rating = 3f + (i * 13 % 20) / 10f,
+            videoUrl = SAMPLE_VIDEO_URL,
         )
     } + (1..4).map { i ->
         Movie(
@@ -174,7 +181,7 @@ object FakeCatalog {
         HentaiTitle(
             id = "h$i", title = "Title placeholder $i", studio = hentaiStudios[i % hentaiStudios.size], year = year,
             views = views, isNew = i <= 4, uncensored = i % 4 == 0,
-            episodes = (1..(1 + i % 3)).map { Episode(it, "Episode $it", 23 * MIN + 14_000, released = "%d-%02d-%02d".format(year, month, 1 + (i + it * 7) % 27)) },
+            episodes = (1..(1 + i % 3)).map { Episode(it, "Episode $it", 23 * MIN + 14_000, videoUrl = SAMPLE_VIDEO_URL, released = "%d-%02d-%02d".format(year, month, 1 + (i + it * 7) % 27)) },
             tags = buildList {
                 if (i % 4 == 0) add("Uncensored")
                 // Each group steps at its own rate, so tags from different groups don't always come together.

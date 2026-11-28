@@ -13,12 +13,10 @@ import app.echo.data.model.Section
 import app.echo.data.repository.Load
 import kotlinx.coroutines.flow.first
 
-/** Stream hosts the Source button offers (H.11). */
-private val Hosts = listOf("hentaibros.net", "hanime.tv")
-
 /**
- * Figma H.11 Theater (28:6140): like 3.7, with ✕, "EPISODE 1 · SUB EN" and a Source button for the stream host
- * instead of quality. Resumes the episode where H.9 left it, and saves to the Hentai watch history.
+ * Figma H.11 Theater (28:6140): like 3.7, with ✕ and "EPISODE 1 · SUB EN". Streams come from hentaibros only, so
+ * there's no host choice; the quality menu lists the stream's qualities. Resumes the episode where H.9 left it, and
+ * saves to the Hentai watch history.
  */
 @Composable
 fun HentaiTheaterRoute(id: String, episode: Int, shell: ShellActions) {
@@ -37,14 +35,15 @@ fun HentaiTheaterRoute(id: String, episode: Int, shell: ShellActions) {
                         title = t.title,
                         durationMs = ep?.durationMs ?: 0,
                         startMs = saved ?: 0,
+                        videoUrl = ep?.videoUrl,
                     )
                 }
             },
             save = { position, duration, finished ->
                 title?.let { c.library.saveEpisodeProgress(it, episode, position, duration, finished) }
             },
-            host = Hosts.first(),
+            newPlayer = c::newVideoPlayer,
         )
     }
-    TheaterRoute(vm, code = "H.11", onBack = shell::back, showQuality = false, closeIcon = true, hosts = Hosts)
+    TheaterRoute(vm, code = "H.11", onBack = shell::back, closeIcon = true)
 }

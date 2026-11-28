@@ -65,6 +65,10 @@ kotlin {
 dependencies {
     implementation(project(":designsystem"))
     implementation(libs.coil.compose)
+    // 3.7 / H.11 Theater: video playback (HLS and progressive) and its Compose surface.
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.exoplayer.hls)
+    implementation(libs.media3.ui.compose)
     implementation(project(":data"))
     implementation(project(":services"))
 

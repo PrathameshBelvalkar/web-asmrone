@@ -59,6 +59,10 @@
     <string name="state_busy_body">Try again in a little while.</string>
     <string name="state_no_video_title">No video for this title</string>
     <string name="state_no_video_body">There’s nothing to play yet.</string>
+    <string name="theater_error_title">Can’t play this video</string>
+    <string name="theater_error_body">The stream didn’t load. Check your connection and try again.</string>
+    <string name="theater_portrait">Switch to portrait</string>
+    <string name="theater_landscape">Switch to landscape</string>
     <string name="state_empty_title">Nothing here yet</string>
     <string name="state_empty_body">Try another search or filter.</string>
 
@@ -749,7 +753,6 @@
     <string name="hentai_try_again">Try again</string>
     <string name="hentai_back">Back</string>
     <string name="hentai_theater_overline">Episode %1$d · Sub %2$s</string>
-    <string name="hentai_source">Source</string>
 
     <!-- O.9 First-run tip -->
     <string name="tip_source_title">Switch sources here</string>

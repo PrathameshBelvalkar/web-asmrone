@@ -87,6 +87,8 @@ data class Movie(
     /** For the 3.4 sorts Most viewed and Top rated. */
     val views: Int = 0,
     val rating: Float = 0f,
+    /** The stream 3.7 plays (HLS or a progressive file); null when there's nothing to watch yet (upcoming). */
+    val videoUrl: String? = null,
 )
 
 data class Idol(
