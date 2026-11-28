@@ -36,7 +36,7 @@ fun Section.icon(): Int = when (this) {
     Section.ASMR -> EchoIcons.MusicNote
     Section.MANGA -> EchoIcons.Book
     Section.JAV -> EchoIcons.Movie
-    Section.HENTAI -> EchoIcons.PlayArrow
+    Section.HENTAI -> EchoIcons.Anime
 }
 
 @Composable

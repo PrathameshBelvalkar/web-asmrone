@@ -288,7 +288,7 @@ private val SectionChoices = listOf(
     SectionChoice(Section.ASMR, R.string.onboarding_section_asmr, R.string.onboarding_section_asmr_body, EchoIcons.MusicNoteFilled),
     SectionChoice(Section.MANGA, R.string.onboarding_section_manga, R.string.onboarding_section_manga_body, EchoIcons.BookFilled),
     SectionChoice(Section.JAV, R.string.onboarding_section_jav, R.string.onboarding_section_jav_body, EchoIcons.MovieFilled, beta = true),
-    SectionChoice(Section.HENTAI, R.string.onboarding_section_hentai, R.string.onboarding_section_hentai_body, EchoIcons.PlayArrowFilled),
+    SectionChoice(Section.HENTAI, R.string.onboarding_section_hentai, R.string.onboarding_section_hentai_body, EchoIcons.AnimeFilled),
 )
 
 @Composable

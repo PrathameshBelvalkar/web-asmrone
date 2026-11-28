@@ -16,6 +16,13 @@ object EchoIcons {
     val Add: Int = R.drawable.ic_add
     val AddFilled: Int = R.drawable.ic_add_filled
 
+    /**
+     * icon/anime: the Hentai section. Not a Material Symbol: katakana ア (as in アニメ) from M PLUS Rounded 1c Bold
+     * (SIL OFL 1.1), drawn on the same 960 grid. A glyph has no fill, so both states use it.
+     */
+    val Anime: Int = R.drawable.ic_anime
+    val AnimeFilled: Int = R.drawable.ic_anime
+
     /** icon/back */
     val ArrowBack: Int = R.drawable.ic_arrow_back
     val ArrowBackFilled: Int = R.drawable.ic_arrow_back_filled
@@ -319,6 +326,7 @@ object EchoIcons {
     /** Every icon, for the Design system debug screen. */
     val All: List<EchoIcon> = listOf(
         EchoIcon("add", Add, AddFilled),
+        EchoIcon("anime", Anime, AnimeFilled),
         EchoIcon("arrow_back", ArrowBack, ArrowBackFilled),
         EchoIcon("arrow_forward", ArrowForward, ArrowForwardFilled),
         EchoIcon("arrow_left", ArrowLeft, ArrowLeftFilled),
